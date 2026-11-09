@@ -1,0 +1,8 @@
+# Files Docker should NOT send into the build (faster builds, and no local secrets in the image).
+target/
+.idea/
+*.iml
+mail-preview/
+.mcp.json
+.git/
+src/main/resources/application-local.properties

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<!--
+  The ONE layout for every VORNX email. Content comes from EmailContent (see EmailTemplates.java).
+  th:text ESCAPES values: a name like "<b>x</b>" is shown as text, never run as HTML.
+  Tables + inline styles on purpose: many email apps (Outlook, Gmail) ignore modern CSS.
+-->
+<html xmlns:th="http://www.thymeleaf.org" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title th:text="${c.subject()}">VORNX</title>
+</head>
+<body style="margin:0;padding:0;background:#f2f3f8;font-family:Tahoma,Segoe UI,Arial,sans-serif;">
+<!-- Hidden preview text shown by email apps next to the subject -->
+<div style="display:none;max-height:0;overflow:hidden;" th:text="${c.titleAr()} + ' · ' + ${c.titleEn()}"></div>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f2f3f8;padding:24px 12px;">
+    <tr>
+        <td align="center">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                   style="max-width:560px;background:#ffffff;border-radius:14px;overflow:hidden;">
+
+                <!-- Header -->
+                <tr>
+                    <td style="background:#1000b4;padding:22px 28px;color:#ffffff;font-size:22px;font-weight:bold;letter-spacing:3px;">
+                        VORNX
+                        <div style="font-size:12px;font-weight:normal;letter-spacing:0;opacity:.8;">One Card · Connected Access</div>
+                    </td>
+                </tr>
+
+                <!-- Arabic -->
+                <tr>
+                    <td dir="rtl" style="padding:28px 28px 8px;text-align:right;color:#1b1d2a;font-size:15px;line-height:1.8;">
+                        <h1 style="margin:0 0 12px;font-size:20px;color:#1000b4;" th:text="${c.titleAr()}">العنوان</h1>
+                        <p style="margin:0 0 10px;" th:each="line : ${c.linesAr()}" th:text="${line}">سطر</p>
+                    </td>
+                </tr>
+
+                <!-- Button (the same link for both languages) -->
+                <tr th:if="${c.buttonUrl() != null}">
+                    <td align="center" style="padding:14px 28px 18px;">
+                        <a th:href="${c.buttonUrl()}"
+                           style="display:inline-block;background:#1000b4;color:#ffffff;text-decoration:none;font-weight:bold;padding:13px 26px;border-radius:10px;font-size:15px;"
+                           th:text="${c.buttonAr()} + '  ·  ' + ${c.buttonEn()}">Open</a>
+                        <div style="margin-top:12px;font-size:12px;color:#6b6f80;direction:ltr;word-break:break-all;">
+                            <span th:text="${c.buttonUrl()}">https://...</span>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Divider -->
+                <tr><td style="padding:0 28px;"><div style="border-top:1px solid #e6e7ef;"></div></td></tr>
+
+                <!-- English -->
+                <tr>
+                    <td dir="ltr" style="padding:20px 28px 8px;text-align:left;color:#1b1d2a;font-size:15px;line-height:1.7;">
+                        <h2 style="margin:0 0 10px;font-size:18px;color:#1000b4;" th:text="${c.titleEn()}">Title</h2>
+                        <p style="margin:0 0 10px;" th:each="line : ${c.linesEn()}" th:text="${line}">Line</p>
+                    </td>
+                </tr>
+
+                <!-- Security note (e.g. "if this wasn't you...") -->
+                <tr th:if="${c.noteEn() != null}">
+                    <td style="padding:6px 28px 20px;">
+                        <div style="background:#f6f6fb;border-radius:10px;padding:12px 14px;font-size:13px;color:#4a4e60;">
+                            <div dir="rtl" style="text-align:right;" th:text="${c.noteAr()}">ملاحظة</div>
+                            <div dir="ltr" style="text-align:left;margin-top:6px;" th:text="${c.noteEn()}">Note</div>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                    <td style="background:#fafafd;padding:16px 28px;font-size:12px;color:#8a8ea0;text-align:center;line-height:1.6;">
+                        © VORNX — للتقنية والأنظمة الذكية · Built in the Kingdom of Saudi Arabia<br>
+                        هذه رسالة تلقائية، يرجى عدم الرد عليها · This is an automated message, please do not reply.
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>
