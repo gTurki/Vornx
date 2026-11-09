@@ -57,3 +57,19 @@ Built from the `Dockerfile`; health check `/actuator/health` (see `railway.json`
 | `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD` | only for `MAIL_MODE=smtp` |
 | `ADMIN_URL`, `PARTNER_URL`, `CUSTOMER_URL` | used in email links |
 | `API_DOCS_ENABLED` | `false` in production (default) |
+
+## Admin dashboard (`frontend/admin`)
+
+React 19 + TypeScript + Vite, TanStack Query, React Router. Arabic (RTL) UI from the `index 55` design, light/dark.
+
+```bash
+cd frontend/admin
+npm install
+npm run dev        # http://localhost:5173 (calls the API on http://localhost:8080)
+npm run build      # type-check + production build into dist/
+```
+
+Railway: a second service from this repo with **Root Directory** `/frontend/admin` and
+**Config file** `/frontend/admin/railway.json`; variable `VITE_API_URL=https://<api domain>`.
+Served by nginx with a strict Content-Security-Policy. Then set the API's `CORS_ALLOWED_ORIGINS`
+and `ADMIN_URL` to the dashboard's domain.

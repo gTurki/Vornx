@@ -6,3 +6,4 @@ mail-preview/
 .mcp.json
 .git/
 src/main/resources/application-local.properties
+frontend/
