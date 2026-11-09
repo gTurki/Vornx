@@ -52,6 +52,8 @@ Built from the `Dockerfile`; health check `/actuator/health` (see `railway.json`
 | `JWT_SECRET` | random, base64, ≥ 32 bytes — **never reuse the local one** |
 | `BOOTSTRAP_ADMIN_EMAIL` / `BOOTSTRAP_ADMIN_PASSWORD` | first SUPER_ADMIN (created only if there is none) |
 | `CORS_ALLOWED_ORIGINS` | the frontends' URLs, comma-separated |
-| `MAIL_MODE`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM` | SMTP provider |
+| `MAIL_MODE` | `brevo` (HTTPS API, recommended on Railway), `smtp`, or `preview` |
+| `BREVO_API_KEY`, `MAIL_FROM` | Brevo API key (`xkeysib-...`) and a sender verified in Brevo, e.g. `VORNX <no-reply@vornx.sa>` |
+| `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD` | only for `MAIL_MODE=smtp` |
 | `ADMIN_URL`, `PARTNER_URL`, `CUSTOMER_URL` | used in email links |
 | `API_DOCS_ENABLED` | `false` in production (default) |
