@@ -142,6 +142,8 @@ const CODES: Record<string, string> = {
   INSUFFICIENT_FUNDS: 'رصيد محفظتك لا يكفي.',
   SELF_TRANSFER: 'لا يمكنك التحويل لنفسك.',
   TOP_UP_DISABLED: 'شحن المحفظة غير متاح حاليًا.',
+  TOO_MANY_PENDING: 'لديك عمليات شحن لم تكتمل. حاول بعد قليل.',
+  PAYMENT_PROVIDER_ERROR: 'خدمة الدفع لا تستجيب الآن. حاول مرة أخرى.',
   CARD_NOT_ACTIVE: 'يمكن الإبلاغ عن فقد البطاقة النشطة فقط.',
   ALREADY_REGISTERED: 'لديك تذكرة لهذه الفعالية مسبقًا.',
   EVENT_FULL: 'اكتمل عدد المقاعد في هذه الفعالية.',

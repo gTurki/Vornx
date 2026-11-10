@@ -1,7 +1,8 @@
 import { api } from './client'
 import type {
   AccessDecision, AccessEvent, AppNotification, AuthResponse, Card, Customer, EventTicket, Page, Permit, Plan,
-  RegisterRequest, ReminderOption, ServiceRequest, Session, Subscription, VEvent, Wallet, WalletTransaction,
+  RegisterRequest, ReminderOption, ServiceRequest, Session, Subscription, TopUp, TopUpOptions, VEvent, Wallet,
+  WalletTransaction,
 } from './types'
 
 const C = '/api/customer'
@@ -40,6 +41,11 @@ export const endpoints = {
   // ---------- wallet ----------
   wallet: () => api<Wallet>(`${C}/wallet`),
   transactions: (page: number) => api<Page<WalletTransaction>>(`${C}/wallet/transactions?size=15&page=${page}`),
+  topUpOptions: () => api<TopUpOptions>(`${C}/wallet/top-up-options`),
+  /** Card top-up: returns Moyasar's payment page (checkoutUrl). */
+  startTopUp: (amount: number) => api<TopUp>(`${C}/wallet/top-ups`, { method: 'POST', body: { amount } }),
+  topUpStatus: (reference: string) => api<TopUp>(`${C}/wallet/top-ups/${encodeURIComponent(reference)}`),
+  /** Dev only: simulated money, no card. */
   topUp: (amount: number) => api<WalletTransaction>(`${C}/wallet/top-up`, { method: 'POST', body: { amount } }),
   transfer: (toVornxId: string, amount: number, note?: string) =>
     api<WalletTransaction>(`${C}/wallet/transfers`, { method: 'POST', body: { toVornxId, amount, note } }),

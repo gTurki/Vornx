@@ -110,3 +110,20 @@ variable `VITE_API_URL=https://<api domain>`. Add its domain to the API's `CORS_
 
 All three frontends share one refresh token per browser (localStorage) and refresh it under a Web Lock, so several
 open tabs never log each other out.
+
+## Card payments (Moyasar)
+
+Wallet top-up by card goes through Moyasar's **hosted invoice page**: the backend creates an invoice, the app sends
+the customer to Moyasar (mada, Visa, Mastercard, Apple Pay), and Moyasar sends them back to `/wallet?topup=TU-…`.
+Card details never touch VORNX. Plans and events are then paid from the wallet.
+
+The wallet is credited only after the backend **fetches the invoice from Moyasar with the secret key** and it is
+`paid` with the exact amount and currency - never from the browser's URL or the callback's body. Three triggers
+(return page, Moyasar's callback, a job every minute) can check at once; a row lock makes it credit once.
+
+| Variable (API service) | Value |
+|---|---|
+| `MOYASAR_SECRET_KEY` | `sk_test_…` while testing, `sk_live_…` when going live. Empty = card top-up off |
+| `MOYASAR_CALLBACK_URL` | `https://<api domain>/api/public/payments/moyasar/callback` |
+
+Local development without a key keeps the instant simulated top-up (`vornx.wallet.simulated-top-up-enabled=true`).

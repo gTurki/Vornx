@@ -489,3 +489,19 @@ export type AccessDecision = {
 }
 
 export type ReminderOption = 'ONE_HOUR' | 'ONE_DAY' | 'ONE_WEEK'
+
+// ---------- card top-up (Moyasar) ----------
+
+export type TopUpStatus = 'PENDING' | 'PAID' | 'FAILED' | 'EXPIRED'
+
+export type TopUp = {
+  reference: string
+  amount: number
+  currency: string
+  status: TopUpStatus
+  checkoutUrl: string | null // Moyasar's payment page, only while PENDING
+  createdAt: string
+  paidAt: string | null
+}
+
+export type TopUpOptions = { cardEnabled: boolean; testMode: boolean; simulatedEnabled: boolean; min: number; max: number }

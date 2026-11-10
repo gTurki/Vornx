@@ -121,3 +121,4 @@ code{font-family:Montserrat,monospace;font-size:12.5px;direction:ltr;display:inl
 }
 @keyframes up{from{transform:translateY(40px);opacity:0}}
 @media(prefers-reduced-motion:reduce){.drawer-panel{animation:none}}
+.pulse{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--pr);margin-inline-end:8px;animation:pl 1.4s infinite}@keyframes pl{50%{opacity:.25}}

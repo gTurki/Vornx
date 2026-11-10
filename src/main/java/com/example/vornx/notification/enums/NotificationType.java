@@ -41,6 +41,9 @@ public enum NotificationType {
     TRANSFER_RECEIVED(
             "Money received", "وصلتك حوالة",
             "{from} sent you {amount} SAR.", "أرسل لك {from} مبلغ {amount} ر.س."),
+    WALLET_TOPPED_UP(
+            "Wallet topped up", "تم شحن محفظتك",
+            "{amount} SAR was added to your wallet.", "أُضيف {amount} ر.س إلى محفظتك."),
 
     // ---------- To a partner's team ----------
     NEW_SUBSCRIPTION_REQUEST(

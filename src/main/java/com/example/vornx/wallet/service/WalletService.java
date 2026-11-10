@@ -129,7 +129,15 @@ public class WalletService {
         return WalletTransactionResponse.from(out);
     }
 
-    // ---------- For other modules (subscriptions...) ----------
+    // ---------- For other modules (subscriptions, payments...) ----------
+
+    /** Money that really arrived (a verified card payment). Called by the payment module, inside its transaction. */
+    public WalletTransaction creditTopUp(Long customerId, BigDecimal amount, String description) {
+        Wallet wallet = lockWallet(customerId);
+        wallet.credit(amount);
+        return save(wallet, TransactionType.TOP_UP, amount, description, null, null);
+    }
+
 
     /** Take money from the customer to pay a partner. */
     public WalletTransaction charge(Long customerId, BigDecimal amount, Partner partner, String description) {
