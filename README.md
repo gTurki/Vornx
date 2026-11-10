@@ -73,3 +73,22 @@ Railway: a second service from this repo with **Root Directory** `/frontend/admi
 **Config file** `/frontend/admin/railway.json`; variable `VITE_API_URL=https://<api domain>`.
 Served by nginx with a strict Content-Security-Policy. Then set the API's `CORS_ALLOWED_ORIGINS`
 and `ADMIN_URL` to the dashboard's domain.
+
+## Partner portal (`frontend/partner`)
+
+Same stack and look as the admin dashboard, from the `hotel.html` design. For partner staff: overview,
+live door activity (refreshes every 5 s), permits / digital keys, subscription requests, sites and access
+points, plans, events and tickets, contract and invoices, team and device API keys, support, activity log.
+Buttons are hidden by role (`PARTNER_ADMIN`, `MANAGER`, `FRONT_DESK`, `VIEWER`); the API enforces the same rules.
+
+```bash
+cd frontend/partner
+npm install
+npm run dev        # http://localhost:5174
+```
+
+Pages opened from emails: `/accept-invite?token=…` (new staff), `/reset-password?token=…`, `/billing`.
+
+Railway: a third service, **Root Directory** `/frontend/partner`, **Config file** `/frontend/partner/railway.json`,
+variable `VITE_API_URL=https://<api domain>`. Then add its domain to the API's `CORS_ALLOWED_ORIGINS`
+(comma-separated) and set `PARTNER_URL` to it, so invite and reset links point to the portal.

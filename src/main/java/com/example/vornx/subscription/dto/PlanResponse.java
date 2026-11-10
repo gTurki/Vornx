@@ -26,6 +26,7 @@ public record PlanResponse(
         String currency,
         boolean requiresApproval,
         boolean wholeSite,
+        List<Long> accessPointIds,     // so an edit form can show the chosen points
         List<String> accessPointNames,
         TreeSet<DayOfWeek> allowedDays,
         LocalTime allowedFrom,
@@ -37,10 +38,11 @@ public record PlanResponse(
                 .sorted(Comparator.comparing(AccessPoint::getCode))
                 .map(AccessPoint::getName)
                 .toList();
+        List<Long> apIds = p.getAccessPoints().stream().map(AccessPoint::getId).sorted().toList();
         return new PlanResponse(p.getId(), p.getPartner().getId(), p.getPartner().getName(),
                 p.getSite().getId(), p.getSite().getName(), p.getName(), p.getDescription(),
                 p.getPermitType(), p.getBillingPeriod(), p.getPrice(), "SAR", p.isRequiresApproval(),
-                aps.isEmpty(), aps, new TreeSet<>(p.getAllowedDays()), p.getAllowedFrom(), p.getAllowedTo(),
+                aps.isEmpty(), apIds, aps, new TreeSet<>(p.getAllowedDays()), p.getAllowedFrom(), p.getAllowedTo(),
                 p.isActive());
     }
 }

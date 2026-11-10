@@ -1,5 +1,6 @@
 package com.example.vornx.events.dto;
 
+import com.example.vornx.access.entity.AccessPoint;
 import com.example.vornx.events.entity.Event;
 import com.example.vornx.events.enums.EventStatus;
 
@@ -29,6 +30,7 @@ public record EventResponse(
         String contactPhone,
         EventStatus status,
         boolean upcoming,
+        List<Long> accessPointIds,   // empty = the whole site
         List<EventRequest.AgendaItemDto> agenda
 ) {
     public static EventResponse from(Event e, long activeTickets, Instant now) {
@@ -41,6 +43,7 @@ public record EventResponse(
                 e.getSite().getLatitude(), e.getSite().getLongitude(),
                 e.getStartsAt(), e.getEndsAt(), e.getDoorsOpenAt(), e.getFee(), e.getCapacity(), left,
                 e.isRequiresApproval(), e.getDressCode(), e.getContactPhone(), e.getStatus(), e.isUpcoming(now),
+                e.getAccessPoints().stream().map(AccessPoint::getId).sorted().toList(),
                 agenda);
     }
 }
