@@ -92,3 +92,21 @@ Pages opened from emails: `/accept-invite?token=…` (new staff), `/reset-passwo
 Railway: a third service, **Root Directory** `/frontend/partner`, **Config file** `/frontend/partner/railway.json`,
 variable `VITE_API_URL=https://<api domain>`. Then add its domain to the API's `CORS_ALLOWED_ORIGINS`
 (comma-separated) and set `PARTNER_URL` to it, so invite and reset links point to the portal.
+
+## Customer app (`frontend/customer`)
+
+The card holder's web app, from the `index_76.html` design: light by default, sidebar on desktop, bottom tab bar
+on phones. Sign up / log in, the VORNX card (report lost), permits with "open the door from my phone",
+subscriptions and the plan catalog, events and tickets, wallet (top-up, transfers), access log, account and devices.
+
+```bash
+cd frontend/customer
+npm install
+npm run dev        # http://localhost:5175
+```
+
+Railway: a fourth service, **Root Directory** `/frontend/customer`, **Config file** `/frontend/customer/railway.json`,
+variable `VITE_API_URL=https://<api domain>`. Add its domain to the API's `CORS_ALLOWED_ORIGINS` and set `CUSTOMER_URL`.
+
+All three frontends share one refresh token per browser (localStorage) and refresh it under a Web Lock, so several
+open tabs never log each other out.

@@ -1,0 +1,67 @@
+import { StrictMode, type ReactNode } from 'react'
+import { createRoot } from 'react-dom/client'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { ApiError } from './api/client'
+import { AuthProvider, useAuth } from './auth/AuthContext'
+import { Layout, ServicesPage } from './layout/Layout'
+import { AccountPage } from './pages/AccountPage'
+import { ForgotPasswordPage, LoginPage, RegisterPage, ResetPasswordPage } from './pages/AuthPages'
+import { CardPage } from './pages/CardPage'
+import { EventsPage } from './pages/EventsPage'
+import { HomePage } from './pages/HomePage'
+import { AccessLogPage, PermitsPage } from './pages/PermitsPage'
+import { SubscriptionsPage } from './pages/SubscriptionsPage'
+import { WalletPage } from './pages/WalletPage'
+import { ToastProvider } from './ui/Toast'
+import './styles.css'
+
+// TanStack Query = server data cache: loading/error states, refetching, and no duplicate requests.
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 15_000,
+      refetchOnWindowFocus: true,
+      // Don't retry errors that won't fix themselves (403, 404, validation...).
+      retry: (n, e) => n < 2 && (!(e instanceof ApiError) || e.status === 0 || e.status >= 500),
+    },
+  },
+})
+
+/** Pages behind login: while checking the saved session show nothing, then go to /login if needed. */
+function Protected({ children }: { children: ReactNode }) {
+  const { status } = useAuth()
+  if (status === 'loading') return <div className="auth-page" />
+  return status === 'in' ? <>{children}</> : <Navigate to="/login" replace />
+}
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <ToastProvider>
+        <BrowserRouter>
+          <AuthProvider>
+            <Routes>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
+              <Route element={<Protected><Layout /></Protected>}>
+                <Route index element={<HomePage />} />
+                <Route path="card" element={<CardPage />} />
+                <Route path="permits" element={<PermitsPage />} />
+                <Route path="subscriptions" element={<SubscriptionsPage />} />
+                <Route path="events" element={<EventsPage />} />
+                <Route path="wallet" element={<WalletPage />} />
+                <Route path="access-log" element={<AccessLogPage />} />
+                <Route path="account" element={<AccountPage />} />
+                <Route path="services" element={<ServicesPage />} />
+              </Route>
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </AuthProvider>
+        </BrowserRouter>
+      </ToastProvider>
+    </QueryClientProvider>
+  </StrictMode>,
+)

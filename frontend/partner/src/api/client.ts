@@ -90,33 +90,45 @@ export async function api<T>(path: string, { method = 'GET', body, auth = true }
   return (text ? JSON.parse(text) : undefined) as T
 }
 
-/** Exchange the refresh token for a new pair. Only one refresh runs at a time. */
+/**
+ * Exchange the refresh token for a new pair. Only one refresh runs at a time - in this tab AND across tabs.
+ *
+ * Why across tabs: all tabs share ONE refresh token (localStorage). If 2 tabs send it at the same moment,
+ * the server accepts the first and answers 401 to the second. Without the lock, the second tab would then
+ * delete the brand-new token the first tab just saved, and every tab would be logged out.
+ * navigator.locks (Web Locks API) makes the tabs take turns; each one reads the LATEST token inside the lock.
+ */
 export function refresh(): Promise<boolean> {
   if (!refreshing) {
-    refreshing = (async () => {
-      const rt = safeGet(REFRESH_KEY)
-      if (!rt) return false
-      try {
-        const res = await fetch(API_URL + '/api/public/auth/refresh', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ refreshToken: rt }),
-        })
-        if (!res.ok) {
-          session.clear()
-          return false
-        }
-        session.save(await res.json())
-        return true
-      } catch {
-        return false // network error: keep the refresh token, maybe the server is just restarting
-      }
-    })().finally(() => {
+    const run = () => doRefresh()
+    refreshing = (navigator.locks ? navigator.locks.request(REFRESH_KEY, run) : run()).finally(() => {
       refreshing = null
     })
   }
   return refreshing
 }
+
+async function doRefresh(): Promise<boolean> {
+  const rt = safeGet(REFRESH_KEY)
+  if (!rt) return false
+  try {
+    const res = await fetch(API_URL + '/api/public/auth/refresh', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken: rt }),
+    })
+    if (!res.ok) {
+      // Only forget the token if no other tab replaced it in the meantime.
+      if (safeGet(REFRESH_KEY) === rt) session.clear()
+      return false
+    }
+    session.save(await res.json())
+    return true
+  } catch {
+    return false // network error: keep the refresh token, maybe the server is just restarting
+  }
+}
+
 
 // ---------- Arabic messages for the error codes the backend sends ----------
 

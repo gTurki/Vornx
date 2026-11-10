@@ -1,0 +1,31 @@
+# nginx serves the built dashboard (static files). ${PORT} and ${VITE_API_URL} are filled in from
+# environment variables when the container starts (the official nginx image does this for *.template files;
+# nginx's own variables like $uri are left alone).
+#
+# Gotcha: in nginx, a location with its OWN add_header does NOT inherit the server's add_header lines.
+# So the security headers are kept in one snippet and included in every location.
+
+
+server {
+    listen ${PORT};
+    root /usr/share/nginx/html;
+    index index.html;
+    server_tokens off;
+    gzip on;
+    gzip_types text/css application/javascript application/json image/svg+xml;
+
+    # Built files have a content hash in their name (index-BBPotw-t.js): cache them for a year.
+    location /assets/ {
+        include /etc/nginx/conf.d/security-headers.inc;
+        add_header Cache-Control "public, max-age=31536000, immutable" always;
+        try_files $uri =404;
+    }
+
+    # index.html is never cached, so a new deploy shows up immediately.
+    # Unknown paths (/partners, /contracts...) return index.html and React Router shows the right page.
+    location / {
+        include /etc/nginx/conf.d/security-headers.inc;
+        add_header Cache-Control "no-cache" always;
+        try_files $uri $uri/ /index.html;
+    }
+}
