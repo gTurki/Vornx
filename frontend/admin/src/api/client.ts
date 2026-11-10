@@ -22,6 +22,8 @@ let onSessionEnded: (() => void) | null = null
 
 export const session = {
   hasRefreshToken: () => !!safeGet(REFRESH_KEY),
+  /** The current access token (memory only), e.g. to log in the WebSocket. */
+  accessToken: () => accessToken,
   refreshToken: () => safeGet(REFRESH_KEY),
   save(auth: AuthResponse) {
     accessToken = auth.accessToken

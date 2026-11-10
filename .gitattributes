@@ -1,2 +1,5 @@
 /mvnw text eol=lf
 *.cmd text eol=crlf
+# Shell scripts run inside Linux containers: always LF line endings, even when checked out on Windows.
+*.sh text eol=lf
+*.envsh text eol=lf

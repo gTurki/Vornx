@@ -3,6 +3,7 @@ import { NavLink, Outlet } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../auth/AuthContext'
 import { endpoints } from '../api/endpoints'
+import { useRealtime } from '../api/useRealtime'
 import { ago, count } from '../lib/format'
 import { Icon, type IconName } from '../ui/Icon'
 
@@ -30,6 +31,7 @@ const TABS: Item[] = [
 ]
 
 export function Layout() {
+  useRealtime()
   const { me, logout } = useAuth()
   // Points change after payments, so read them fresh (not from the login-time copy).
   const profile = useQuery({ queryKey: ['me'], queryFn: endpoints.me, initialData: me ?? undefined })
@@ -119,7 +121,7 @@ function ThemeToggle() {
 function Bell() {
   const [open, setOpen] = useState(false)
   const qc = useQueryClient()
-  const unread = useQuery({ queryKey: ['notifications', 'unread'], queryFn: endpoints.unreadCount, refetchInterval: 30_000 })
+  const unread = useQuery({ queryKey: ['notifications', 'unread'], queryFn: endpoints.unreadCount, refetchInterval: 120_000 }) // fallback; live updates come over the WebSocket
   const list = useQuery({ queryKey: ['notifications', 'list'], queryFn: endpoints.notifications, enabled: open })
   const readAll = useMutation({
     mutationFn: endpoints.readAllNotifications,

@@ -7,7 +7,9 @@ import com.example.vornx.notification.entity.Notification;
 import com.example.vornx.notification.enums.NotificationType;
 import com.example.vornx.notification.enums.RecipientType;
 import com.example.vornx.notification.repository.NotificationRepository;
+import com.example.vornx.realtime.RealtimePush;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +37,7 @@ public class NotificationService {
     private static final DateTimeFormatter DATE_TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     private final NotificationRepository notificationRepository;
+    private final ApplicationEventPublisher events;
     private final Clock clock;
     private final ZoneId businessZone;
 
@@ -63,8 +66,15 @@ public class NotificationService {
                       Ref ref) {
         Map<String, String> text = new LinkedHashMap<>();
         params.forEach((k, v) -> text.put(k, format(v)));
-        notificationRepository.save(new Notification(recipientType, recipientId, type, type.render(text),
+        Notification saved = notificationRepository.save(new Notification(recipientType, recipientId, type, type.render(text),
                 ref != null ? ref.type() : null, ref != null ? ref.id() : null));
+        // Live: the bell updates right away (sent after commit).
+        String channel = switch (recipientType) {
+            case CUSTOMER -> RealtimePush.customer(recipientId);
+            case PARTNER -> RealtimePush.partner(recipientId);
+            case ADMINS -> RealtimePush.ADMINS;
+        };
+        events.publishEvent(new RealtimePush(channel, "notification", NotificationResponse.from(saved)));
     }
 
     /** Dates in Riyadh time, money without scientific notation. */

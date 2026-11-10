@@ -3,6 +3,7 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../auth/AuthContext'
 import { endpoints } from '../api/endpoints'
+import { useRealtime } from '../api/useRealtime'
 import { ago } from '../lib/format'
 import { PARTNER_ROLE } from '../lib/labels'
 import { Icon, type IconName } from '../ui/Icon'
@@ -41,6 +42,7 @@ const NAV: { group: string; items: { to: string; label: string; icon: IconName }
 const TITLES: Record<string, string> = Object.fromEntries(NAV.flatMap((g) => g.items.map((i) => [i.to, i.label])))
 
 export function Layout() {
+  useRealtime()
   const { me, logout } = useAuth()
   const { pathname } = useLocation()
   const title = TITLES['/' + (pathname.split('/')[1] ?? '')] ?? 'VORNX'
@@ -110,7 +112,7 @@ function ThemeToggle() {
 function Bell() {
   const [open, setOpen] = useState(false)
   const qc = useQueryClient()
-  const unread = useQuery({ queryKey: ['notifications', 'unread'], queryFn: endpoints.unreadCount, refetchInterval: 30_000 })
+  const unread = useQuery({ queryKey: ['notifications', 'unread'], queryFn: endpoints.unreadCount, refetchInterval: 120_000 }) // fallback; live updates come over the WebSocket
   const list = useQuery({ queryKey: ['notifications', 'list'], queryFn: endpoints.notifications, enabled: open })
   const readAll = useMutation({
     mutationFn: endpoints.readAllNotifications,

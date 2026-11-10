@@ -8,8 +8,8 @@ import { Empty, ErrorBox, Loading, Num, Pager, Tag } from '../ui/bits'
 import { SiteSelect } from '../ui/pickers'
 
 /**
- * "التشغيل المباشر": every door decision, newest first, refreshed every 5 seconds.
- * (Polling is simple and reliable. Later, WebSocket can push each decision the moment it happens.)
+ * "التشغيل المباشر": every door decision, newest first. Each new decision arrives over the WebSocket
+ * (useRealtime reloads 'access-events'); a slow poll stays as a safety net.
  */
 export function LivePage() {
   const [siteId, setSiteId] = useState<number | null>(null)
@@ -21,7 +21,7 @@ export function LivePage() {
     queryKey: ['access-events', params],
     queryFn: () => endpoints.accessEvents(params),
     // Only the first page is "live"; older pages don't change.
-    refetchInterval: paused || page > 0 ? false : 5_000,
+    refetchInterval: paused || page > 0 ? false : 30_000, // a safety net: new scans arrive instantly over the WebSocket
   })
 
   // Remember which rows we've already shown, so only NEW ones flash.
@@ -37,7 +37,7 @@ export function LivePage() {
 
   return (
     <>
-      <p className="lead">كل محاولة دخول في مواقعك: من، وأين، وبأي طريقة، وهل سُمح له. القائمة تتحدث تلقائيًا كل 5 ثوانٍ.</p>
+      <p className="lead">كل محاولة دخول في مواقعك: من، وأين، وبأي طريقة، وهل سُمح له. القائمة تتحدث لحظيًا مع كل عملية.</p>
       <div className="toolbar">
         <SiteSelect all value={siteId} onChange={(v) => { setSiteId(v); setPage(0) }} />
         <label style={{ display: 'flex', gap: 6, alignItems: 'center' }}>

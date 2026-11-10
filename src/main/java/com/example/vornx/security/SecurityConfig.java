@@ -83,6 +83,8 @@ public class SecurityConfig {
                         // Browsers send an OPTIONS "preflight" before cross-site calls; it carries no token.
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/public/**", "/actuator/health", "/error").permitAll()
+                        // WebSocket handshake; the socket itself requires a token in its first message
+                        .requestMatchers("/ws").permitAll()
                         // API docs (they are disabled entirely in production, see application.properties)
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/api/admin/**").hasAuthority(UserType.ADMIN.authority())

@@ -2,6 +2,7 @@ package com.example.vornx.access.service;
 
 import com.example.vornx.access.dto.AccessDecisionResponse;
 import com.example.vornx.access.dto.AccessEventResponse;
+import com.example.vornx.realtime.RealtimePush;
 import com.example.vornx.access.dto.CardAccessRequest;
 import com.example.vornx.access.entity.AccessDecision;
 import com.example.vornx.access.entity.AccessPoint;
@@ -200,6 +201,9 @@ public class AccessDecisionService {
         log.info("Access {} {} at access point {} (reason: {})", decision.getDecisionNumber(), outcome.decision(),
                 ap.getId(), outcome.reason());
         accessDecisionRepository.save(decision);
+        // Live: the partner's "التشغيل المباشر" page shows it right away (sent after commit).
+        events.publishEvent(new RealtimePush(RealtimePush.partner(ap.getSite().getPartner().getId()), "access-event",
+                AccessEventResponse.from(decision)));
         if (decision.getDecision() == Decision.ALLOW) {
             // e.g. the events module marks the ticket as checked in
             events.publishEvent(new AccessGrantedEvent(decision.getId(), outcome.permit().getId(),

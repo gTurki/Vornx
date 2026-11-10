@@ -18,5 +18,7 @@ COPY --from=build /app/dist /usr/share/nginx/html
 # Files in /etc/nginx/templates/*.template get ${VARIABLES} replaced at startup (PORT, VITE_API_URL).
 COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 COPY security-headers.inc.template /etc/nginx/templates/security-headers.inc.template
+# Turns VITE_API_URL (https://...) into VITE_API_WS_URL (wss://...) for the CSP, before the templates are filled in.
+COPY --chmod=755 api-ws-url.envsh /docker-entrypoint.d/15-api-ws-url.envsh
 ENV PORT=8080
 EXPOSE 8080

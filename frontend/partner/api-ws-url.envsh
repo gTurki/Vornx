@@ -1,0 +1,4 @@
+#!/bin/sh
+# Sourced by the nginx image before it fills in the *.template files (scripts ending in .envsh are sourced).
+# The Content-Security-Policy must allow the API's WebSocket: https://api... -> wss://api...
+export VITE_API_WS_URL="$(printf '%s' "$VITE_API_URL" | sed 's#^http#ws#')"

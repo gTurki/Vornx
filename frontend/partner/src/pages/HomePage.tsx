@@ -15,7 +15,7 @@ export function HomePage() {
   // size=1: we only want the totals, not the rows.
   const permits = useQuery({ queryKey: ['permits', 'total'], queryFn: () => endpoints.permits({ size: 1 }) })
   const pending = useQuery({ queryKey: ['requests', { status: 'PENDING', home: true }], queryFn: () => endpoints.requests({ status: 'PENDING', size: 5 }) })
-  const live = useQuery({ queryKey: ['access-events', { home: true }], queryFn: () => endpoints.accessEvents({ size: 6 }), refetchInterval: 15_000 })
+  const live = useQuery({ queryKey: ['access-events', { home: true }], queryFn: () => endpoints.accessEvents({ size: 6 }), refetchInterval: 60_000 })
   const contract = useQuery({ queryKey: ['contract'], queryFn: endpoints.contract, retry: false })
   const activity = useQuery({ queryKey: ['activity', { home: true }], queryFn: () => endpoints.activity({ size: 5 }) })
   const c = contract.data
