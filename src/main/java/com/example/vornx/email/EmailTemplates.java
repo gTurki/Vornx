@@ -61,6 +61,21 @@ public class EmailTemplates {
                 "If you didn't ask for this, ignore this email: your current password will not change.");
     }
 
+    /** The 6-digit code of the two-step login. No button: the code is typed in the app that asked for it. */
+    public EmailContent loginCode(String name, String code, int minutes) {
+        return new EmailContent(
+                "رمز الدخول إلى VORNX · Your VORNX login code",
+                "رمز الدخول: " + code,
+                "Your code: " + code,
+                List.of("مرحبًا " + name + "، استخدم هذا الرمز لإكمال تسجيل الدخول.",
+                        "الرمز صالح لمدة " + minutes + " دقائق ويُستخدم مرة واحدة."),
+                List.of("Hello " + name + ", use this code to finish logging in.",
+                        "The code works once and expires in " + minutes + " minutes."),
+                null, null, null,
+                "لا تشارك هذا الرمز مع أي أحد، ولا حتى موظفي VORNX. إذا لم تحاول الدخول فغيّر كلمة المرور فورًا.",
+                "Never share this code with anyone, not even VORNX staff. If you didn't try to log in, change your password now.");
+    }
+
     public EmailContent passwordChanged(String name, UserType type) {
         return new EmailContent(
                 "تم تغيير كلمة المرور · Your password was changed",

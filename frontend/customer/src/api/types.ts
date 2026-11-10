@@ -8,6 +8,21 @@ export type ProblemDetail = {
   detail?: string
   code?: string                    // business rule code, e.g. "CODE_TAKEN"
   errors?: Record<string, string>  // field validation errors
+  attemptsLeft?: number            // CODE_INVALID
+  resendIn?: number                // CODE_RESEND_TOO_SOON
+}
+
+/** Login step 1 answer when a code was sent (HTTP 202). Step 2 = verifyCode(challengeToken, code). */
+export type LoginChallenge = {
+  status: 'CODE_REQUIRED'
+  challengeToken: string
+  channel: 'EMAIL'
+  destination: string   // masked, e.g. "tr•••7@gmail.com"
+  codeExpiresIn: number // seconds
+  resendIn: number      // seconds before "send again"
+  resendsLeft: number
+  attemptsLeft: number
+  devCode?: string      // development only
 }
 
 export type AuthResponse = {

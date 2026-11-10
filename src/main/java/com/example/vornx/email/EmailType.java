@@ -6,5 +6,6 @@ public enum EmailType {
     CUSTOMER_WELCOME,
     PASSWORD_RESET,
     PASSWORD_CHANGED,
+    LOGIN_CODE,
     INVOICE_ISSUED
 }

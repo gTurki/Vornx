@@ -3,8 +3,15 @@ package com.example.vornx.security.auth;
 import com.example.vornx.customer.dto.CustomerRegisterRequest;
 import com.example.vornx.security.auth.dto.AcceptInviteRequest;
 import com.example.vornx.security.auth.dto.AuthResponse;
+import com.example.vornx.security.auth.dto.LoginChallengeResponse;
 import com.example.vornx.security.auth.dto.LoginRequest;
 import com.example.vornx.security.auth.dto.RefreshRequest;
+import com.example.vornx.security.auth.dto.ResendCodeRequest;
+import com.example.vornx.security.auth.dto.VerifyCodeRequest;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import com.example.vornx.security.session.ClientInfo;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -12,6 +19,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -46,10 +54,33 @@ public class AuthController {
         return authService.acceptPartnerInvite(req, ClientInfo.from(http));
     }
 
-    /** Customer app (index_76) */
+    /** Customer app (index_76), step 1. */
+    @Operation(summary = "Customer login, step 1: email + password",
+            description = "202 = a 6-digit code was emailed: send it to /customer/login/verify. "
+                    + "200 = tokens straight away (only when two-step login is turned off).")
+    @ApiResponse(responseCode = "202", content = @Content(schema = @Schema(implementation = LoginChallengeResponse.class)))
+    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = AuthResponse.class)))
     @PostMapping("/customer/login")
-    public AuthResponse customerLogin(@Valid @RequestBody LoginRequest req, HttpServletRequest http) {
-        return authService.loginCustomer(req, ClientInfo.from(http));
+    public ResponseEntity<?> customerLogin(@Valid @RequestBody LoginRequest req, HttpServletRequest http) {
+        AuthService.CustomerLogin result = authService.loginCustomer(req, ClientInfo.from(http));
+        return result.challenge() != null
+                ? ResponseEntity.status(HttpStatus.ACCEPTED).body(result.challenge())
+                : ResponseEntity.ok(result.tokens());
+    }
+
+    @Operation(summary = "Customer login, step 2: the code from the email",
+            description = "409 CODE_INVALID (with attemptsLeft), CODE_EXPIRED (ask for a new one), "
+                    + "LOGIN_CHALLENGE_INVALID (start again with the password).")
+    @PostMapping("/customer/login/verify")
+    public AuthResponse customerVerifyCode(@Valid @RequestBody VerifyCodeRequest req, HttpServletRequest http) {
+        return authService.verifyCustomerCode(req.challengeToken(), req.code(), ClientInfo.from(http));
+    }
+
+    @Operation(summary = "Send the login code again",
+            description = "Once per 60 s, 3 sends per login. 409 CODE_RESEND_TOO_SOON (with resendIn) / CODE_RESEND_LIMIT.")
+    @PostMapping("/customer/login/resend")
+    public LoginChallengeResponse customerResendCode(@Valid @RequestBody ResendCodeRequest req) {
+        return authService.resendCustomerCode(req.challengeToken());
     }
 
     @PostMapping("/customer/register")

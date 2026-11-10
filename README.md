@@ -151,3 +151,17 @@ inquiries appear live in the admin dashboard under "رسائل الموقع".
 Railway: a fifth service, **Root Directory** `/frontend/site`, **Config file** `/frontend/site/railway.json`, variables
 `VITE_API_URL` (the API), `VORNX_APP_URL` (customer app) and `VORNX_PARTNER_URL` (partner portal).
 Add the site's domain to the API's `CORS_ALLOWED_ORIGINS`.
+
+## Two-step customer login
+
+After the right password, the customer gets a 6-digit code (by email for now) and types it in the app.
+
+1. `POST /api/public/auth/customer/login`: **202** + `challengeToken` (a code was sent), or 200 + tokens when turned off.
+2. `POST /api/public/auth/customer/login/verify` `{challengeToken, code}` gives the tokens.
+3. `POST /api/public/auth/customer/login/resend` `{challengeToken}` sends a new code (once a minute, 3 sends max).
+
+Rules: a code works for 5 minutes, and only once. After 5 wrong codes the customer must enter the password again. An account can start at most 5 logins per 15 minutes. Only hashes are stored.
+
+Railway variable: `CUSTOMER_LOGIN_CODE` = `email` (default) or `off`.
+In development (`vornx.dev.expose-tokens=true`) the code is also returned as `devCode` and prefilled in the app.
+SMS (Firebase phone auth) will be added later as another channel.

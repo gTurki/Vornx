@@ -2,12 +2,13 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { useQueryClient } from '@tanstack/react-query'
 import { refresh, session } from '../api/client'
 import { endpoints } from '../api/endpoints'
-import type { AuthResponse, Customer } from '../api/types'
+import type { AuthResponse, Customer, LoginChallenge } from '../api/types'
 
 type AuthState = {
   status: 'loading' | 'in' | 'out'
   me: Customer | null
-  login: (email: string, password: string) => Promise<void>
+  /** Step 1. Returns the challenge when a code was sent (finish with loginWith(verifyCode(...))), null when logged in. */
+  login: (email: string, password: string) => Promise<LoginChallenge | null>
   /** After sign-up the API already returns tokens: log straight in. */
   loginWith: (auth: AuthResponse) => Promise<void>
   logout: () => Promise<void>
@@ -54,7 +55,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const login = useCallback(async (email: string, password: string) => {
-    await loginWith(await endpoints.login(email, password))
+    const r = await endpoints.login(email, password)
+    if ('challengeToken' in r) return r
+    await loginWith(r)
+    return null
   }, [loginWith])
 
   const logout = useCallback(async () => {

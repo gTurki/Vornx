@@ -1,6 +1,6 @@
 import { api } from './client'
 import type {
-  AccessDecision, AccessEvent, AppNotification, AuthResponse, Card, Customer, EventTicket, Page, Permit, Plan,
+  AccessDecision, AccessEvent, AppNotification, AuthResponse, Card, LoginChallenge, Customer, EventTicket, Page, Permit, Plan,
   RegisterRequest, ReminderOption, ServiceRequest, Session, Subscription, TopUp, TopUpOptions, VEvent, Wallet,
   WalletTransaction,
 } from './types'
@@ -12,7 +12,11 @@ const C = '/api/customer'
 export const endpoints = {
   // ---------- auth ----------
   login: (email: string, password: string) =>
-    api<AuthResponse>('/api/public/auth/customer/login', { method: 'POST', body: { email, password }, auth: false }),
+    api<AuthResponse | LoginChallenge>('/api/public/auth/customer/login', { method: 'POST', body: { email, password }, auth: false }),
+  verifyCode: (challengeToken: string, code: string) =>
+    api<AuthResponse>('/api/public/auth/customer/login/verify', { method: 'POST', body: { challengeToken, code }, auth: false }),
+  resendCode: (challengeToken: string) =>
+    api<LoginChallenge>('/api/public/auth/customer/login/resend', { method: 'POST', body: { challengeToken }, auth: false }),
   register: (body: RegisterRequest) =>
     api<AuthResponse>('/api/public/auth/customer/register', { method: 'POST', body, auth: false }),
   logout: (refreshToken: string) =>

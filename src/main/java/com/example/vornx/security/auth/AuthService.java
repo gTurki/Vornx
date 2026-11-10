@@ -14,7 +14,10 @@ import com.example.vornx.security.TokenService;
 import com.example.vornx.security.UserType;
 import com.example.vornx.security.auth.dto.AcceptInviteRequest;
 import com.example.vornx.security.auth.dto.AuthResponse;
+import com.example.vornx.security.auth.dto.LoginChallengeResponse;
 import com.example.vornx.security.auth.dto.LoginRequest;
+import com.example.vornx.security.otp.LoginChallenge;
+import com.example.vornx.security.otp.LoginCodeService;
 import com.example.vornx.security.session.AuthSession;
 import com.example.vornx.security.session.ClientInfo;
 import com.example.vornx.security.session.SessionService;
@@ -51,6 +54,11 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final TokenService tokenService;
     private final SessionService sessionService;
+    private final LoginCodeService loginCodeService;
+
+    /** Customer login answer: tokens straight away, OR "a code was sent" (two-step login is on). */
+    public record CustomerLogin(AuthResponse tokens, LoginChallengeResponse challenge) {
+    }
 
     /** The current facts about a user, needed to build an access token. */
     private record Principal(Long id, UserType type, String role, Long partnerId) {
@@ -76,12 +84,38 @@ public class AuthService {
         return startSession(principal, client);
     }
 
+    /**
+     * Step 1: email + password. With two-step login on (the default), no tokens yet: a 6-digit code is
+     * emailed and the answer is a challenge. A stolen password alone is no longer enough.
+     */
     @Transactional
-    public AuthResponse loginCustomer(LoginRequest req, ClientInfo client) {
+    public CustomerLogin loginCustomer(LoginRequest req, ClientInfo client) {
         Customer customer = customerService.findByEmail(normalize(req.email()))
                 .filter(c -> passwordEncoder.matches(req.password(), c.getPasswordHash()))
                 .orElseThrow(() -> new BadCredentialsException(INVALID));
-        return startSession(checkCustomer(customer), client);
+        Principal principal = checkCustomer(customer); // a suspended account gets no code
+        if (!loginCodeService.customerCodeRequired()) {
+            return new CustomerLogin(startSession(principal, client), null);
+        }
+        return new CustomerLogin(null, loginCodeService.start(UserType.CUSTOMER, customer.getId(), client.ipAddress()));
+    }
+
+    /**
+     * Step 2: the code. Right -> tokens. Wrong -> the try is counted and SAVED (noRollbackFor),
+     * otherwise rolling back would reset the counter and allow unlimited guesses.
+     */
+    @Transactional(noRollbackFor = BusinessException.class)
+    public AuthResponse verifyCustomerCode(String challengeToken, String code, ClientInfo client) {
+        LoginChallenge challenge = loginCodeService.verify(challengeToken, code);
+        if (challenge.getUserType() != UserType.CUSTOMER) {
+            throw new BadCredentialsException(INVALID);
+        }
+        return startSession(checkCustomer(customerService.getEntity(challenge.getUserId())), client);
+    }
+
+    @Transactional(noRollbackFor = BusinessException.class)
+    public LoginChallengeResponse resendCustomerCode(String challengeToken) {
+        return loginCodeService.resend(challengeToken);
     }
 
     /** Register and log in straight away. */

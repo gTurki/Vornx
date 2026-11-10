@@ -156,10 +156,17 @@ const CODES: Record<string, string> = {
   CANNOT_RENEW: 'يمكن تجديد الاشتراك النشط أو المنتهي فقط.',
   REQUEST_NOT_PENDING: 'تم البت في هذا الطلب مسبقًا.',
   ACCOUNT_INACTIVE: 'حسابك غير نشط. تواصل مع الدعم.',
+  CODE_INVALID: 'الرمز غير صحيح.',
+  CODE_EXPIRED: 'انتهت صلاحية الرمز. اطلب رمزًا جديدًا.',
+  CODE_RESEND_TOO_SOON: 'انتظر قليلًا قبل طلب رمز جديد.',
+  CODE_RESEND_LIMIT: 'وصلت للحد الأقصى من الرموز. سجّل الدخول من جديد.',
+  LOGIN_CHALLENGE_INVALID: 'انتهت خطوة التحقق. أدخل كلمة المرور من جديد.',
 }
 
 function arabicMessage(status: number, p?: ProblemDetail): string {
+  if (p?.code === 'CODE_INVALID' && p.attemptsLeft) return `الرمز غير صحيح. المحاولات المتبقية: ${p.attemptsLeft}`
   if (p?.code && CODES[p.code]) return CODES[p.code]
+  if (status === 429) return 'محاولات كثيرة. انتظر بضع دقائق ثم حاول مجددًا.'
   if (p?.errors) return Object.values(p.errors).join(' · ')
   if (status === 401) return p?.detail === 'Invalid email or password' ? 'البريد أو كلمة المرور غير صحيحة.' : 'سجّل الدخول للمتابعة.'
   if (status === 403) return p?.detail?.includes('suspended') ? 'الحساب أو الجهة معلّقة.' : 'ليست لديك صلاحية لهذا الإجراء.'
