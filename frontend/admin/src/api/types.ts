@@ -204,3 +204,23 @@ export type Session = {
   expiresAt: string
   current: boolean
 }
+
+// ---------- website inquiries ----------
+
+export type InquiryInterest = 'TECHNICAL_INTEGRATION' | 'ENTERPRISE' | 'PILOT' | 'STRATEGIC' | 'OTHER'
+export type InquiryStatus = 'NEW' | 'HANDLED'
+
+export type Inquiry = {
+  id: number
+  name: string
+  email: string
+  organization: string
+  jobTitle: string | null
+  interest: InquiryInterest
+  message: string
+  language: 'AR' | 'EN'
+  status: InquiryStatus
+  handledBy: string | null
+  handledAt: string | null
+  createdAt: string
+}

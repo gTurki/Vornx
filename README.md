@@ -127,3 +127,27 @@ The wallet is credited only after the backend **fetches the invoice from Moyasar
 | `MOYASAR_CALLBACK_URL` | `https://<api domain>/api/public/payments/moyasar/callback` |
 
 Local development without a key keeps the instant simulated top-up (`vornx.wallet.simulated-top-up-enabled=true`).
+
+## Real-time updates (WebSocket)
+
+`wss://<api>/ws`: the three apps keep one WebSocket open while logged in. The first message carries the access
+token (never the URL); the server closes the socket when the token expires (code 4401) and the app refreshes
+and reconnects. Pushes are sent only after the database commit:
+
+| Event | Who gets it | What the app does |
+|---|---|---|
+| `notification` | the recipient (customer / partner team / all admins) | toast + reload what's on screen |
+| `access-event` | the partner's team | "التشغيل المباشر" updates instantly |
+
+Handshakes are accepted only from the CORS origins. The hub is in memory: fine for one API instance;
+with several, add Redis pub/sub between `RealtimeRelay` and `RealtimeHub`.
+
+## Public website (`frontend/site`)
+
+The landing page from `index_77 معدل.html`, as plain HTML/CSS/JS (no build tool), served by nginx with the same
+strict CSP. Its contact form posts to `POST /api/public/inquiries` (honeypot + 5/hour per IP + 3/day per email);
+inquiries appear live in the admin dashboard under "رسائل الموقع".
+
+Railway: a fifth service, **Root Directory** `/frontend/site`, **Config file** `/frontend/site/railway.json`, variables
+`VITE_API_URL` (the API), `VORNX_APP_URL` (customer app) and `VORNX_PARTNER_URL` (partner portal).
+Add the site's domain to the API's `CORS_ALLOWED_ORIGINS`.

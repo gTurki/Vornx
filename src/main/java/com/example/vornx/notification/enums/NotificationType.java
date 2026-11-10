@@ -61,6 +61,9 @@ public enum NotificationType {
             "فاتورة {number} عن {period}: {amount} ر.س، تستحق في {dueDate}."),
 
     // ---------- To the VORNX team ----------
+    NEW_INQUIRY(
+            "New website inquiry", "استفسار جديد من الموقع",
+            "{name} ({organization}): {interest}", "{name} ({organization}): {interest}"),
     NEW_SUPPORT_TICKET(
             "New support ticket", "طلب دعم جديد",
             "{partner}: {subject} ({priority})", "{partner}: {subject} ({priority})"),

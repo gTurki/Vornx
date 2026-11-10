@@ -1,7 +1,7 @@
 import { api } from './client'
 import type {
   ActivityLog, AdminUser, AppNotification, AuthResponse, BillingSummary, Contract, ContractRequest,
-  InviteResponse, Invoice, InvoiceStatus, Page, Partner, PartnerRequest, PartnerRole, PartnerStatus,
+  Inquiry, InquiryStatus, InviteResponse, Invoice, InvoiceStatus, Page, Partner, PartnerRequest, PartnerRole, PartnerStatus,
   PartnerUser, Sector, Session, Site, SupportTicket, TicketPriority, TicketStatus,
 } from './types'
 
@@ -70,6 +70,12 @@ export const endpoints = {
     api<SupportTicket>(`/api/admin/support-tickets/${id}/messages`, { method: 'POST', body: { body } }),
   updateTicket: (id: number, body: { status?: TicketStatus; priority?: TicketPriority }) =>
     api<SupportTicket>(`/api/admin/support-tickets/${id}`, { method: 'PATCH', body }),
+
+  // ---------- website inquiries (the public site's contact form) ----------
+  inquiries: (p: { status?: InquiryStatus; page?: number }) =>
+    api<Page<Inquiry>>(`/api/admin/inquiries${qs({ ...p, size: 15 })}`),
+  setInquiryStatus: (id: number, status: InquiryStatus) =>
+    api<Inquiry>(`/api/admin/inquiries/${id}`, { method: 'PATCH', body: { status } }),
 
   // ---------- activity & notifications ----------
   activity: (p: { action?: string; partnerId?: number; page?: number; size?: number }) =>

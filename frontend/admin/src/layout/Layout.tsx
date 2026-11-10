@@ -18,6 +18,7 @@ const NAV: { group: string; items: { to: string; label: string; icon: IconName }
       { to: '/contracts', label: 'العقود والتجديدات', icon: 'contract' },
       { to: '/invoices', label: 'الفواتير', icon: 'invoice' },
       { to: '/support', label: 'الدعم', icon: 'support' },
+      { to: '/inquiries', label: 'رسائل الموقع', icon: 'mail' },
     ],
   },
   {

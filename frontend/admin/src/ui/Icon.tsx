@@ -15,6 +15,7 @@ const PATHS = {
   close: 'M6 6l12 12M18 6 6 18',
   money: 'M3 6h18v12H3zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 9v.01M18 15v.01',
   alert: 'M12 3 2 20h20zM12 10v4M12 17v.01',
+  mail: 'M3 6h18v12H3zM3 7l9 6 9-6',
 } as const
 
 export type IconName = keyof typeof PATHS
