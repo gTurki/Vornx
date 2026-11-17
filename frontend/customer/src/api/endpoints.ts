@@ -15,6 +15,8 @@ export const endpoints = {
     api<AuthResponse | LoginChallenge>('/api/public/auth/customer/login', { method: 'POST', body: { email, password }, auth: false }),
   verifyCode: (challengeToken: string, code: string) =>
     api<AuthResponse>('/api/public/auth/customer/login/verify', { method: 'POST', body: { challengeToken, code }, auth: false }),
+  verifyPhone: (challengeToken: string, firebaseIdToken: string) =>
+    api<AuthResponse>('/api/public/auth/customer/login/verify-phone', { method: 'POST', body: { challengeToken, firebaseIdToken }, auth: false }),
   resendCode: (challengeToken: string) =>
     api<LoginChallenge>('/api/public/auth/customer/login/resend', { method: 'POST', body: { challengeToken }, auth: false }),
   register: (body: RegisterRequest) =>

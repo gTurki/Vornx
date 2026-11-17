@@ -161,6 +161,9 @@ const CODES: Record<string, string> = {
   CODE_RESEND_TOO_SOON: 'انتظر قليلًا قبل طلب رمز جديد.',
   CODE_RESEND_LIMIT: 'وصلت للحد الأقصى من الرموز. سجّل الدخول من جديد.',
   LOGIN_CHALLENGE_INVALID: 'انتهت خطوة التحقق. أدخل كلمة المرور من جديد.',
+  PHONE_MISMATCH: 'رقم الجوال لا يطابق رقم حسابك.',
+  PHONE_VERIFICATION_FAILED: 'تعذّر التحقق من رقم الجوال. حاول مجددًا أو اطلب الرمز بالبريد.',
+  SMS_LOGIN_DISABLED: 'الدخول بالرسائل النصية غير متاح الآن. اطلب الرمز بالبريد.',
 }
 
 function arabicMessage(status: number, p?: ProblemDetail): string {

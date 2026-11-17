@@ -8,6 +8,7 @@ import com.example.vornx.security.auth.dto.LoginRequest;
 import com.example.vornx.security.auth.dto.RefreshRequest;
 import com.example.vornx.security.auth.dto.ResendCodeRequest;
 import com.example.vornx.security.auth.dto.VerifyCodeRequest;
+import com.example.vornx.security.auth.dto.VerifyPhoneRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -76,7 +77,15 @@ public class AuthController {
         return authService.verifyCustomerCode(req.challengeToken(), req.code(), ClientInfo.from(http));
     }
 
-    @Operation(summary = "Send the login code again",
+    @Operation(summary = "Customer login, step 2 by SMS: Firebase's ID token",
+            description = "409 PHONE_VERIFICATION_FAILED / PHONE_MISMATCH (with attemptsLeft), "
+                    + "LOGIN_CHALLENGE_INVALID (start again with the password).")
+    @PostMapping("/customer/login/verify-phone")
+    public AuthResponse customerVerifyPhone(@Valid @RequestBody VerifyPhoneRequest req, HttpServletRequest http) {
+        return authService.verifyCustomerPhone(req.challengeToken(), req.firebaseIdToken(), ClientInfo.from(http));
+    }
+
+    @Operation(summary = "Send the login code again (an SMS login switches to email)",
             description = "Once per 60 s, 3 sends per login. 409 CODE_RESEND_TOO_SOON (with resendIn) / CODE_RESEND_LIMIT.")
     @PostMapping("/customer/login/resend")
     public LoginChallengeResponse customerResendCode(@Valid @RequestBody ResendCodeRequest req) {

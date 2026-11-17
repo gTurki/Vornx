@@ -4,6 +4,7 @@ import { ApiError } from '../api/client'
 import { endpoints } from '../api/endpoints'
 import type { LoginChallenge } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
+import { sendSms, smsAvailable, smsError, type SmsSession } from '../lib/firebasePhone'
 
 function errorText(e: unknown) {
   return e instanceof ApiError ? e.message : 'حدث خطأ غير متوقع.'
@@ -67,7 +68,12 @@ export function LoginPage() {
   )
 }
 
-/** Step 2 of login: the 6-digit code we emailed. */
+/**
+ * Step 2 of login: the 6-digit code.
+ *  EMAIL: our API emailed it; the API checks it.
+ *  SMS:   Firebase texts it and checks it; the API then checks Firebase's proof. If the SMS can't be sent,
+ *         or the customer prefers, the same login continues by email ("أرسل الرمز بالبريد").
+ */
 function CodeStep({ challenge, onRestart }: { challenge: LoginChallenge; onRestart: () => void }) {
   const { loginWith } = useAuth()
   const navigate = useNavigate()
@@ -77,7 +83,13 @@ function CodeStep({ challenge, onRestart }: { challenge: LoginChallenge; onResta
   const [busy, setBusy] = useState(false)
   const [wait, setWait] = useState(challenge.resendIn)
   const [info, setInfo] = useState<string | null>(null)
+  const [smsState, setSmsState] = useState<'sending' | 'sent' | 'failed'>('sending')
   const sent = useRef(false)
+  const sms = useRef<SmsSession | null>(null)
+  const smsStarted = useRef(false)
+  const smsResends = useRef(0)
+  const captchaBox = useRef<HTMLDivElement>(null)
+  const isSms = c.channel === 'SMS'
 
   // "send again" countdown
   useEffect(() => {
@@ -86,6 +98,35 @@ function CodeStep({ challenge, onRestart }: { challenge: LoginChallenge; onResta
     return () => clearTimeout(t)
   }, [wait])
 
+  // forget the Firebase session when leaving this screen
+  useEffect(() => () => sms.current?.dispose(), [])
+
+  async function startSms() {
+    if (!c.phoneNumber || !captchaBox.current) return
+    setSmsState('sending')
+    setError(null)
+    try {
+      sms.current?.dispose()
+      sms.current = await sendSms(c.phoneNumber, captchaBox.current)
+      setSmsState('sent')
+      setWait(60)
+    } catch (err) {
+      const { text, useEmail } = smsError(err)
+      setSmsState('failed')
+      if (useEmail) await byEmail(`${text} أرسلنا الرمز إلى بريدك بدلًا من ذلك.`)
+      else setError(text)
+    }
+  }
+
+  // SMS login: send the SMS once when the screen opens (the ref stops React's dev double-run sending 2 SMS)
+  useEffect(() => {
+    if (!isSms || smsStarted.current) return
+    smsStarted.current = true
+    if (smsAvailable) startSms()
+    else byEmail(null) // this build has no Firebase settings: continue by email
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSms])
+
   async function verify(value: string) {
     if (sent.current) return
     sent.current = true
@@ -93,7 +134,21 @@ function CodeStep({ challenge, onRestart }: { challenge: LoginChallenge; onResta
     setError(null)
     setInfo(null)
     try {
-      await loginWith(await endpoints.verifyCode(c.challengeToken, value))
+      if (isSms) {
+        if (!sms.current) throw new Error('no sms session')
+        let idToken: string
+        try {
+          idToken = await sms.current.confirm(value)
+        } catch (err) {
+          setError(smsError(err).text)
+          setCode('')
+          return
+        }
+        await loginWith(await endpoints.verifyPhone(c.challengeToken, idToken))
+        sms.current.dispose()
+      } else {
+        await loginWith(await endpoints.verifyCode(c.challengeToken, value))
+      }
       navigate('/', { replace: true })
     } catch (err) {
       if (err instanceof ApiError && err.code === 'LOGIN_CHALLENGE_INVALID') {
@@ -108,19 +163,29 @@ function CodeStep({ challenge, onRestart }: { challenge: LoginChallenge; onResta
     }
   }
 
-  async function resend() {
+  /** Email: a new code. SMS: switch this login to email. */
+  async function byEmail(message: string | null) {
     setError(null)
     setInfo(null)
     try {
       const next = await endpoints.resendCode(c.challengeToken)
+      sms.current?.dispose()
+      sms.current = null
       setC(next)
       setWait(next.resendIn)
       setCode(next.devCode ?? '')
-      setInfo('أرسلنا رمزًا جديدًا. الرمز السابق لم يعد صالحًا.')
+      setInfo(message ?? (isSms ? 'أرسلنا الرمز إلى بريدك.' : 'أرسلنا رمزًا جديدًا. الرمز السابق لم يعد صالحًا.'))
     } catch (err) {
+      if (err instanceof ApiError && err.code === 'LOGIN_CHALLENGE_INVALID') return onRestart()
       if (err instanceof ApiError && err.problem?.resendIn) setWait(err.problem.resendIn)
       setError(errorText(err))
     }
+  }
+
+  function resendSms() {
+    smsResends.current++
+    setInfo(null)
+    startSms()
   }
 
   function onChange(v: string) {
@@ -130,25 +195,41 @@ function CodeStep({ challenge, onRestart }: { challenge: LoginChallenge; onResta
     if (digits.length === 6) verify(digits)
   }
 
+  const sub = isSms
+    ? smsState === 'sending' ? `جارٍ إرسال رسالة نصية إلى ${c.destination}…` : `أرسلنا رسالة نصية من 6 أرقام إلى ${c.destination}`
+    : `أرسلنا رمزًا من 6 أرقام إلى ${c.destination}`
+  const canType = !isSms || smsState === 'sent'
+
   return (
-    <AuthCard title="رمز التحقق" sub={`أرسلنا رمزًا من 6 أرقام إلى ${c.destination}`}
+    <AuthCard title="رمز التحقق" sub={sub}
       onSubmit={(e) => { e.preventDefault(); if (code.length === 6) verify(code) }}>
       <label className="field"><span>الرمز</span>
         <input className="input otp" dir="ltr" inputMode="numeric" autoComplete="one-time-code" autoFocus
-          maxLength={12} required value={code} onChange={(e) => onChange(e.target.value)} placeholder="••••••" />
+          maxLength={12} required disabled={!canType} value={code} onChange={(e) => onChange(e.target.value)} placeholder="••••••" />
       </label>
       {error && <div className="error-box">{error}</div>}
       {info && <p className="mu" style={{ textAlign: 'center', margin: 0 }}>{info}</p>}
-      <button className="btn wide" disabled={busy || code.length !== 6}>{busy ? 'جارٍ التحقق…' : 'تأكيد'}</button>
+      <button className="btn wide" disabled={busy || !canType || code.length !== 6}>{busy ? 'جارٍ التحقق…' : 'تأكيد'}</button>
       <div className="auth-links">
-        {c.resendsLeft > 0
-          ? <button type="button" className="link" disabled={wait > 0} onClick={resend}>
+        {isSms ? (
+          smsResends.current < 2 && smsState !== 'sending'
+            ? <button type="button" className="link" disabled={wait > 0} onClick={resendSms}>
+                {wait > 0 ? `إعادة الإرسال بعد ${wait} ث` : 'إعادة إرسال الرسالة'}
+              </button>
+            : null
+        ) : c.resendsLeft > 0
+          ? <button type="button" className="link" disabled={wait > 0} onClick={() => byEmail(null)}>
               {wait > 0 ? `إعادة الإرسال بعد ${wait} ث` : 'إعادة إرسال الرمز'}
             </button>
           : <span className="mu">لا مزيد من الرموز لهذه المحاولة</span>}
+        {isSms && <>·<button type="button" className="link" onClick={() => byEmail(null)}>أرسل الرمز بالبريد</button></>}
         ·<button type="button" className="link" onClick={onRestart}>تغيير الحساب</button>
       </div>
-      <p className="mu" style={{ textAlign: 'center', margin: 0, fontSize: 12.5 }}>لم يصلك؟ تحقق من مجلد الرسائل غير المرغوبة.</p>
+      <p className="mu" style={{ textAlign: 'center', margin: 0, fontSize: 12.5 }}>
+        {isSms ? 'لم تصلك الرسالة؟ انتظر دقيقة أو اطلب الرمز بالبريد.' : 'لم يصلك؟ تحقق من مجلد الرسائل غير المرغوبة.'}
+      </p>
+      {/* Firebase's invisible reCAPTCHA lives here */}
+      <div ref={captchaBox} />
     </AuthCard>
   )
 }

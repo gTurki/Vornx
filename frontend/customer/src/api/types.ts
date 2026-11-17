@@ -16,8 +16,9 @@ export type ProblemDetail = {
 export type LoginChallenge = {
   status: 'CODE_REQUIRED'
   challengeToken: string
-  channel: 'EMAIL'
-  destination: string   // masked, e.g. "tr•••7@gmail.com"
+  channel: 'EMAIL' | 'SMS'
+  destination: string   // masked, e.g. "tr•••7@gmail.com" or "+966 5•••••233"
+  phoneNumber?: string  // SMS only: the full number Firebase texts
   codeExpiresIn: number // seconds
   resendIn: number      // seconds before "send again"
   resendsLeft: number

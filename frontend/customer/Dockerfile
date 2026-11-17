@@ -6,6 +6,15 @@ WORKDIR /app
 # Railway passes the service variable VITE_API_URL here; Vite bakes it into the JavaScript.
 ARG VITE_API_URL
 ENV VITE_API_URL=$VITE_API_URL
+# SMS login (optional; without them the login code goes by email). Public values from the Firebase console.
+ARG VITE_FIREBASE_API_KEY
+ARG VITE_FIREBASE_AUTH_DOMAIN
+ARG VITE_FIREBASE_PROJECT_ID
+ARG VITE_FIREBASE_APP_ID
+ENV VITE_FIREBASE_API_KEY=$VITE_FIREBASE_API_KEY \
+    VITE_FIREBASE_AUTH_DOMAIN=$VITE_FIREBASE_AUTH_DOMAIN \
+    VITE_FIREBASE_PROJECT_ID=$VITE_FIREBASE_PROJECT_ID \
+    VITE_FIREBASE_APP_ID=$VITE_FIREBASE_APP_ID
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .

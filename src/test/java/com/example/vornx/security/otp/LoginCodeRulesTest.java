@@ -44,6 +44,7 @@ class LoginCodeRulesTest {
 
     private LoginChallengeRepository repository;
     private EmailService email;
+    private FirebasePhoneVerifier firebase = mock(FirebasePhoneVerifier.class);
     private final AtomicReference<LoginChallenge> stored = new AtomicReference<>();
 
     @BeforeEach
@@ -65,7 +66,7 @@ class LoginCodeRulesTest {
         when(c.getFirstName()).thenReturn("Turki");
         when(customers.getEntity(anyLong())).thenReturn(c);
         return new LoginCodeService(repository, customers, mock(PartnerUserService.class), mock(AdminUserService.class),
-                email, new EmailTemplates(new FrontendProperties("a", "p", "c")), Clock.fixed(now, ZoneOffset.UTC),
+                email, new EmailTemplates(new FrontendProperties("a", "p", "c")), firebase, Clock.fixed(now, ZoneOffset.UTC),
                 "email", true);
     }
 
@@ -161,7 +162,7 @@ class LoginCodeRulesTest {
         when(customers.getEntity(anyLong())).thenReturn(c);
         LoginCodeService prod = new LoginCodeService(repository, customers, mock(PartnerUserService.class),
                 mock(AdminUserService.class), email, new EmailTemplates(new FrontendProperties("a", "p", "c")),
-                Clock.fixed(T0, ZoneOffset.UTC), "email", false);
+                firebase, Clock.fixed(T0, ZoneOffset.UTC), "email", false);
         assertNull(prod.start(UserType.CUSTOMER, 1L, null).devCode());
     }
 

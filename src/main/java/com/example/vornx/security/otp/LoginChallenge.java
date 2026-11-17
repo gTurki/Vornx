@@ -28,7 +28,7 @@ public class LoginChallenge extends BaseEntity {
     private Long userId;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20, updatable = false)
+    @Column(nullable = false, length = 20)
     private LoginCodeChannel channel;
 
     @Column(name = "token_hash", nullable = false, length = 64, updatable = false)
@@ -98,6 +98,12 @@ public class LoginChallenge extends BaseEntity {
         this.codeExpiresAt = newCodeExpiresAt;
         this.sends++;
         this.lastSentAt = now;
+    }
+
+    /** SMS didn't arrive / Firebase failed: continue the SAME login by email. Counts as a send. */
+    public void switchToEmail(String newCodeHash, Instant now, Instant newCodeExpiresAt) {
+        this.channel = LoginCodeChannel.EMAIL;
+        resend(newCodeHash, now, newCodeExpiresAt);
     }
 
     public void consume(Instant now) {

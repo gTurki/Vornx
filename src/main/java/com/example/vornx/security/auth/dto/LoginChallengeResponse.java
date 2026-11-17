@@ -5,8 +5,12 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 /**
  * Returned (HTTP 202) instead of tokens when the password was right but a code is still needed.
- * Next: POST /customer/login/verify with challengeToken + the code from the email.
- *  - destination:    masked, e.g. "tr•••7@gmail.com" (show "we sent a code to ...")
+ * Next, by channel:
+ *  - EMAIL: POST /customer/login/verify with challengeToken + the code from the email.
+ *  - SMS:   the app asks Firebase to text phoneNumber, the customer types the code into Firebase, and the app
+ *           sends Firebase's ID token to POST /customer/login/verify-phone. "Send by email instead" = /resend.
+ *  - destination:    masked, e.g. "tr•••7@gmail.com" or "+966 5•••••233" (show "we sent a code to ...")
+ *  - phoneNumber:    SMS only, full E.164 number: Firebase needs it to send the SMS
  *  - codeExpiresIn:  seconds this code works
  *  - resendIn:       seconds before "send again" is allowed
  *  - resendsLeft / attemptsLeft: how many more sends / wrong tries before logging in again
@@ -18,6 +22,7 @@ public record LoginChallengeResponse(
         String challengeToken,
         LoginCodeChannel channel,
         String destination,
+        String phoneNumber,
         long codeExpiresIn,
         long resendIn,
         int resendsLeft,

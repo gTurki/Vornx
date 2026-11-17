@@ -113,6 +113,16 @@ public class AuthService {
         return startSession(checkCustomer(customerService.getEntity(challenge.getUserId())), client);
     }
 
+    /** Step 2 by SMS: Firebase's proof that the customer received the SMS on their own number. */
+    @Transactional(noRollbackFor = BusinessException.class)
+    public AuthResponse verifyCustomerPhone(String challengeToken, String firebaseIdToken, ClientInfo client) {
+        LoginChallenge challenge = loginCodeService.verifyPhone(challengeToken, firebaseIdToken);
+        if (challenge.getUserType() != UserType.CUSTOMER) {
+            throw new BadCredentialsException(INVALID);
+        }
+        return startSession(checkCustomer(customerService.getEntity(challenge.getUserId())), client);
+    }
+
     @Transactional(noRollbackFor = BusinessException.class)
     public LoginChallengeResponse resendCustomerCode(String challengeToken) {
         return loginCodeService.resend(challengeToken);

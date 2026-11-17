@@ -162,6 +162,25 @@ After the right password, the customer gets a 6-digit code (by email for now) an
 
 Rules: a code works for 5 minutes, and only once. After 5 wrong codes the customer must enter the password again. An account can start at most 5 logins per 15 minutes. Only hashes are stored.
 
-Railway variable: `CUSTOMER_LOGIN_CODE` = `email` (default) or `off`.
-In development (`vornx.dev.expose-tokens=true`) the code is also returned as `devCode` and prefilled in the app.
-SMS (Firebase phone auth) will be added later as another channel.
+Railway variable `CUSTOMER_LOGIN_CODE`: `sms`, `email` (default) or `off`.
+In development (`vornx.dev.expose-tokens=true`) the email code is also returned as `devCode` and prefilled in the app.
+
+### SMS codes (Firebase phone auth)
+
+With `sms`, the challenge has `channel: SMS` and the customer's full `phoneNumber`.
+- The app asks Firebase to text the code; the customer types it.
+- The app sends Firebase's ID token to `POST /api/public/auth/customer/login/verify-phone`.
+- The API checks the token's Google signature, project, freshness (5 min) and that its phone is the account's.
+- `/resend` switches the same login to email: one tap, or automatically when SMS can't be sent.
+
+Variables:
+- API: `CUSTOMER_LOGIN_CODE=sms`, `FIREBASE_PROJECT_ID` (the API refuses to start in sms mode without it).
+- Customer app (build time; without them the app falls back to email):
+  `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_APP_ID`.
+
+Firebase console:
+- Blaze plan.
+- Phone sign-in on.
+- SMS region policy: allow Saudi Arabia only.
+- The customer domain under Authorized domains.
+- A budget alert in Google Cloud Billing.
