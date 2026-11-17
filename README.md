@@ -184,3 +184,32 @@ Firebase console:
 - SMS region policy: allow Saudi Arabia only.
 - The customer domain under Authorized domains.
 - A budget alert in Google Cloud Billing.
+
+## Sign-up: terms, email code, WhatsApp code
+
+1. `POST /customer/register` needs `acceptTerms: true` (the version, `customer.Legal.TERMS_VERSION`, and the time
+   are stored). It answers **202** with a `SIGNUP` challenge: the code is emailed; `/customer/login/verify` confirms
+   the email and logs in. Until the email is confirmed, every login asks for an email code (even with
+   `CUSTOMER_LOGIN_CODE=off`); a password reset also confirms it.
+2. With `CUSTOMER_PHONE_VERIFICATION=whatsapp`, the customer then confirms the mobile with a code sent by WhatsApp
+   through [UltraMsg](https://ultramsg.com): `POST /api/customer/phone-verification`, then `/confirm`
+   (`/resend` once a minute). Until then the other `/api/customer/**` endpoints answer **403 PHONE_NOT_VERIFIED**
+   and the app shows only that step. A mobile code can never log in, and a login code can never confirm a mobile.
+
+The terms and privacy policy are pages of the customer app: `/terms` and `/privacy`.
+
+Variables (API):
+- `CUSTOMER_PHONE_VERIFICATION`: `whatsapp` or `off` (default).
+- `ULTRAMSG_INSTANCE_ID`, `ULTRAMSG_TOKEN` (the token is secret). The API refuses to start with `whatsapp` and
+  without them (in development the message is only logged and the code returned as `devCode`).
+
+## Authenticator app (optional, per customer)
+
+In "حسابي" the customer can turn on Google / Microsoft Authenticator (TOTP, RFC 6238). Then the login's second step
+is the app's code instead of the email code, and 10 one-time recovery codes are shown once.
+- `/api/customer/security/totp`: `GET` status, `POST /setup` (secret + `otpauth://` URI, drawn as a QR code in
+  the browser), `POST /enable {code}` (returns the recovery codes), `POST /disable {password}`.
+- A code works once (the last used 30-second step is stored); a recovery code works once.
+- The secret is stored encrypted (AES-GCM). Key: `TOTP_ENCRYPTION_KEY` (base64 of 32 random bytes, e.g.
+  `openssl rand -base64 32`); without it, a key derived from `JWT_SECRET`. **Choose it once**: changing it later
+  (or changing `JWT_SECRET` while it is unset) breaks the apps already set up.

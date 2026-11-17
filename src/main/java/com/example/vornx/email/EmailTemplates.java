@@ -76,6 +76,53 @@ public class EmailTemplates {
                 "Never share this code with anyone, not even VORNX staff. If you didn't try to log in, change your password now.");
     }
 
+    /** Sign-up: confirm the email address with a 6-digit code (typed in the app, so no button). */
+    public EmailContent emailVerification(String name, String code, int minutes) {
+        return new EmailContent(
+                "تأكيد بريدك في VORNX · Confirm your email",
+                "رمز التأكيد: " + code,
+                "Your code: " + code,
+                List.of("أهلًا " + name + "، شكرًا لتسجيلك في VORNX. اكتب هذا الرمز في التطبيق لتأكيد بريدك.",
+                        "الرمز صالح لمدة " + minutes + " دقائق ويُستخدم مرة واحدة."),
+                List.of("Hello " + name + ", thanks for signing up to VORNX. Type this code in the app to confirm your email.",
+                        "The code works once and expires in " + minutes + " minutes."),
+                null, null, null,
+                "إذا لم تنشئ حسابًا في VORNX، تجاهل هذه الرسالة.",
+                "If you didn't create a VORNX account, ignore this email.");
+    }
+
+    /** The authenticator app was turned on / off: tell the owner, in case it wasn't them. */
+    public EmailContent totpChanged(String name, boolean enabled) {
+        return new EmailContent(
+                enabled ? "تم تفعيل تطبيق المصادقة · Authenticator app turned on"
+                        : "تم إيقاف تطبيق المصادقة · Authenticator app turned off",
+                enabled ? "تم تفعيل تطبيق المصادقة" : "تم إيقاف تطبيق المصادقة",
+                enabled ? "Authenticator app turned on" : "Authenticator app turned off",
+                List.of("مرحبًا " + name + "، " + (enabled
+                        ? "من الآن يطلب تسجيل الدخول الرمز من تطبيق المصادقة على جوالك."
+                        : "من الآن يصلك رمز الدخول بالبريد بدل تطبيق المصادقة.")),
+                List.of("Hello " + name + ", " + (enabled
+                        ? "from now on logging in asks for the code from the authenticator app on your phone."
+                        : "from now on the login code comes by email instead of the authenticator app.")),
+                frontend.customerUrl() + "/account", "حسابي", "My account",
+                "إذا لم تقم بذلك، غيّر كلمة المرور فورًا وتواصل معنا.",
+                "If this wasn't you, change your password now and contact us.");
+    }
+
+    public EmailContent recoveryCodeUsed(String name, long left) {
+        return new EmailContent(
+                "استُخدم رمز استرداد · A recovery code was used",
+                "استُخدم رمز استرداد",
+                "A recovery code was used",
+                List.of("مرحبًا " + name + "، سُجّل الدخول إلى حسابك برمز استرداد بدل تطبيق المصادقة.",
+                        "بقي لديك " + left + " من رموز الاسترداد. إذا غيّرت جوالك، أوقف التطبيق ثم فعّله من جديد على الجوال الجديد."),
+                List.of("Hello " + name + ", someone logged in to your account with a recovery code instead of the authenticator app.",
+                        "You have " + left + " recovery codes left. If you changed phones, turn the app off and on again on the new phone."),
+                frontend.customerUrl() + "/account", "حسابي", "My account",
+                "إذا لم تقم بذلك، غيّر كلمة المرور فورًا وتواصل معنا.",
+                "If this wasn't you, change your password now and contact us.");
+    }
+
     public EmailContent passwordChanged(String name, UserType type) {
         return new EmailContent(
                 "تم تغيير كلمة المرور · Your password was changed",

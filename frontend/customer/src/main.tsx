@@ -10,6 +10,8 @@ import { ForgotPasswordPage, LoginPage, RegisterPage, ResetPasswordPage } from '
 import { CardPage } from './pages/CardPage'
 import { EventsPage } from './pages/EventsPage'
 import { HomePage } from './pages/HomePage'
+import { PrivacyPage, TermsPage } from './pages/LegalPages'
+import { VerifyPhonePage } from './pages/VerifyPhonePage'
 import { AccessLogPage, PermitsPage } from './pages/PermitsPage'
 import { SubscriptionsPage } from './pages/SubscriptionsPage'
 import { WalletPage } from './pages/WalletPage'
@@ -28,11 +30,16 @@ const queryClient = new QueryClient({
   },
 })
 
-/** Pages behind login: while checking the saved session show nothing, then go to /login if needed. */
+/**
+ * Pages behind login: while checking the saved session show nothing, then go to /login if needed.
+ * A customer who still has to confirm their mobile sees only that step (the API enforces it too).
+ */
 function Protected({ children }: { children: ReactNode }) {
-  const { status } = useAuth()
+  const { status, me } = useAuth()
   if (status === 'loading') return <div className="auth-page" />
-  return status === 'in' ? <>{children}</> : <Navigate to="/login" replace />
+  if (status !== 'in') return <Navigate to="/login" replace />
+  if (me?.phoneVerificationRequired) return <VerifyPhonePage />
+  return <>{children}</>
 }
 
 createRoot(document.getElementById('root')!).render(
@@ -46,6 +53,8 @@ createRoot(document.getElementById('root')!).render(
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/terms" element={<TermsPage />} />
+              <Route path="/privacy" element={<PrivacyPage />} />
               <Route element={<Protected><Layout /></Protected>}>
                 <Route index element={<HomePage />} />
                 <Route path="card" element={<CardPage />} />

@@ -96,6 +96,10 @@ public class PasswordService {
         }
 
         account.setPasswordHash().accept(passwordEncoder.encode(password));
+        if (account.type() == UserType.CUSTOMER) {
+            // the link was opened from that inbox: the email is confirmed (also rescues a sign-up left half-way)
+            customerService.getEntity(account.id()).markEmailVerified(now);
+        }
         tokenRepository.invalidateAll(account.type(), account.id(), now); // this link and any older ones
         sessionService.revokeAll(account.type(), account.id(), null);    // log out everywhere
         emailService.queue(account.email(), EmailType.PASSWORD_CHANGED, templates.passwordChanged(account.name(), account.type()));

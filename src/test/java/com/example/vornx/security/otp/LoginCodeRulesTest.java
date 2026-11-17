@@ -12,6 +12,9 @@ import com.example.vornx.partner.service.PartnerUserService;
 import com.example.vornx.platform.service.AdminUserService;
 import com.example.vornx.security.UserType;
 import com.example.vornx.security.auth.dto.LoginChallengeResponse;
+import com.example.vornx.customer.service.PhoneVerificationPolicy;
+import com.example.vornx.security.totp.TotpService;
+import com.example.vornx.whatsapp.WhatsAppSender;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.server.ResponseStatusException;
@@ -66,7 +69,8 @@ class LoginCodeRulesTest {
         when(c.getFirstName()).thenReturn("Turki");
         when(customers.getEntity(anyLong())).thenReturn(c);
         return new LoginCodeService(repository, customers, mock(PartnerUserService.class), mock(AdminUserService.class),
-                email, new EmailTemplates(new FrontendProperties("a", "p", "c")), firebase, Clock.fixed(now, ZoneOffset.UTC),
+                email, new EmailTemplates(new FrontendProperties("a", "p", "c")), firebase, mock(TotpService.class), mock(WhatsAppSender.class),
+                mock(PhoneVerificationPolicy.class), Clock.fixed(now, ZoneOffset.UTC),
                 "email", true);
     }
 
@@ -139,7 +143,7 @@ class LoginCodeRulesTest {
 
     @Test
     void tooManyLoginsInFifteenMinutesAreRefused() {
-        when(repository.countByUserTypeAndUserIdAndCreatedAtAfter(eq(UserType.CUSTOMER), eq(7L), any())).thenReturn(5L);
+        when(repository.countByUserTypeAndUserIdAndPurposeAndCreatedAtAfter(eq(UserType.CUSTOMER), eq(7L), eq(CodePurpose.LOGIN), any())).thenReturn(5L);
         ResponseStatusException e = assertThrows(ResponseStatusException.class,
                 () -> at(T0).start(UserType.CUSTOMER, 7L, null));
         assertEquals(429, e.getStatusCode().value());
@@ -162,7 +166,8 @@ class LoginCodeRulesTest {
         when(customers.getEntity(anyLong())).thenReturn(c);
         LoginCodeService prod = new LoginCodeService(repository, customers, mock(PartnerUserService.class),
                 mock(AdminUserService.class), email, new EmailTemplates(new FrontendProperties("a", "p", "c")),
-                firebase, Clock.fixed(T0, ZoneOffset.UTC), "email", false);
+                firebase, mock(TotpService.class), mock(WhatsAppSender.class),
+                mock(PhoneVerificationPolicy.class), Clock.fixed(T0, ZoneOffset.UTC), "email", false);
         assertNull(prod.start(UserType.CUSTOMER, 1L, null).devCode());
     }
 

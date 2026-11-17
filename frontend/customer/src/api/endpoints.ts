@@ -1,7 +1,7 @@
 import { api } from './client'
 import type {
   AccessDecision, AccessEvent, AppNotification, AuthResponse, Card, LoginChallenge, Customer, EventTicket, Page, Permit, Plan,
-  RegisterRequest, ReminderOption, ServiceRequest, Session, Subscription, TopUp, TopUpOptions, VEvent, Wallet,
+  RegisterRequest, ReminderOption, ServiceRequest, Session, Subscription, TopUp, TopUpOptions, TotpSetup, TotpStatus, VEvent, Wallet,
   WalletTransaction,
 } from './types'
 
@@ -19,8 +19,9 @@ export const endpoints = {
     api<AuthResponse>('/api/public/auth/customer/login/verify-phone', { method: 'POST', body: { challengeToken, firebaseIdToken }, auth: false }),
   resendCode: (challengeToken: string) =>
     api<LoginChallenge>('/api/public/auth/customer/login/resend', { method: 'POST', body: { challengeToken }, auth: false }),
+  /** 202: account created, a code was emailed -> finish with verifyCode (confirms the email and logs in). */
   register: (body: RegisterRequest) =>
-    api<AuthResponse>('/api/public/auth/customer/register', { method: 'POST', body, auth: false }),
+    api<LoginChallenge>('/api/public/auth/customer/register', { method: 'POST', body, auth: false }),
   logout: (refreshToken: string) =>
     api<void>('/api/public/auth/logout', { method: 'POST', body: { refreshToken }, auth: false }),
   forgotPassword: (email: string) =>
@@ -31,6 +32,20 @@ export const endpoints = {
   changePassword: (currentPassword: string, newPassword: string, confirmPassword: string) =>
     api<void>(`${C}/me/password`, { method: 'POST', body: { currentPassword, newPassword, confirmPassword } }),
   sessions: () => api<Session[]>(`${C}/sessions`),
+
+  // ---------- confirm the mobile (WhatsApp) ----------
+  phoneStart: () => api<LoginChallenge>(`${C}/phone-verification`, { method: 'POST' }),
+  phoneResend: (challengeToken: string) =>
+    api<LoginChallenge>(`${C}/phone-verification/resend`, { method: 'POST', body: { challengeToken } }),
+  phoneConfirm: (challengeToken: string, code: string) =>
+    api<Customer>(`${C}/phone-verification/confirm`, { method: 'POST', body: { challengeToken, code } }),
+
+  // ---------- authenticator app ----------
+  totpStatus: () => api<TotpStatus>(`${C}/security/totp`),
+  totpSetup: () => api<TotpSetup>(`${C}/security/totp/setup`, { method: 'POST' }),
+  totpEnable: (code: string) =>
+    api<{ recoveryCodes: string[] }>(`${C}/security/totp/enable`, { method: 'POST', body: { code } }),
+  totpDisable: (password: string) => api<void>(`${C}/security/totp/disable`, { method: 'POST', body: { password } }),
   revokeSession: (id: number) => api<void>(`${C}/sessions/${id}`, { method: 'DELETE' }),
   revokeOtherSessions: () => api<{ revoked: number }>(`${C}/sessions?keepCurrent=true`, { method: 'DELETE' }),
 

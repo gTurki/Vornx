@@ -4,6 +4,7 @@ import com.example.vornx.common.exception.BusinessException;
 import com.example.vornx.common.util.SecureTokens;
 import com.example.vornx.customer.entity.Customer;
 import com.example.vornx.customer.service.CustomerService;
+import com.example.vornx.customer.service.PhoneVerificationPolicy;
 import com.example.vornx.email.EmailService;
 import com.example.vornx.email.EmailTemplates;
 import com.example.vornx.email.EmailType;
@@ -13,6 +14,8 @@ import com.example.vornx.platform.entity.AdminUser;
 import com.example.vornx.platform.service.AdminUserService;
 import com.example.vornx.security.UserType;
 import com.example.vornx.security.auth.dto.LoginChallengeResponse;
+import com.example.vornx.security.totp.TotpService;
+import com.example.vornx.whatsapp.WhatsAppSender;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -30,28 +33,29 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
- * The one-time code of the two-step login (step 1 = password, step 2 = this code).
+ * One-time codes: the second step of a login, the email check right after sign-up, and the mobile check.
  *
- * Two channels:
- *  - EMAIL: we make the code and email it.
- *  - SMS:   Firebase makes the code and texts it (from the customer app); the app sends us Firebase's signed
- *           proof and we check it is for the customer's own number. If the SMS doesn't come (or the free
- *           daily SMS are used up) the customer switches the SAME login to email with one tap.
+ * Purposes (a code only works for its own purpose):
+ *  - LOGIN:  after the right password. Channel: EMAIL, or TOTP when the customer turned the authenticator app on
+ *            (only once the email is confirmed), or SMS (Firebase) in sms mode.
+ *  - SIGNUP: confirm the email right after sign-up (EMAIL); the right code also logs in.
+ *  - PHONE:  a logged-in customer confirms their mobile with a code sent by WHATSAPP.
+ * Any right EMAIL code confirms the email (it proves the customer reads that inbox).
  *
  * Security rules:
  *  - 6 random digits, valid 5 minutes; the whole challenge lives 15 minutes.
- *  - 5 wrong codes and the challenge is burned: log in again with the password (so guessing 1 in 1,000,000
- *    needs the password every 5 tries).
- *  - "send again" at most every 60 s and 3 sends per challenge; at most 5 logins per account per 15 minutes
- *    (nobody can flood a customer's inbox or SMS bill).
+ *  - 5 wrong codes and the challenge is burned (log in / ask again).
+ *  - "send again" at most every 60 s and 3 sends per challenge; at most 5 challenges per purpose per account
+ *    per 15 minutes (nobody can flood a customer's inbox or WhatsApp).
  *  - only hashes are stored; the code hash is salted with the challenge token the browser holds.
- *  - a new login replaces older unfinished ones; a used code never works twice.
+ *  - a new challenge replaces older unfinished ones of the same kind; a used code never works twice.
  */
 @Slf4j
 @Service
-// MANDATORY: always part of the caller's login transaction. noRollbackFor: a wrong code must not mark that
+// MANDATORY: always part of the caller's transaction. noRollbackFor: a wrong code must not mark that
 // transaction "rollback only", or the attempt counter would never be saved (and the caller would get a 500).
 @Transactional(propagation = Propagation.MANDATORY, noRollbackFor = BusinessException.class)
 public class LoginCodeService {
@@ -65,6 +69,10 @@ public class LoginCodeService {
     static final int MAX_SENDS = 3;
     static final int MAX_STARTS = 5;
 
+    /** Codes that can log in. A PHONE code never can. */
+    private static final Set<CodePurpose> LOGIN_PURPOSES = Set.of(CodePurpose.LOGIN, CodePurpose.SIGNUP);
+    private static final Set<CodePurpose> PHONE_PURPOSE = Set.of(CodePurpose.PHONE);
+
     private static final SecureRandom RANDOM = new SecureRandom();
 
     /** vornx.auth.customer-login-code */
@@ -77,6 +85,9 @@ public class LoginCodeService {
     private final EmailService emailService;
     private final EmailTemplates templates;
     private final FirebasePhoneVerifier firebase;
+    private final TotpService totp;
+    private final WhatsAppSender whatsApp;
+    private final PhoneVerificationPolicy phonePolicy;
     private final Clock clock;
     private final Mode customerMode;
     private final boolean exposeCodes;
@@ -84,6 +95,7 @@ public class LoginCodeService {
     public LoginCodeService(LoginChallengeRepository repository, CustomerService customerService,
                             PartnerUserService partnerUserService, AdminUserService adminUserService,
                             EmailService emailService, EmailTemplates templates, FirebasePhoneVerifier firebase,
+                            TotpService totp, WhatsAppSender whatsApp, PhoneVerificationPolicy phonePolicy,
                             Clock clock,
                             @Value("${vornx.auth.customer-login-code:email}") String customerMode,
                             @Value("${vornx.dev.expose-tokens:false}") boolean exposeCodes) {
@@ -94,6 +106,9 @@ public class LoginCodeService {
         this.emailService = emailService;
         this.templates = templates;
         this.firebase = firebase;
+        this.totp = totp;
+        this.whatsApp = whatsApp;
+        this.phonePolicy = phonePolicy;
         this.clock = clock;
         this.customerMode = switch (customerMode.trim().toLowerCase()) {
             case "email" -> Mode.EMAIL;
@@ -108,46 +123,108 @@ public class LoginCodeService {
         this.exposeCodes = exposeCodes;
     }
 
-    /** Who receives the code. phone is E.164 (+9665...) or null. */
-    private record Recipient(String email, String name, String phone) {
+    /** Who receives the code. phone is E.164 (+9665...) or null. customer is null for staff. */
+    private record Recipient(String email, String name, String phone, Customer customer) {
     }
 
-    public boolean customerCodeRequired() {
-        return customerMode != Mode.OFF;
+    /**
+     * Does this customer's login need a second step? Always when the email isn't confirmed yet (that code confirms
+     * it) or the authenticator app is on; otherwise unless two-step login is turned off.
+     */
+    public boolean customerCodeRequired(Customer c) {
+        return customerMode != Mode.OFF || !c.isEmailVerified() || c.isTotpEnabled();
     }
 
-    // =============== Step 1 done (right password): send a code ===============
+    // =============== Start: send a code ===============
 
+    /** Login step 1 done (right password). */
     public LoginChallengeResponse start(UserType type, Long userId, String ipAddress) {
-        Instant now = Instant.now(clock);
-        if (repository.countByUserTypeAndUserIdAndCreatedAtAfter(type, userId, now.minus(START_WINDOW)) >= MAX_STARTS) {
-            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
-                    "Too many login attempts. Please wait a few minutes and try again.");
-        }
-        repository.consumeOpen(type, userId, now); // an older code (other tab, earlier try) stops working
+        return begin(type, userId, CodePurpose.LOGIN, ipAddress);
+    }
 
+    /** Right after sign-up: confirm the email. */
+    public LoginChallengeResponse startSignup(Long customerId, String ipAddress) {
+        return begin(UserType.CUSTOMER, customerId, CodePurpose.SIGNUP, ipAddress);
+    }
+
+    /** Logged-in customer: confirm the mobile by WhatsApp. */
+    public LoginChallengeResponse startPhone(Long customerId, String ipAddress) {
+        return begin(UserType.CUSTOMER, customerId, CodePurpose.PHONE, ipAddress);
+    }
+
+    private LoginChallengeResponse begin(UserType type, Long userId, CodePurpose purpose, String ipAddress) {
+        Instant now = Instant.now(clock);
         Recipient to = recipient(type, userId);
-        boolean sms = type == UserType.CUSTOMER && customerMode == Mode.SMS && to.phone() != null;
-        String token = PREFIX + SecureTokens.generate();
-        // SMS: Firebase owns the code, so our code hash is random (no typed code can match it).
-        String code = sms ? null : newCode();
-        LoginChallenge challenge = repository.save(new LoginChallenge(type, userId,
-                sms ? LoginCodeChannel.SMS : LoginCodeChannel.EMAIL, SecureTokens.sha256(token),
-                sms ? SecureTokens.sha256(SecureTokens.generate()) : codeHash(token, code),
-                now, now.plus(CODE_VALIDITY), now.plus(CHALLENGE_VALIDITY), ipAddress));
-        if (!sms) {
-            sendEmail(to, code);
+        if (purpose == CodePurpose.PHONE) {
+            checkPhoneCanBeVerified(to);
         }
+        if (repository.countByUserTypeAndUserIdAndPurposeAndCreatedAtAfter(type, userId, purpose,
+                now.minus(START_WINDOW)) >= MAX_STARTS) {
+            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
+                    "Too many attempts. Please wait a few minutes and try again.");
+        }
+        // an older code (other tab, earlier try) stops working
+        repository.consumeOpen(type, userId, purpose == CodePurpose.PHONE ? PHONE_PURPOSE : LOGIN_PURPOSES, now);
+
+        LoginCodeChannel channel = channel(type, purpose, to);
+        String token = PREFIX + SecureTokens.generate();
+        // SMS / TOTP: the code isn't ours, so our code hash is random (no typed code can match it).
+        String code = channel == LoginCodeChannel.EMAIL || channel == LoginCodeChannel.WHATSAPP ? newCode() : null;
+        LoginChallenge challenge = repository.save(new LoginChallenge(type, userId, purpose, channel,
+                purpose == CodePurpose.PHONE ? to.phone() : null, SecureTokens.sha256(token),
+                code != null ? codeHash(token, code) : SecureTokens.sha256(SecureTokens.generate()),
+                now, now.plus(CODE_VALIDITY), now.plus(CHALLENGE_VALIDITY), ipAddress));
+        deliver(challenge, to, code);
         return response(token, challenge, to, now, code);
+    }
+
+    private LoginCodeChannel channel(UserType type, CodePurpose purpose, Recipient to) {
+        if (purpose == CodePurpose.PHONE) {
+            return LoginCodeChannel.WHATSAPP;
+        }
+        Customer c = to.customer();
+        if (purpose == CodePurpose.SIGNUP || c == null || !c.isEmailVerified()) {
+            return LoginCodeChannel.EMAIL; // staff, or the email still has to be confirmed
+        }
+        if (c.isTotpEnabled()) {
+            return LoginCodeChannel.TOTP;
+        }
+        return customerMode == Mode.SMS && to.phone() != null ? LoginCodeChannel.SMS : LoginCodeChannel.EMAIL;
+    }
+
+    private void checkPhoneCanBeVerified(Recipient to) {
+        if (!phonePolicy.isEnabled()) {
+            throw new BusinessException("PHONE_VERIFICATION_OFF", "Mobile verification is not available");
+        }
+        if (to.customer().isPhoneVerified()) {
+            throw new BusinessException("PHONE_ALREADY_VERIFIED", "Your mobile number is already verified");
+        }
+        if (to.phone() == null) {
+            throw new BusinessException("PHONE_INVALID", "Your mobile number can't receive codes");
+        }
     }
 
     // =============== "Send the code again" (or: "send it by email instead") ===============
 
+    /** Login / sign-up (public endpoint). */
     public LoginChallengeResponse resend(String token) {
+        return resend(token, LOGIN_PURPOSES, null);
+    }
+
+    /** Mobile check: only the logged-in customer who started it. */
+    public LoginChallengeResponse resendPhone(String token, Long customerId) {
+        return resend(token, PHONE_PURPOSE, customerId);
+    }
+
+    private LoginChallengeResponse resend(String token, Set<CodePurpose> purposes, Long customerId) {
         Instant now = Instant.now(clock);
-        LoginChallenge challenge = open(token, now);
+        LoginChallenge challenge = open(token, now, purposes, customerId);
+        if (challenge.getChannel() == LoginCodeChannel.TOTP) {
+            throw new BusinessException("CODE_RESEND_NOT_AVAILABLE",
+                    "Use the code from your authenticator app, or a recovery code");
+        }
         if (challenge.getSends() >= MAX_SENDS) {
-            throw new BusinessException("CODE_RESEND_LIMIT", "No more codes for this login. Log in again.");
+            throw new BusinessException("CODE_RESEND_LIMIT", "No more codes for this attempt. Start again.");
         }
         boolean fromSms = challenge.getChannel() == LoginCodeChannel.SMS;
         // Switching from SMS to email is allowed straight away: the SMS may never come.
@@ -163,33 +240,59 @@ public class LoginCodeService {
             challenge.resend(codeHash(token, code), now, now.plus(CODE_VALIDITY));
         }
         Recipient to = recipient(challenge.getUserType(), challenge.getUserId());
-        sendEmail(to, code);
+        deliver(challenge, to, code);
         return response(token, challenge, to, now, code);
     }
 
-    // =============== Step 2: check the code ===============
+    // =============== Check the code ===============
 
     /**
-     * EMAIL channel: the typed code. Returns the challenge (user type + id) when right; it can never be used again.
+     * Login / sign-up: the typed code (email code, authenticator code, or a recovery code).
+     * Returns the challenge (user type + id) when right; it can never be used again.
      * A wrong code is COUNTED, so the caller's transaction must not roll back on BusinessException.
      */
     public LoginChallenge verify(String token, String code) {
         Instant now = Instant.now(clock);
-        LoginChallenge challenge = open(token, now);
-        if (challenge.isCodeExpired(now)) {
-            throw new BusinessException("CODE_EXPIRED", "This code has expired. Ask for a new one.");
+        LoginChallenge challenge = open(token, now, LOGIN_PURPOSES, null);
+        if (challenge.getChannel() == LoginCodeChannel.TOTP) {
+            Customer c = customerService.getEntity(challenge.getUserId());
+            if (!totp.checkLogin(c, code)) {
+                throw wrong(challenge, now, "CODE_INVALID", "The code is not correct");
+            }
+            challenge.consume(now);
+            return challenge;
         }
-        if (code == null || !matches(codeHash(token, code.trim()), challenge.getCodeHash())) {
-            throw wrong(challenge, now, "CODE_INVALID", "The code is not correct");
-        }
+        checkTypedCode(challenge, token, code, now);
         challenge.consume(now);
+        if (challenge.getUserType() == UserType.CUSTOMER) {
+            Customer c = customerService.getEntity(challenge.getUserId());
+            boolean first = c.markEmailVerified(now); // they read that inbox
+            if (first && challenge.getPurpose() == CodePurpose.SIGNUP) {
+                emailService.queue(c.getEmail(), EmailType.CUSTOMER_WELCOME,
+                        templates.customerWelcome(c.getFirstName(), c.getVornxId()));
+            }
+        }
         return challenge;
+    }
+
+    /** Mobile check: the code from WhatsApp. Marks the number verified. */
+    public Customer verifyPhoneCode(String token, String code, Long customerId) {
+        Instant now = Instant.now(clock);
+        LoginChallenge challenge = open(token, now, PHONE_PURPOSE, customerId);
+        checkTypedCode(challenge, token, code, now);
+        challenge.consume(now);
+        Customer c = customerService.getEntity(customerId);
+        if (challenge.getDestination() == null || !challenge.getDestination().equals(toE164(c.getPhone()))) {
+            throw new BusinessException("PHONE_CHANGED", "Your mobile number changed. Ask for a new code.");
+        }
+        c.markPhoneVerified(now);
+        return c;
     }
 
     /** SMS channel: Firebase's signed proof that the customer typed the SMS code sent to THEIR number. */
     public LoginChallenge verifyPhone(String token, String firebaseIdToken) {
         Instant now = Instant.now(clock);
-        LoginChallenge challenge = open(token, now);
+        LoginChallenge challenge = open(token, now, LOGIN_PURPOSES, null);
         if (challenge.getChannel() != LoginCodeChannel.SMS) {
             throw new BusinessException("PHONE_VERIFICATION_FAILED", "This login continues by email");
         }
@@ -221,35 +324,72 @@ public class LoginCodeService {
 
     // =============== helpers ===============
 
-    private LoginChallenge open(String token, Instant now) {
+    private void checkTypedCode(LoginChallenge challenge, String token, String code, Instant now) {
+        if (challenge.isCodeExpired(now)) {
+            throw new BusinessException("CODE_EXPIRED", "This code has expired. Ask for a new one.");
+        }
+        if (code == null || !matches(codeHash(token, code.trim()), challenge.getCodeHash())) {
+            throw wrong(challenge, now, "CODE_INVALID", "The code is not correct");
+        }
+    }
+
+    /** The open challenge for this token, of an allowed purpose (and, if given, of this customer). */
+    private LoginChallenge open(String token, Instant now, Set<CodePurpose> purposes, Long customerId) {
         return (token != null && token.startsWith(PREFIX)
                 ? repository.lockByHash(SecureTokens.sha256(token)) : Optional.<LoginChallenge>empty())
-                .filter(c -> c.isOpen(now))
+                .filter(c -> c.isOpen(now) && purposes.contains(c.getPurpose()))
+                .filter(c -> customerId == null
+                        || (c.getUserType() == UserType.CUSTOMER && customerId.equals(c.getUserId())))
                 .orElseThrow(() -> new BusinessException("LOGIN_CHALLENGE_INVALID",
-                        "This login step has expired. Log in again."));
+                        "This step has expired. Start again."));
     }
 
     /** Counts a failed try; the 5th burns the challenge. */
     private static BusinessException wrong(LoginChallenge challenge, Instant now, String code, String message) {
         int left = challenge.failAttempt(now, MAX_ATTEMPTS);
         if (left == 0) {
-            return new BusinessException("LOGIN_CHALLENGE_INVALID", "Too many wrong codes. Log in again.");
+            return new BusinessException("LOGIN_CHALLENGE_INVALID", "Too many wrong codes. Start again.");
         }
         return new BusinessException(code, message, Map.of("attemptsLeft", left));
     }
 
-    private void sendEmail(Recipient to, String code) {
-        emailService.queue(to.email(), EmailType.LOGIN_CODE,
-                templates.loginCode(to.name(), code, (int) CODE_VALIDITY.toMinutes()));
+    private void deliver(LoginChallenge challenge, Recipient to, String code) {
+        int minutes = (int) CODE_VALIDITY.toMinutes();
+        switch (challenge.getChannel()) {
+            case EMAIL -> {
+                if (challenge.getPurpose() == CodePurpose.SIGNUP) {
+                    emailService.queue(to.email(), EmailType.EMAIL_VERIFICATION,
+                            templates.emailVerification(to.name(), code, minutes));
+                } else {
+                    emailService.queue(to.email(), EmailType.LOGIN_CODE, templates.loginCode(to.name(), code, minutes));
+                }
+            }
+            case WHATSAPP -> whatsApp.send(challenge.getDestination(), whatsAppText(code, minutes));
+            case SMS, TOTP -> {
+                // nothing to send: Firebase texts the SMS; the authenticator app shows its own code
+            }
+        }
+    }
+
+    static String whatsAppText(String code, int minutes) {
+        return "رمز تأكيد جوالك في VORNX: " + code + "\n"
+                + "صالح " + minutes + " دقائق. لا تشاركه مع أي أحد.\n\n"
+                + "Your VORNX verification code: " + code;
     }
 
     private LoginChallengeResponse response(String token, LoginChallenge c, Recipient to, Instant now, String code) {
-        boolean sms = c.getChannel() == LoginCodeChannel.SMS;
-        return new LoginChallengeResponse("CODE_REQUIRED", token, c.getChannel(),
-                sms ? maskPhone(to.phone()) : maskEmail(to.email()),
-                sms ? to.phone() : null,
-                Duration.between(now, c.getCodeExpiresAt()).toSeconds(), RESEND_COOLDOWN.toSeconds(),
-                MAX_SENDS - c.getSends(), MAX_ATTEMPTS - c.getAttempts(),
+        LoginCodeChannel ch = c.getChannel();
+        boolean totpChannel = ch == LoginCodeChannel.TOTP;
+        String destination = switch (ch) {
+            case SMS, WHATSAPP -> maskPhone(to.phone());
+            case EMAIL -> maskEmail(to.email());
+            case TOTP -> null;
+        };
+        return new LoginChallengeResponse("CODE_REQUIRED", token, ch, c.getPurpose(), destination,
+                ch == LoginCodeChannel.SMS ? to.phone() : null,
+                Duration.between(now, totpChannel ? c.getExpiresAt() : c.getCodeExpiresAt()).toSeconds(),
+                totpChannel ? 0 : RESEND_COOLDOWN.toSeconds(),
+                totpChannel ? 0 : MAX_SENDS - c.getSends(), MAX_ATTEMPTS - c.getAttempts(),
                 exposeCodes ? code : null);
     }
 
@@ -257,15 +397,15 @@ public class LoginCodeService {
         return switch (type) {
             case CUSTOMER -> {
                 Customer c = customerService.getEntity(id);
-                yield new Recipient(c.getEmail(), c.getFirstName(), toE164(c.getPhone()));
+                yield new Recipient(c.getEmail(), c.getFirstName(), toE164(c.getPhone()), c);
             }
             case PARTNER_USER -> {
                 PartnerUser u = partnerUserService.getEntity(id);
-                yield new Recipient(u.getEmail(), u.getFullName(), null);
+                yield new Recipient(u.getEmail(), u.getFullName(), null, null);
             }
             case ADMIN -> {
                 AdminUser a = adminUserService.getEntity(id);
-                yield new Recipient(a.getEmail(), a.getFullName(), null);
+                yield new Recipient(a.getEmail(), a.getFullName(), null, null);
             }
         };
     }
@@ -283,8 +423,8 @@ public class LoginCodeService {
         return MessageDigest.isEqual(a.getBytes(StandardCharsets.US_ASCII), b.getBytes(StandardCharsets.US_ASCII));
     }
 
-    /** Saudi mobile as stored at sign-up ("0551112233") -> E.164 ("+966551112233"), the format Firebase uses. */
-    static String toE164(String phone) {
+    /** Saudi mobile as stored at sign-up ("0551112233") -> E.164 ("+966551112233"). */
+    public static String toE164(String phone) {
         if (phone == null) {
             return null;
         }
@@ -295,7 +435,7 @@ public class LoginCodeService {
         if (p.matches("\\+9665\\d{8}")) {
             return p;
         }
-        return null; // unknown format: this customer gets the email code
+        return null; // unknown format
     }
 
     /** "+966551112233" -> "+966 5•••••233" */

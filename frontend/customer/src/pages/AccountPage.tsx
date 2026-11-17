@@ -6,8 +6,9 @@ import { useAuth } from '../auth/AuthContext'
 import { dateTime, deviceName } from '../lib/format'
 import { ConfirmButton, ErrorBox, Kv, Loading, Num, Tag } from '../ui/bits'
 import { useToast } from '../ui/Toast'
+import { SecuritySection } from './SecuritySection'
 
-/** "حسابي": my profile, my logged-in devices, change password. */
+/** "حسابي": my profile, security (verified email/mobile, authenticator app), my logged-in devices, change password. */
 export function AccountPage() {
   const { me } = useAuth()
   const qc = useQueryClient()
@@ -50,6 +51,7 @@ export function AccountPage() {
           <Kv k="رقم VORNX"><Num>{me?.vornxId}</Num></Kv>
           <Kv k="الجوال"><Num>{me?.phone}</Num></Kv>
         </div>
+        <SecuritySection />
         <h2 className="section">تغيير كلمة المرور</h2>
         <ChangePassword />
       </section>

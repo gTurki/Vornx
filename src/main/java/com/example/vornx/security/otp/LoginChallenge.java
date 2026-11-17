@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 
-/** Step 2 of a login: "we sent you a code, type it here". One row per login attempt. */
+/** "We sent you a code, type it here": step 2 of a login, the sign-up email check, or the mobile check. */
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
@@ -30,6 +30,14 @@ public class LoginChallenge extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private LoginCodeChannel channel;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20, updatable = false)
+    private CodePurpose purpose;
+
+    /** PHONE: the number (E.164) the code was sent to. */
+    @Column(length = 30, updatable = false)
+    private String destination;
 
     @Column(name = "token_hash", nullable = false, length = 64, updatable = false)
     private String tokenHash;
@@ -58,11 +66,14 @@ public class LoginChallenge extends BaseEntity {
     @Column(name = "ip_address", length = 45, updatable = false)
     private String ipAddress;
 
-    public LoginChallenge(UserType userType, Long userId, LoginCodeChannel channel, String tokenHash, String codeHash,
+    public LoginChallenge(UserType userType, Long userId, CodePurpose purpose, LoginCodeChannel channel,
+                          String destination, String tokenHash, String codeHash,
                           Instant now, Instant codeExpiresAt, Instant expiresAt, String ipAddress) {
         this.userType = userType;
         this.userId = userId;
+        this.purpose = purpose;
         this.channel = channel;
+        this.destination = destination;
         this.tokenHash = tokenHash;
         this.codeHash = codeHash;
         this.codeExpiresAt = codeExpiresAt;

@@ -16,4 +16,7 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
     boolean existsByPhone(String phone);
 
     boolean existsByVornxId(String vornxId);
+
+    /** Checked on every customer request while mobile verification is on (primary key lookup). */
+    boolean existsByIdAndPhoneVerifiedAtIsNotNull(Long id);
 }

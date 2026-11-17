@@ -16,8 +16,9 @@ export type ProblemDetail = {
 export type LoginChallenge = {
   status: 'CODE_REQUIRED'
   challengeToken: string
-  channel: 'EMAIL' | 'SMS'
-  destination: string   // masked, e.g. "tr•••7@gmail.com" or "+966 5•••••233"
+  channel: 'EMAIL' | 'SMS' | 'TOTP' | 'WHATSAPP'
+  purpose: 'LOGIN' | 'SIGNUP' | 'PHONE'
+  destination?: string  // masked, e.g. "tr•••7@gmail.com" or "+966 5•••••233" (none for TOTP)
   phoneNumber?: string  // SMS only: the full number Firebase texts
   codeExpiresIn: number // seconds
   resendIn: number      // seconds before "send again"
@@ -453,7 +454,15 @@ export type Customer = {
   language: 'AR' | 'EN'
   points: number
   tier: LoyaltyTier
+  emailVerified: boolean
+  phoneVerified: boolean
+  /** Show "confirm your mobile by WhatsApp" before anything else. */
+  phoneVerificationRequired: boolean
+  totpEnabled: boolean
 }
+
+export type TotpStatus = { enabled: boolean; enabledAt: string | null; recoveryCodesLeft: number }
+export type TotpSetup = { secret: string; otpauthUri: string }
 
 export type RegisterRequest = {
   firstName: string
@@ -463,6 +472,7 @@ export type RegisterRequest = {
   password: string
   confirmPassword: string
   language: 'AR' | 'EN'
+  acceptTerms: boolean
 }
 
 export type CardStatus = 'ACTIVE' | 'BLOCKED' | 'LOST' | 'EXPIRED'

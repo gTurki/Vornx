@@ -1,5 +1,8 @@
 package com.example.vornx.common.exception;
 
+import com.example.vornx.security.PhoneVerifiedInterceptor;
+import com.example.vornx.whatsapp.WhatsAppUnavailableException;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
@@ -43,6 +46,23 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
         problem.setProperty("code", ex.getCode());
         ex.getDetails().forEach(problem::setProperty);
+        return problem;
+    }
+
+    /** Mobile verification is on and this customer hasn't confirmed their number yet -> 403. */
+    @ExceptionHandler(PhoneVerifiedInterceptor.PhoneNotVerifiedException.class)
+    public ProblemDetail handlePhoneNotVerified(PhoneVerifiedInterceptor.PhoneNotVerifiedException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, ex.getMessage());
+        problem.setProperty("code", "PHONE_NOT_VERIFIED");
+        return problem;
+    }
+
+    /** UltraMsg / WhatsApp down or not connected -> 503 (try again later, nothing was counted). */
+    @ExceptionHandler(WhatsAppUnavailableException.class)
+    public ProblemDetail handleWhatsApp(WhatsAppUnavailableException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.SERVICE_UNAVAILABLE,
+                "WhatsApp messages can't be sent right now. Try again in a few minutes.");
+        problem.setProperty("code", "WHATSAPP_UNAVAILABLE");
         return problem;
     }
 

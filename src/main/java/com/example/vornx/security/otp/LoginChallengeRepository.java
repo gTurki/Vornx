@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.Optional;
 
 public interface LoginChallengeRepository extends JpaRepository<LoginChallenge, Long> {
@@ -18,15 +19,17 @@ public interface LoginChallengeRepository extends JpaRepository<LoginChallenge, 
     @Query("SELECT c FROM LoginChallenge c WHERE c.tokenHash = :hash")
     Optional<LoginChallenge> lockByHash(@Param("hash") String hash);
 
-    long countByUserTypeAndUserIdAndCreatedAtAfter(UserType userType, Long userId, Instant after);
+    long countByUserTypeAndUserIdAndPurposeAndCreatedAtAfter(UserType userType, Long userId, CodePurpose purpose,
+                                                             Instant after);
 
-    /** A new login replaces the earlier unfinished ones: only the newest code works. */
+    /** A new login (or mobile check) replaces the earlier unfinished ones of the same kind: only the newest code works. */
     @Modifying
     @Query("""
             UPDATE LoginChallenge c SET c.consumedAt = :now
-            WHERE c.userType = :type AND c.userId = :userId AND c.consumedAt IS NULL
+            WHERE c.userType = :type AND c.userId = :userId AND c.purpose IN :purposes AND c.consumedAt IS NULL
             """)
-    int consumeOpen(@Param("type") UserType type, @Param("userId") Long userId, @Param("now") Instant now);
+    int consumeOpen(@Param("type") UserType type, @Param("userId") Long userId,
+                    @Param("purposes") Collection<CodePurpose> purposes, @Param("now") Instant now);
 
     @Modifying
     @Query("DELETE FROM LoginChallenge c WHERE c.expiresAt < :before")

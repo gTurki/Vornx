@@ -9,8 +9,10 @@ type AuthState = {
   me: Customer | null
   /** Step 1. Returns the challenge when a code was sent (finish with loginWith(verifyCode(...))), null when logged in. */
   login: (email: string, password: string) => Promise<LoginChallenge | null>
-  /** After sign-up the API already returns tokens: log straight in. */
+  /** Step 2 done (code accepted): save the tokens and load the profile. */
   loginWith: (auth: AuthResponse) => Promise<void>
+  /** The profile changed (e.g. the mobile was just confirmed). */
+  updateMe: (me: Customer) => void
   logout: () => Promise<void>
 }
 
@@ -67,7 +69,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     end()
   }, [end])
 
-  const value = useMemo(() => ({ status, me, login, loginWith, logout }), [status, me, login, loginWith, logout])
+  const updateMe = useCallback((c: Customer) => {
+    setMe(c)
+    queryClient.setQueryData(['me'], c)
+  }, [queryClient])
+
+  const value = useMemo(() => ({ status, me, login, loginWith, updateMe, logout }), [status, me, login, loginWith, updateMe, logout])
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 

@@ -94,7 +94,7 @@ public class AuthService {
                 .filter(c -> passwordEncoder.matches(req.password(), c.getPasswordHash()))
                 .orElseThrow(() -> new BadCredentialsException(INVALID));
         Principal principal = checkCustomer(customer); // a suspended account gets no code
-        if (!loginCodeService.customerCodeRequired()) {
+        if (!loginCodeService.customerCodeRequired(customer)) {
             return new CustomerLogin(startSession(principal, client), null);
         }
         return new CustomerLogin(null, loginCodeService.start(UserType.CUSTOMER, customer.getId(), client.ipAddress()));
@@ -128,10 +128,15 @@ public class AuthService {
         return loginCodeService.resend(challengeToken);
     }
 
-    /** Register and log in straight away. */
+    /**
+     * Register, then confirm the email: a 6-digit code is emailed and the answer is a challenge (finish with
+     * verifyCustomerCode, which also logs in). The terms acceptance is stored with the account.
+     */
     @Transactional
-    public AuthResponse registerCustomer(CustomerRegisterRequest req, ClientInfo client) {
-        return startSession(checkCustomer(customerService.register(req)), client);
+    public LoginChallengeResponse registerCustomer(CustomerRegisterRequest req, ClientInfo client) {
+        Customer customer = customerService.register(req);
+        checkCustomer(customer);
+        return loginCodeService.startSignup(customer.getId(), client.ipAddress());
     }
 
     /** Invited partner staff choose their password, then they are logged in straight away. */

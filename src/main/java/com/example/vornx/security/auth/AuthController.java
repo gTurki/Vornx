@@ -69,7 +69,7 @@ public class AuthController {
                 : ResponseEntity.ok(result.tokens());
     }
 
-    @Operation(summary = "Customer login, step 2: the code from the email",
+    @Operation(summary = "Customer login / sign-up, step 2: the code (email, authenticator app or recovery code)",
             description = "409 CODE_INVALID (with attemptsLeft), CODE_EXPIRED (ask for a new one), "
                     + "LOGIN_CHALLENGE_INVALID (start again with the password).")
     @PostMapping("/customer/login/verify")
@@ -92,9 +92,12 @@ public class AuthController {
         return authService.resendCustomerCode(req.challengeToken());
     }
 
+    @Operation(summary = "Customer sign-up",
+            description = "202 = account created and a 6-digit code emailed: send it to /customer/login/verify to "
+                    + "confirm the email and log in. acceptTerms must be true.")
     @PostMapping("/customer/register")
-    @ResponseStatus(HttpStatus.CREATED)
-    public AuthResponse customerRegister(@Valid @RequestBody CustomerRegisterRequest req, HttpServletRequest http) {
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public LoginChallengeResponse customerRegister(@Valid @RequestBody CustomerRegisterRequest req, HttpServletRequest http) {
         return authService.registerCustomer(req, ClientInfo.from(http));
     }
 

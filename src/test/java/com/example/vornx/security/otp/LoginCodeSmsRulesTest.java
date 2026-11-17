@@ -11,6 +11,9 @@ import com.example.vornx.partner.service.PartnerUserService;
 import com.example.vornx.platform.service.AdminUserService;
 import com.example.vornx.security.UserType;
 import com.example.vornx.security.auth.dto.LoginChallengeResponse;
+import com.example.vornx.customer.service.PhoneVerificationPolicy;
+import com.example.vornx.security.totp.TotpService;
+import com.example.vornx.whatsapp.WhatsAppSender;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -62,10 +65,11 @@ class LoginCodeSmsRulesTest {
         when(c.getEmail()).thenReturn("trroky007@gmail.com");
         when(c.getFirstName()).thenReturn("Turki");
         when(c.getPhone()).thenReturn(phone);
+        when(c.isEmailVerified()).thenReturn(true);
         when(customers.getEntity(anyLong())).thenReturn(c);
         return new LoginCodeService(repository, customers, mock(PartnerUserService.class), mock(AdminUserService.class),
-                email, new EmailTemplates(new FrontendProperties("a", "p", "c")), firebase,
-                Clock.fixed(now, ZoneOffset.UTC), "sms", true);
+                email, new EmailTemplates(new FrontendProperties("a", "p", "c")), firebase, mock(TotpService.class),
+                mock(WhatsAppSender.class), mock(PhoneVerificationPolicy.class), Clock.fixed(now, ZoneOffset.UTC), "sms", true);
     }
 
     @Test
