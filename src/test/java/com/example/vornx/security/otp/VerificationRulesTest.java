@@ -142,6 +142,14 @@ class VerificationRulesTest {
     }
 
     @Test
+    void whatsAppTextStartsWithTheCodeInArabicThenEnglish() {
+        String text = LoginCodeService.whatsAppText("482910", 5);
+        assertEquals("482910 هو رمز التحقق الخاص بك في VORNX. صالح لمدة 5 دقائق. لحماية حسابك، لا تشارك هذا الرمز مع أي أحد.\n\n"
+                + "[VORNX] 482910 is your verification code, valid for 5 minutes. To protect your account, never share this code with anyone.",
+                text);
+    }
+
+    @Test
     void noMobileCheckWhenTheFeatureIsOff() {
         when(policy.isEnabled()).thenReturn(false);
         assertEquals("PHONE_VERIFICATION_OFF",

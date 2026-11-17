@@ -371,10 +371,16 @@ public class LoginCodeService {
         }
     }
 
+    /**
+     * Short, code first (it shows in the notification preview), Arabic then English. The Arabic line starts with
+     * the code and an Arabic word, so WhatsApp lays it out right-to-left; "[VORNX]" leads only the English line.
+     * No *bold*: some phones show the asterisks in the notification.
+     */
     static String whatsAppText(String code, int minutes) {
-        return "رمز تأكيد جوالك في VORNX: " + code + "\n"
-                + "صالح " + minutes + " دقائق. لا تشاركه مع أي أحد.\n\n"
-                + "Your VORNX verification code: " + code;
+        return code + " هو رمز التحقق الخاص بك في VORNX. صالح لمدة " + minutes
+                + " دقائق. لحماية حسابك، لا تشارك هذا الرمز مع أي أحد.\n\n"
+                + "[VORNX] " + code + " is your verification code, valid for " + minutes
+                + " minutes. To protect your account, never share this code with anyone.";
     }
 
     private LoginChallengeResponse response(String token, LoginChallenge c, Recipient to, Instant now, String code) {
