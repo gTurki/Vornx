@@ -1,3 +1,4 @@
+import { isEn, tr } from '../i18n'
 // Display helpers. All dates are shown in Riyadh time, whatever the viewer's computer is set to.
 //
 // Locale "ar-SA-u-ca-gregory-nu-latn":
@@ -6,7 +7,8 @@
 //   nu-latn   0-9 digits, like the design (not ٠-٩)
 
 const ZONE = 'Asia/Riyadh'
-const LOCALE = 'ar-SA-u-ca-gregory-nu-latn'
+// English: British order (18 Nov 2026), Gregorian calendar.
+const LOCALE = isEn ? 'en-GB-u-ca-gregory' : 'ar-SA-u-ca-gregory-nu-latn'
 
 const dateFmt = new Intl.DateTimeFormat(LOCALE, { timeZone: ZONE, day: 'numeric', month: 'short', year: 'numeric' })
 const dateTimeFmt = new Intl.DateTimeFormat(LOCALE, {
@@ -39,17 +41,17 @@ export function count(value: number | null | undefined): string {
 export function ago(value: string | null | undefined): string {
   if (!value) return '—'
   const s = Math.round((Date.now() - new Date(value).getTime()) / 1000)
-  if (s < 60) return 'الآن'
+  if (s < 60) return tr('الآن')
   const m = Math.round(s / 60)
-  if (m < 60) return `قبل ${m} د`
+  if (m < 60) return tr('قبل {0} د', { 0: m })
   const h = Math.round(m / 60)
-  if (h < 24) return `قبل ${h} س`
+  if (h < 24) return tr('قبل {0} س', { 0: h })
   return date(value)
 }
 
 /** "Mozilla/5.0 (Windows NT 10.0...) Chrome/156..." -> "Chrome · Windows". Unknown strings are shown as they are. */
 export function deviceName(userAgent: string | null): string {
-  if (!userAgent) return 'جهاز غير معروف'
+  if (!userAgent) return tr('جهاز غير معروف')
   const ua = userAgent
   const browser = /Edg\//.test(ua) ? 'Edge' : /OPR\//.test(ua) ? 'Opera' : /Chrome\//.test(ua) ? 'Chrome'
     : /Firefox\//.test(ua) ? 'Firefox' : /Safari\//.test(ua) ? 'Safari' : null

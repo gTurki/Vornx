@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { endpoints } from '../api/endpoints'
 import type { Card } from '../api/types'
+import { tr } from '../i18n'
 
 /** The customer's cards. The newest active one is "the" card. */
 export function useCards() {
@@ -27,15 +28,18 @@ export function VCard({ card, name, reveal }: { card: Card | null; name: string;
     : '•••• •••• •••• ••••'
   return (
     <div className={`vcard${card && card.status !== 'ACTIVE' ? ' off' : ''}`} role="img"
-         aria-label={card ? `بطاقة VORNX تنتهي بالرقم ${card.last4}` : 'لا توجد بطاقة بعد'}>
+         aria-label={card ? tr('بطاقة VORNX تنتهي بالرقم {0}', { 0: card.last4 }) : tr('لا توجد بطاقة بعد')}>
       <div>
         <div className="vc-head"><span className="vc-logo" aria-hidden="true" /><small>ONE</small></div>
         <div className="tag-line">PAY · CAMPUS · WORK · TRANSIT · ACCESS</div>
       </div>
-      <div className="pan">{pan}</div>
-      <div className="foot">
-        <span dir="auto">{name}</span>
-        <span className="num">{card ? expiry(card.expiresAt) : '--/--'}</span>
+      {/* the design's frosted plate, so the number and name stay readable over the skyline */}
+      <div className="vc-plate">
+        <div className="pan">{pan}</div>
+        <div className="foot">
+          <span dir="auto">{name}</span>
+          <span className="num">{card ? expiry(card.expiresAt) : '--/--'}</span>
+        </div>
       </div>
     </div>
   )

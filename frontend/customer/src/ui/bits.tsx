@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { ApiError } from '../api/client'
 import type { Label } from '../lib/labels'
+import { tr } from '../i18n'
 
 /** Colored status pill: <Tag label={PARTNER_STATUS[p.status]} /> */
 export function Tag({ label }: { label: Label }) {
@@ -21,7 +22,7 @@ export function Kv({ k, children }: { k: string; children: ReactNode }) {
 }
 
 export function Loading() {
-  return <p className="mu pad">جارٍ التحميل…</p>
+  return <p className="mu pad">{tr('جارٍ التحميل…')}</p>
 }
 
 export function Empty({ children }: { children: ReactNode }) {
@@ -29,7 +30,7 @@ export function Empty({ children }: { children: ReactNode }) {
 }
 
 export function ErrorBox({ error }: { error: unknown }) {
-  const text = error instanceof ApiError ? error.message : 'حدث خطأ غير متوقع.'
+  const text = error instanceof ApiError ? error.message : tr('حدث خطأ غير متوقع.')
   return <div className="error-box">{text}</div>
 }
 
@@ -38,11 +39,10 @@ export function Pager({ page, totalPages, onChange }: { page: number; totalPages
   if (totalPages <= 1) return null
   return (
     <div className="pager">
-      <button className="btn gh" disabled={page <= 0} onClick={() => onChange(page - 1)}>السابق</button>
-      <span className="mu">
-        صفحة <Num>{page + 1}</Num> من <Num>{totalPages}</Num>
+      <button className="btn gh" disabled={page <= 0} onClick={() => onChange(page - 1)}>{tr('السابق')}</button>
+      <span className="mu">{tr('صفحة')}{' '}<Num>{page + 1}</Num>{' '}{tr('من')}{' '}<Num>{totalPages}</Num>
       </span>
-      <button className="btn gh" disabled={page >= totalPages - 1} onClick={() => onChange(page + 1)}>التالي</button>
+      <button className="btn gh" disabled={page >= totalPages - 1} onClick={() => onChange(page + 1)}>{tr('التالي')}</button>
     </div>
   )
 }
@@ -69,7 +69,7 @@ export function ConfirmButton({ children, onConfirm, className = 'btn gh', disab
       disabled={disabled}
       onClick={() => (armed ? (setArmed(false), onConfirm()) : setArmed(true))}
     >
-      {armed ? 'اضغط مرة أخرى للتأكيد' : children}
+      {armed ? tr('اضغط مرة أخرى للتأكيد') : children}
     </button>
   )
 }

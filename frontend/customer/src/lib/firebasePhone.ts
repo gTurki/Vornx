@@ -1,3 +1,4 @@
+import { lang, tr } from '../i18n'
 // SMS login codes through Firebase phone auth.
 //
 // Firebase sends the SMS and checks the code. Then it gives us an "ID token" (signed by Google) that we hand
@@ -36,7 +37,7 @@ export async function sendSms(phoneE164: string, container: HTMLElement): Promis
   const existing = getApps().find((a) => a.name === 'vornx-sms')
   const app = existing ?? initializeApp(config, 'vornx-sms')
   const auth = existing ? getAuth(app) : initializeAuth(app, { persistence: inMemoryPersistence })
-  auth.languageCode = 'ar' // the SMS text and the reCAPTCHA in Arabic
+  auth.languageCode = lang // the SMS text and the reCAPTCHA in the app's language
 
   container.innerHTML = '' // a fresh widget every time (Firebase requires it after a failure)
   const verifier = new RecaptchaVerifier(auth, container, { size: 'invisible' })
@@ -64,15 +65,15 @@ export function smsError(e: unknown): { text: string; useEmail: boolean } {
   const code = (e as { code?: string })?.code ?? ''
   switch (code) {
     case 'auth/invalid-verification-code':
-      return { text: 'الرمز غير صحيح.', useEmail: false }
+      return { text: tr('الرمز غير صحيح.'), useEmail: false }
     case 'auth/code-expired':
-      return { text: 'انتهت صلاحية الرمز. اطلب رمزًا جديدًا.', useEmail: false }
+      return { text: tr('انتهت صلاحية الرمز. اطلب رمزًا جديدًا.'), useEmail: false }
     case 'auth/too-many-requests':
     case 'auth/quota-exceeded':
-      return { text: 'تعذّر إرسال الرسائل النصية الآن.', useEmail: true }
+      return { text: tr('تعذّر إرسال الرسائل النصية الآن.'), useEmail: true }
     case 'auth/network-request-failed':
-      return { text: 'تعذّر الاتصال. تحقق من الإنترنت ثم حاول مجددًا.', useEmail: false }
+      return { text: tr('تعذّر الاتصال. تحقق من الإنترنت ثم حاول مجددًا.'), useEmail: false }
     default:
-      return { text: 'تعذّر التحقق عبر الرسائل النصية.', useEmail: true }
+      return { text: tr('تعذّر التحقق عبر الرسائل النصية.'), useEmail: true }
   }
 }

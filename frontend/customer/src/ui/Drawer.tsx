@@ -1,5 +1,6 @@
 import { useEffect, type ReactNode } from 'react'
 import { Icon } from './Icon'
+import { tr } from '../i18n'
 
 /** The side panel from the design (#dr / #dp). Closes on Esc or a click on the dark background. */
 export function Drawer({ open, onClose, title, children }: {
@@ -21,7 +22,7 @@ export function Drawer({ open, onClose, title, children }: {
       <div className="drawer-panel" role="dialog" aria-modal="true">
         <div className="drawer-head">
           <h2>{title}</h2>
-          <button className="ib" onClick={onClose} aria-label="إغلاق">
+          <button className="ib" onClick={onClose} aria-label={tr('إغلاق')}>
             <Icon name="close" />
           </button>
         </div>

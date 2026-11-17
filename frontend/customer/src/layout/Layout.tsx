@@ -7,28 +7,30 @@ import { useRealtime } from '../api/useRealtime'
 import { ago, count } from '../lib/format'
 import { Icon, type IconName } from '../ui/Icon'
 import { Logo } from '../ui/Logo'
+import { LangSwitch } from '../ui/LangSwitch'
+import { tr } from '../i18n'
 
 type Item = { to: string; label: string; icon: IconName }
 
 /** Desktop: everything in the sidebar. */
 const NAV: Item[] = [
-  { to: '/', label: 'الرئيسية', icon: 'home' },
-  { to: '/card', label: 'بطاقتي', icon: 'card' },
-  { to: '/permits', label: 'التصاريح', icon: 'key' },
-  { to: '/subscriptions', label: 'اشتراكاتي', icon: 'sub' },
-  { to: '/events', label: 'الفعاليات', icon: 'ticket' },
-  { to: '/wallet', label: 'المحفظة', icon: 'wallet' },
-  { to: '/access-log', label: 'سجل الدخول', icon: 'log' },
-  { to: '/account', label: 'حسابي', icon: 'account' },
+  { to: '/', label: tr('الرئيسية'), icon: 'home' },
+  { to: '/card', label: tr('بطاقتي'), icon: 'card' },
+  { to: '/permits', label: tr('التصاريح'), icon: 'key' },
+  { to: '/subscriptions', label: tr('اشتراكاتي'), icon: 'sub' },
+  { to: '/events', label: tr('الفعاليات'), icon: 'ticket' },
+  { to: '/wallet', label: tr('المحفظة'), icon: 'wallet' },
+  { to: '/access-log', label: tr('سجل الدخول'), icon: 'log' },
+  { to: '/account', label: tr('حسابي'), icon: 'account' },
 ]
 
 /** Phone: the 5 most used at the bottom; "الخدمات" opens the rest. */
 const TABS: Item[] = [
-  { to: '/', label: 'الرئيسية', icon: 'home' },
-  { to: '/permits', label: 'التصاريح', icon: 'key' },
-  { to: '/card', label: 'بطاقتي', icon: 'card' },
-  { to: '/wallet', label: 'المحفظة', icon: 'wallet' },
-  { to: '/services', label: 'الخدمات', icon: 'grid' },
+  { to: '/', label: tr('الرئيسية'), icon: 'home' },
+  { to: '/permits', label: tr('التصاريح'), icon: 'key' },
+  { to: '/card', label: tr('بطاقتي'), icon: 'card' },
+  { to: '/wallet', label: tr('المحفظة'), icon: 'wallet' },
+  { to: '/services', label: tr('الخدمات'), icon: 'grid' },
 ]
 
 export function Layout() {
@@ -42,7 +44,7 @@ export function Layout() {
     <div className="app">
       <aside>
         <div className="logo"><Logo /></div>
-        <nav aria-label="القائمة">
+        <nav aria-label={tr('القائمة')}>
           {NAV.map((i) => (
             <NavLink key={i.to} to={i.to} end={i.to === '/'} className={({ isActive }) => `nb${isActive ? ' on' : ''}`}>
               <Icon name={i.icon} />{i.label}
@@ -50,7 +52,7 @@ export function Layout() {
           ))}
         </nav>
         <div className="side-foot">
-          <button className="nb" onClick={logout}><Icon name="logout" />تسجيل الخروج</button>
+          <button className="nb" onClick={logout}><Icon name="logout" />{tr('تسجيل الخروج')}</button>
         </div>
       </aside>
 
@@ -60,19 +62,20 @@ export function Layout() {
             <div className="hello">
               <div className="av" aria-hidden="true">{p?.firstName.charAt(0)}</div>
               <div>
-                <b>أهلًا يا {p?.firstName}</b>
-                <small>نقاطك <span className="num" style={{ color: 'var(--pr)' }}>{count(p?.points)}</span></small>
+                <b>{tr('أهلًا يا')}{' '}{p?.firstName}</b>
+                <small>{tr('نقاطك')}{' '}<span className="num" style={{ color: 'var(--pr)' }}>{count(p?.points)}</span></small>
               </div>
             </div>
+            <LangSwitch className="ib lang-ib" />
             <Bell />
             <ThemeToggle />
           </header>
           <Outlet />
-          <footer className="ft">© 2026 VORNX · بطاقة واحدة لكل شيء</footer>
+          <footer className="ft">{tr('© 2026 VORNX · بطاقة واحدة لكل شيء')}</footer>
         </main>
       </div>
 
-      <nav className="tabbar" aria-label="التنقل السريع">
+      <nav className="tabbar" aria-label={tr('التنقل السريع')}>
         {TABS.map((i) => (
           <NavLink key={i.to} to={i.to} end={i.to === '/'} className={({ isActive }) => (isActive ? 'on' : '')}>
             <Icon name={i.icon} />{i.label}
@@ -88,7 +91,7 @@ export function ServicesPage() {
   const { logout } = useAuth()
   return (
     <>
-      <h2>كل الخدمات</h2>
+      <h2>{tr('كل الخدمات')}</h2>
       <div className="tiles">
         {NAV.filter((i) => i.to !== '/').map((i) => (
           <NavLink key={i.to} to={i.to} className="tile">
@@ -96,7 +99,7 @@ export function ServicesPage() {
           </NavLink>
         ))}
         <button className="tile" onClick={logout}>
-          <span className="ic"><Icon name="logout" /></span><b>تسجيل الخروج</b>
+          <span className="ic"><Icon name="logout" /></span><b>{tr('تسجيل الخروج')}</b>
         </button>
       </div>
     </>
@@ -112,7 +115,7 @@ function ThemeToggle() {
     setDark(!dark)
   }
   return (
-    <button className="ib" onClick={toggle} aria-label="الوضع الليلي / النهاري" title="الوضع الليلي / النهاري">
+    <button className="ib" onClick={toggle} aria-label={tr('الوضع الليلي / النهاري')} title={tr('الوضع الليلي / النهاري')}>
       <Icon name={dark ? 'sun' : 'moon'} />
     </button>
   )
@@ -132,18 +135,18 @@ function Bell() {
 
   return (
     <div className="bell">
-      <button className="ib" onClick={() => setOpen(!open)} aria-label={`التنبيهات (${n})`} aria-expanded={open}>
+      <button className="ib" onClick={() => setOpen(!open)} aria-label={tr('التنبيهات ({0})', { 0: n })} aria-expanded={open}>
         <Icon name="bell" />
         {n > 0 && <span className="badge num">{n > 99 ? '99+' : n}</span>}
       </button>
       {open && (
         <div className="bell-panel">
           <div className="bell-head">
-            <b>التنبيهات</b>
-            {n > 0 && <button className="link" onClick={() => readAll.mutate()}>تعليم الكل كمقروء</button>}
+            <b>{tr('التنبيهات')}</b>
+            {n > 0 && <button className="link" onClick={() => readAll.mutate()}>{tr('تعليم الكل كمقروء')}</button>}
           </div>
-          {list.isLoading && <p className="mu" style={{ padding: '0 16px' }}>جارٍ التحميل…</p>}
-          {list.data?.content.length === 0 && <p className="mu" style={{ padding: '0 16px' }}>لا توجد تنبيهات.</p>}
+          {list.isLoading && <p className="mu" style={{ padding: '0 16px' }}>{tr('جارٍ التحميل…')}</p>}
+          {list.data?.content.length === 0 && <p className="mu" style={{ padding: '0 16px' }}>{tr('لا توجد تنبيهات.')}</p>}
           {list.data?.content.map((x) => (
             <div key={x.id} className={`notif${x.read ? '' : ' unread'}`}>
               <b>{x.titleAr}</b>

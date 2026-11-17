@@ -4,6 +4,7 @@ import { endpoints } from '../api/endpoints'
 import type { LoginChallenge } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 import { AuthCard, digitsOnly, errorText, ltr } from './AuthPages'
+import { tr } from '../i18n'
 
 /**
  * Shown instead of the app until the customer confirms their mobile: we send a 6-digit code by WhatsApp.
@@ -34,7 +35,7 @@ export function VerifyPhonePage() {
       setC(next)
       setWait(next.resendIn)
       setCode(next.devCode ?? '')
-      if (c) setInfo('أرسلنا رمزًا جديدًا. الرمز السابق لم يعد صالحًا.')
+      if (c) setInfo(tr('أرسلنا رمزًا جديدًا. الرمز السابق لم يعد صالحًا.'))
     } catch (err) {
       if (err instanceof ApiError && err.code === 'PHONE_ALREADY_VERIFIED') return updateMe(await endpoints.me())
       if (err instanceof ApiError && err.code === 'LOGIN_CHALLENGE_INVALID') setC(null)
@@ -72,11 +73,11 @@ export function VerifyPhonePage() {
   }
 
   return (
-    <AuthCard title="تأكيد رقم الجوال"
-      sub={c ? `أرسلنا رمزًا من 6 أرقام عبر واتساب إلى ${ltr(c.destination)}` : `خطوة أخيرة: نرسل رمزًا عبر واتساب إلى رقمك ${ltr(me?.phone)} للتأكد أنه لك.`}
+    <AuthCard title={tr('تأكيد رقم الجوال')}
+      sub={c ? tr('أرسلنا رمزًا من 6 أرقام عبر واتساب إلى {0}', { 0: ltr(c.destination) }) : tr('خطوة أخيرة: نرسل رمزًا عبر واتساب إلى رقمك {0} للتأكد أنه لك.', { 0: ltr(me?.phone) })}
       onSubmit={(e) => { e.preventDefault(); if (!c) send(); else if (code.length === 6) confirm(code) }}>
       {c && (
-        <label className="field"><span>الرمز من واتساب</span>
+        <label className="field"><span>{tr('الرمز من واتساب')}</span>
           <input className="input otp" dir="ltr" inputMode="numeric" autoComplete="one-time-code" autoFocus
             maxLength={12} required value={code} onChange={(e) => onChange(e.target.value)} placeholder="••••••" />
         </label>
@@ -84,19 +85,17 @@ export function VerifyPhonePage() {
       {error && <div className="error-box">{error}</div>}
       {info && <p className="mu" style={{ textAlign: 'center', margin: 0 }}>{info}</p>}
       {c
-        ? <button className="btn wide" disabled={busy || code.length !== 6}>{busy ? 'جارٍ التحقق…' : 'تأكيد'}</button>
-        : <button className="btn wide" disabled={busy}>{busy ? 'جارٍ الإرسال…' : 'أرسل الرمز عبر واتساب'}</button>}
+        ? <button className="btn wide" disabled={busy || code.length !== 6}>{busy ? tr('جارٍ التحقق…') : tr('تأكيد')}</button>
+        : <button className="btn wide" disabled={busy}>{busy ? tr('جارٍ الإرسال…') : tr('أرسل الرمز عبر واتساب')}</button>}
       <div className="auth-links">
         {c && (c.resendsLeft > 0
           ? <><button type="button" className="link" disabled={wait > 0 || busy} onClick={send}>
-              {wait > 0 ? `إعادة الإرسال بعد ${wait} ث` : 'إعادة إرسال الرمز'}
+              {wait > 0 ? tr('إعادة الإرسال بعد {0} ث', { 0: wait }) : tr('إعادة إرسال الرمز')}
             </button>·</>
-          : <><button type="button" className="link" onClick={() => { setC(null); setCode('') }}>اطلب رمزًا جديدًا</button>·</>)}
-        <button type="button" className="link" onClick={logout}>تسجيل الخروج</button>
+          : <><button type="button" className="link" onClick={() => { setC(null); setCode('') }}>{tr('اطلب رمزًا جديدًا')}</button>·</>)}
+        <button type="button" className="link" onClick={logout}>{tr('تسجيل الخروج')}</button>
       </div>
-      <p className="mu" style={{ textAlign: 'center', margin: 0, fontSize: 12.5 }}>
-        تأكد أن واتساب يعمل على هذا الرقم. الرقم غير صحيح؟ تواصل مع دعم VORNX.
-      </p>
+      <p className="mu" style={{ textAlign: 'center', margin: 0, fontSize: 12.5 }}>{tr('تأكد أن واتساب يعمل على هذا الرقم. الرقم غير صحيح؟ تواصل مع دعم VORNX.')}</p>
     </AuthCard>
   )
 }

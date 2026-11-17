@@ -8,6 +8,7 @@ import { ATTENDEE, keys, REMINDER, TICKET_STATE } from '../lib/labels'
 import { ConfirmButton, Empty, ErrorBox, Kv, Loading, Num, Pager, Tag } from '../ui/bits'
 import { Drawer } from '../ui/Drawer'
 import { useToast } from '../ui/Toast'
+import { tr } from '../i18n'
 
 /** "الفعاليات": upcoming events to register for, and my tickets. */
 export function EventsPage() {
@@ -16,8 +17,8 @@ export function EventsPage() {
   return (
     <>
       <div className="tabs">
-        <button className={tab === 'tickets' ? 'on' : ''} onClick={() => setTab('tickets')}>تذاكري</button>
-        <button className={tab === 'browse' ? 'on' : ''} onClick={() => setTab('browse')}>اكتشف الفعاليات</button>
+        <button className={tab === 'tickets' ? 'on' : ''} onClick={() => setTab('tickets')}>{tr('تذاكري')}</button>
+        <button className={tab === 'browse' ? 'on' : ''} onClick={() => setTab('browse')}>{tr('اكتشف الفعاليات')}</button>
       </div>
       {tab === 'tickets' ? (
         <>
@@ -25,9 +26,9 @@ export function EventsPage() {
           {tickets.isLoading && <Loading />}
           {tickets.data?.length === 0 && (
             <div className="notice">
-              <b>لا توجد تذاكر بعد</b>
-              <p className="mu" style={{ margin: '4px 0 10px' }}>سجّل في فعالية، وتصبح بطاقتك تذكرة الدخول.</p>
-              <button className="btn sm" onClick={() => setTab('browse')}>اكتشف الفعاليات</button>
+              <b>{tr('لا توجد تذاكر بعد')}</b>
+              <p className="mu" style={{ margin: '4px 0 10px' }}>{tr('سجّل في فعالية، وتصبح بطاقتك تذكرة الدخول.')}</p>
+              <button className="btn sm" onClick={() => setTab('browse')}>{tr('اكتشف الفعاليات')}</button>
             </div>
           )}
           <div className="cols" style={{ gap: 16 }}>{tickets.data?.map((t) => <TicketCard key={t.id} t={t} />)}</div>
@@ -40,10 +41,10 @@ export function EventsPage() {
 function TicketCard({ t }: { t: EventTicket }) {
   const qc = useQueryClient()
   const toast = useToast()
-  const onError = (e: unknown) => toast(e instanceof ApiError ? e.message : 'تعذّر الحفظ', true)
+  const onError = (e: unknown) => toast(e instanceof ApiError ? e.message : tr('تعذّر الحفظ'), true)
   const done = (msg: string) => { qc.invalidateQueries({ queryKey: ['tickets'] }); qc.invalidateQueries({ queryKey: ['events'] }); toast(msg) }
-  const cancel = useMutation({ mutationFn: () => endpoints.cancelTicket(t.id), onSuccess: () => done('أُلغيت التذكرة'), onError })
-  const remind = useMutation({ mutationFn: (r: ReminderOption | null) => endpoints.setReminder(t.id, r), onSuccess: () => done('حُفظ التذكير'), onError })
+  const cancel = useMutation({ mutationFn: () => endpoints.cancelTicket(t.id), onSuccess: () => done(tr('أُلغيت التذكرة')), onError })
+  const remind = useMutation({ mutationFn: (r: ReminderOption | null) => endpoints.setReminder(t.id, r), onSuccess: () => done(tr('حُفظ التذكير')), onError })
   const active = t.upcoming && (t.status === 'CONFIRMED' || t.status === 'UNDER_REVIEW')
 
   return (
@@ -52,20 +53,20 @@ function TicketCard({ t }: { t: EventTicket }) {
         <span className="ent"><b>{t.eventTitle}</b><small>{t.venue}</small></span>
         <Tag label={TICKET_STATE[t.status]} />
       </div>
-      <Kv k="الموعد">{dateTime(t.startsAt)}</Kv>
-      <Kv k="الصفة">{ATTENDEE[t.role]}{t.seat ? ` · مقعد ${t.seat}` : ''}</Kv>
-      <Kv k="رقم التذكرة"><Num>{t.ticketNumber}</Num></Kv>
-      {t.verificationCode && <Kv k="رمز التحقق"><Num>{t.verificationCode}</Num></Kv>}
-      {t.rejectionReason && <p className="bad" style={{ margin: '8px 0 0' }}>سبب الرفض: {t.rejectionReason}</p>}
-      {t.checkedInAt && <p className="ok" style={{ margin: '8px 0 0' }}>سُجّل حضورك {dateTime(t.checkedInAt)}</p>}
+      <Kv k={tr('الموعد')}>{dateTime(t.startsAt)}</Kv>
+      <Kv k={tr('الصفة')}>{ATTENDEE[t.role]}{t.seat ? tr(' · مقعد {0}', { 0: t.seat }) : ''}</Kv>
+      <Kv k={tr('رقم التذكرة')}><Num>{t.ticketNumber}</Num></Kv>
+      {t.verificationCode && <Kv k={tr('رمز التحقق')}><Num>{t.verificationCode}</Num></Kv>}
+      {t.rejectionReason && <p className="bad" style={{ margin: '8px 0 0' }}>{tr('سبب الرفض:')}{' '}{t.rejectionReason}</p>}
+      {t.checkedInAt && <p className="ok" style={{ margin: '8px 0 0' }}>{tr('سُجّل حضورك')}{' '}{dateTime(t.checkedInAt)}</p>}
       {active && (
         <div className="form-actions" style={{ marginTop: 12, alignItems: 'center' }}>
-          <select className="input" style={{ width: 'auto', padding: '6px 10px' }} aria-label="التذكير" value={t.reminder ?? ''}
+          <select className="input" style={{ width: 'auto', padding: '6px 10px' }} aria-label={tr('التذكير')} value={t.reminder ?? ''}
                   onChange={(e) => remind.mutate((e.target.value || null) as ReminderOption | null)}>
-            <option value="">بدون تذكير</option>
-            {keys(REMINDER).map((r) => <option key={r} value={r}>ذكّرني {REMINDER[r]}</option>)}
+            <option value="">{tr('بدون تذكير')}</option>
+            {keys(REMINDER).map((r) => <option key={r} value={r}>{tr('ذكّرني')}{' '}{REMINDER[r]}</option>)}
           </select>
-          <ConfirmButton className="btn gh sm" onConfirm={() => cancel.mutate()}>إلغاء التذكرة</ConfirmButton>
+          <ConfirmButton className="btn gh sm" onConfirm={() => cancel.mutate()}>{tr('إلغاء التذكرة')}</ConfirmButton>
         </div>
       )}
     </div>
@@ -83,17 +84,17 @@ function Browse({ mine }: { mine: EventTicket[] }) {
     <>
       {events.error && <ErrorBox error={events.error} />}
       {events.isLoading && <Loading />}
-      {events.data?.content.length === 0 && <Empty>لا توجد فعاليات قادمة حاليًا.</Empty>}
+      {events.data?.content.length === 0 && <Empty>{tr('لا توجد فعاليات قادمة حاليًا.')}</Empty>}
       <div className="tiles" style={{ gridTemplateColumns: 'repeat(auto-fill,minmax(240px,1fr))' }}>
         {events.data?.content.map((e) => (
           <button key={e.id} className="tile" onClick={() => setOpenId(e.id)}>
-            <small>{e.category ?? 'فعالية'} · {e.organizer}</small>
+            <small>{e.category ?? tr('فعالية')} · {e.organizer}</small>
             <b>{e.title}</b>
             <small>{dateTime(e.startsAt)} · {e.venue}</small>
             <span>
-              {e.fee > 0 ? <><Num>{money(e.fee)}</Num> ر.س</> : 'مجانية'}
-              {e.spotsLeft !== null && <span className="mu"> · {e.spotsLeft > 0 ? <>متبقٍ <Num>{count(e.spotsLeft)}</Num> مقعد</> : 'اكتملت'}</span>}
-              {has(e.id) && <span className="ok"> · مسجّل</span>}
+              {e.fee > 0 ? <><Num>{money(e.fee)}</Num>{' '}{tr('ر.س')}</> : tr('مجانية')}
+              {e.spotsLeft !== null && <span className="mu"> · {e.spotsLeft > 0 ? <>{tr('متبقٍ')}{' '}<Num>{count(e.spotsLeft)}</Num>{' '}{tr('مقعد')}</> : tr('اكتملت')}</span>}
+              {has(e.id) && <span className="ok">{' '}{tr('· مسجّل')}</span>}
             </span>
           </button>
         ))}
@@ -113,9 +114,9 @@ function EventDetails({ e, registered }: { e: VEvent; registered: boolean }) {
     mutationFn: () => endpoints.registerEvent(e.id),
     onSuccess: (t) => {
       ['tickets', 'events', 'wallet', 'transactions', 'permits'].forEach((k) => qc.invalidateQueries({ queryKey: [k] }))
-      toast(t.status === 'CONFIRMED' ? 'سُجّلت! بطاقتك هي تذكرة الدخول.' : 'أُرسل طلب التسجيل للمنظّم.')
+      toast(t.status === 'CONFIRMED' ? tr('سُجّلت! بطاقتك هي تذكرة الدخول.') : tr('أُرسل طلب التسجيل للمنظّم.'))
     },
-    onError: (err) => toast(err instanceof ApiError ? err.message : 'تعذّر التسجيل', true),
+    onError: (err) => toast(err instanceof ApiError ? err.message : tr('تعذّر التسجيل'), true),
   })
   const full = e.spotsLeft === 0
   const maps = e.latitude !== null && e.longitude !== null ? `https://maps.google.com/?q=${e.latitude},${e.longitude}` : null
@@ -124,22 +125,22 @@ function EventDetails({ e, registered }: { e: VEvent; registered: boolean }) {
     <>
       <p className="mu" style={{ marginTop: 0 }}>{e.organizer}{e.category ? ` · ${e.category}` : ''}</p>
       {e.description && <p style={{ whiteSpace: 'pre-wrap' }}>{e.description}</p>}
-      <Kv k="يبدأ">{dateTime(e.startsAt)}</Kv>
-      <Kv k="ينتهي">{dateTime(e.endsAt)}</Kv>
-      {e.doorsOpenAt && <Kv k="فتح الأبواب">{dateTime(e.doorsOpenAt)}</Kv>}
-      <Kv k="المكان">{e.venue}{e.address ? ` · ${e.address}` : ''}</Kv>
-      <Kv k="الرسوم">{e.fee > 0 ? <><Num>{money(e.fee)}</Num> ر.س</> : 'مجانية'}</Kv>
-      {e.dressCode && <Kv k="اللباس">{e.dressCode}</Kv>}
-      {e.agenda.length > 0 && <Kv k="البرنامج">{e.agenda.map((a, i) => <div key={i}><Num>{hhmm(a.time)}</Num> {a.title}</div>)}</Kv>}
-      {maps && <p><a href={maps} target="_blank" rel="noopener noreferrer">الموقع على الخريطة ↗</a></p>}
+      <Kv k={tr('يبدأ')}>{dateTime(e.startsAt)}</Kv>
+      <Kv k={tr('ينتهي')}>{dateTime(e.endsAt)}</Kv>
+      {e.doorsOpenAt && <Kv k={tr('فتح الأبواب')}>{dateTime(e.doorsOpenAt)}</Kv>}
+      <Kv k={tr('المكان')}>{e.venue}{e.address ? ` · ${e.address}` : ''}</Kv>
+      <Kv k={tr('الرسوم')}>{e.fee > 0 ? <><Num>{money(e.fee)}</Num>{' '}{tr('ر.س')}</> : tr('مجانية')}</Kv>
+      {e.dressCode && <Kv k={tr('اللباس')}>{e.dressCode}</Kv>}
+      {e.agenda.length > 0 && <Kv k={tr('البرنامج')}>{e.agenda.map((a, i) => <div key={i}><Num>{hhmm(a.time)}</Num> {a.title}</div>)}</Kv>}
+      {maps && <p><a href={maps} target="_blank" rel="noopener noreferrer">{tr('الموقع على الخريطة ↗')}</a></p>}
       <div className="form-actions" style={{ marginTop: 14 }}>
-        {registered ? <Tag label={{ text: 'أنت مسجّل', tone: 'ok' }} /> : (
+        {registered ? <Tag label={{ text: tr('أنت مسجّل'), tone: 'ok' }} /> : (
           <ConfirmButton className="btn wide" onConfirm={() => register.mutate()} disabled={full || register.isPending}>
-            {full ? 'اكتملت المقاعد' : e.fee > 0 ? `سجّل وادفع ${money(e.fee)} ر.س` : 'سجّل مجانًا'}
+            {full ? tr('اكتملت المقاعد') : e.fee > 0 ? tr('سجّل وادفع {0} ر.س', { 0: money(e.fee) }) : tr('سجّل مجانًا')}
           </ConfirmButton>
         )}
       </div>
-      {e.requiresApproval && !registered && <p className="mu">يراجع المنظّم طلبك قبل التأكيد.</p>}
+      {e.requiresApproval && !registered && <p className="mu">{tr('يراجع المنظّم طلبك قبل التأكيد.')}</p>}
     </>
   )
 }

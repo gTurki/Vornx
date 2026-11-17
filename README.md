@@ -108,6 +108,12 @@ npm run dev        # http://localhost:5175
 Railway: a fourth service, **Root Directory** `/frontend/customer`, **Config file** `/frontend/customer/railway.json`,
 variable `VITE_API_URL=https://<api domain>`. Add its domain to the API's `CORS_ALLOWED_ORIGINS` and set `CUSTOMER_URL`.
 
+**Arabic / English (customer app).** Every text goes through `tr()` (`src/i18n`), with the Arabic text as the key:
+`tr('تسجيل الدخول')`, variables as `tr('قبل {0} د', { 0: m })`. The English is in `src/i18n/en.ts`; a missing
+translation shows the Arabic and warns in the dev console. The "English / العربية" button saves the choice on the
+device and reloads; the page flips to left-to-right (the CSS uses logical properties). The terms and privacy pages have
+separate English versions in `LegalPages.tsx`: change both languages together.
+
 All three frontends share one refresh token per browser (localStorage) and refresh it under a Web Lock, so several
 open tabs never log each other out.
 

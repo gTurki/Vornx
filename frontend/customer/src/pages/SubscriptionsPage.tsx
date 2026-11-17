@@ -8,6 +8,7 @@ import { DAY, PERIOD, PERMIT_ICON, REQUEST_STATUS, REQUEST_TYPE, SUB_STATUS } fr
 import { ConfirmButton, Empty, ErrorBox, Loading, Num, Pager, Tag } from '../ui/bits'
 import { Icon } from '../ui/Icon'
 import { useToast } from '../ui/Toast'
+import { tr } from '../i18n'
 
 /** "اشتراكاتي": my subscriptions and requests, and the plans I can subscribe to. */
 export function SubscriptionsPage() {
@@ -15,8 +16,8 @@ export function SubscriptionsPage() {
   return (
     <>
       <div className="tabs">
-        <button className={tab === 'mine' ? 'on' : ''} onClick={() => setTab('mine')}>اشتراكاتي</button>
-        <button className={tab === 'plans' ? 'on' : ''} onClick={() => setTab('plans')}>الباقات المتاحة</button>
+        <button className={tab === 'mine' ? 'on' : ''} onClick={() => setTab('mine')}>{tr('اشتراكاتي')}</button>
+        <button className={tab === 'plans' ? 'on' : ''} onClick={() => setTab('plans')}>{tr('الباقات المتاحة')}</button>
       </div>
       {tab === 'mine' ? <Mine onBrowse={() => setTab('plans')} /> : <Plans />}
     </>
@@ -33,15 +34,15 @@ function Mine({ onBrowse }: { onBrowse: () => void }) {
   const refresh = useRefreshAll()
   const subs = useQuery({ queryKey: ['subscriptions'], queryFn: endpoints.subscriptions })
   const requests = useQuery({ queryKey: ['requests'], queryFn: endpoints.requests })
-  const onError = (e: unknown) => toast(e instanceof ApiError ? e.message : 'تعذّر الطلب', true)
+  const onError = (e: unknown) => toast(e instanceof ApiError ? e.message : tr('تعذّر الطلب'), true)
   const renew = useMutation({
     mutationFn: endpoints.renew,
-    onSuccess: (r) => { refresh(); toast(r.status === 'APPROVED' ? 'جُدّد اشتراكك' : 'أُرسل طلب التجديد وحُجز المبلغ من محفظتك') },
+    onSuccess: (r) => { refresh(); toast(r.status === 'APPROVED' ? tr('جُدّد اشتراكك') : tr('أُرسل طلب التجديد وحُجز المبلغ من محفظتك')) },
     onError,
   })
   const cancel = useMutation({
     mutationFn: endpoints.cancelRequest,
-    onSuccess: () => { refresh(); toast('أُلغي الطلب وأُعيد المبلغ لمحفظتك') },
+    onSuccess: () => { refresh(); toast(tr('أُلغي الطلب وأُعيد المبلغ لمحفظتك')) },
     onError,
   })
   const pending = (requests.data ?? []).filter((r) => r.status === 'PENDING')
@@ -54,12 +55,12 @@ function Mine({ onBrowse }: { onBrowse: () => void }) {
 
       {pending.length > 0 && (
         <>
-          <h2>قيد المراجعة</h2>
+          <h2>{tr('قيد المراجعة')}</h2>
           <div className="panel" style={{ marginBottom: 20 }}>
             {pending.map((r) => (
               <div key={r.id} className="li">
-                <span className="ent"><b>{r.planName}</b><small>{REQUEST_TYPE[r.type]} · <Num>{money(r.amount)}</Num> ر.س محجوزة حتى يقرر مقدم الخدمة</small></span>
-                <ConfirmButton className="btn gh sm" onConfirm={() => cancel.mutate(r.id)}>إلغاء الطلب</ConfirmButton>
+                <span className="ent"><b>{r.planName}</b><small>{REQUEST_TYPE[r.type]} · <Num>{money(r.amount)}</Num>{' '}{tr('ر.س محجوزة حتى يقرر مقدم الخدمة')}</small></span>
+                <ConfirmButton className="btn gh sm" onConfirm={() => cancel.mutate(r.id)}>{tr('إلغاء الطلب')}</ConfirmButton>
               </div>
             ))}
           </div>
@@ -68,9 +69,9 @@ function Mine({ onBrowse }: { onBrowse: () => void }) {
 
       {subs.data?.length === 0 && pending.length === 0 && (
         <div className="notice">
-          <b>لا توجد اشتراكات بعد</b>
-          <p className="mu" style={{ margin: '4px 0 10px' }}>اشترك في نادٍ أو موقف شهري، ويُدفع من محفظتك.</p>
-          <button className="btn sm" onClick={onBrowse}>تصفّح الباقات</button>
+          <b>{tr('لا توجد اشتراكات بعد')}</b>
+          <p className="mu" style={{ margin: '4px 0 10px' }}>{tr('اشترك في نادٍ أو موقف شهري، ويُدفع من محفظتك.')}</p>
+          <button className="btn sm" onClick={onBrowse}>{tr('تصفّح الباقات')}</button>
         </div>
       )}
       <div className="cols" style={{ gap: 16 }}>
@@ -80,14 +81,12 @@ function Mine({ onBrowse }: { onBrowse: () => void }) {
               <span className="ent"><b>{s.planName}</b><small>{s.partnerName} · {s.siteName}</small></span>
               <Tag label={SUB_STATUS[s.status]} />
             </div>
-            {s.startAt && <div className="kv"><span>الفترة</span><b>{date(s.startAt)} – {date(s.endAt)}</b></div>}
-            <div className="kv"><span>سعر التجديد</span><b><Num>{money(s.renewalPrice)}</Num> ر.س / {PERIOD[s.billingPeriod]}</b></div>
-            {s.permitNumber && <div className="kv"><span>التصريح</span><b><Num>{s.permitNumber}</Num></b></div>}
+            {s.startAt && <div className="kv"><span>{tr('الفترة')}</span><b>{date(s.startAt)} – {date(s.endAt)}</b></div>}
+            <div className="kv"><span>{tr('سعر التجديد')}</span><b><Num>{money(s.renewalPrice)}</Num>{' '}{tr('ر.س /')}{' '}{PERIOD[s.billingPeriod]}</b></div>
+            {s.permitNumber && <div className="kv"><span>{tr('التصريح')}</span><b><Num>{s.permitNumber}</Num></b></div>}
             {(s.status === 'ACTIVE' || s.status === 'EXPIRED') && (
               <div className="form-actions" style={{ marginTop: 10 }}>
-                <ConfirmButton className="btn soft sm" onConfirm={() => renew.mutate(s.id)} disabled={renew.isPending}>
-                  تجديد بـ {money(s.renewalPrice)} ر.س
-                </ConfirmButton>
+                <ConfirmButton className="btn soft sm" onConfirm={() => renew.mutate(s.id)} disabled={renew.isPending}>{tr('تجديد بـ')}{' '}{money(s.renewalPrice)}{' '}{tr('ر.س')}</ConfirmButton>
               </div>
             )}
           </div>
@@ -96,13 +95,13 @@ function Mine({ onBrowse }: { onBrowse: () => void }) {
 
       {history.length > 0 && (
         <>
-          <h2 className="section">طلبات سابقة</h2>
+          <h2 className="section">{tr('طلبات سابقة')}</h2>
           <div className="panel">
             {history.map((r) => (
               <div key={r.id} className="li">
                 <span className="ent">
                   <b>{r.planName}</b>
-                  <small>{REQUEST_TYPE[r.type]} · {date(r.createdAt)}{r.rejectionReason && <> · السبب: {r.rejectionReason}</>}</small>
+                  <small>{REQUEST_TYPE[r.type]} · {date(r.createdAt)}{r.rejectionReason && <>{' '}{tr('· السبب:')}{' '}{r.rejectionReason}</>}</small>
                 </span>
                 <Tag label={REQUEST_STATUS[r.status]} />
               </div>
@@ -120,10 +119,10 @@ function Plans() {
   const wallet = useQuery({ queryKey: ['wallet'], queryFn: endpoints.wallet })
   return (
     <>
-      <p className="lead">رصيدك: <Num>{money(wallet.data?.balance)}</Num> ر.س. يُخصم السعر عند الاشتراك، ويُعاد كاملًا إن رُفض الطلب.</p>
+      <p className="lead">{tr('رصيدك:')}{' '}<Num>{money(wallet.data?.balance)}</Num>{' '}{tr('ر.س. يُخصم السعر عند الاشتراك، ويُعاد كاملًا إن رُفض الطلب.')}</p>
       {plans.error && <ErrorBox error={plans.error} />}
       {plans.isLoading && <Loading />}
-      {plans.data?.content.length === 0 && <Empty>لا توجد باقات متاحة حاليًا.</Empty>}
+      {plans.data?.content.length === 0 && <Empty>{tr('لا توجد باقات متاحة حاليًا.')}</Empty>}
       <div className="cols" style={{ gap: 16 }}>
         {plans.data?.content.map((p) => <PlanCard key={p.id} p={p} />)}
       </div>
@@ -137,8 +136,8 @@ function PlanCard({ p }: { p: Plan }) {
   const refresh = useRefreshAll()
   const subscribe = useMutation({
     mutationFn: () => endpoints.subscribe(p.id),
-    onSuccess: (r) => { refresh(); toast(r.status === 'APPROVED' ? 'اشتركت! تصريحك جاهز في صفحة التصاريح.' : 'أُرسل طلبك. سنخبرك فور موافقة مقدم الخدمة.') },
-    onError: (e) => toast(e instanceof ApiError ? e.message : 'تعذّر الاشتراك', true),
+    onSuccess: (r) => { refresh(); toast(r.status === 'APPROVED' ? tr('اشتركت! تصريحك جاهز في صفحة التصاريح.') : tr('أُرسل طلبك. سنخبرك فور موافقة مقدم الخدمة.')) },
+    onError: (e) => toast(e instanceof ApiError ? e.message : tr('تعذّر الاشتراك'), true),
   })
   return (
     <div className="panel">
@@ -147,20 +146,18 @@ function PlanCard({ p }: { p: Plan }) {
         <span className="ent"><b>{p.name}</b><small>{p.partnerName} · {p.siteName}</small></span>
       </div>
       {p.description && <p style={{ margin: '0 0 8px' }}>{p.description}</p>}
-      <div className="kv"><span>السعر</span><b><Num>{money(p.price)}</Num> ر.س / {PERIOD[p.billingPeriod]}</b></div>
-      <div className="kv"><span>يشمل</span><b>{p.wholeSite ? 'كل الموقع' : p.accessPointNames.join('، ')}</b></div>
+      <div className="kv"><span>{tr('السعر')}</span><b><Num>{money(p.price)}</Num>{' '}{tr('ر.س /')}{' '}{PERIOD[p.billingPeriod]}</b></div>
+      <div className="kv"><span>{tr('يشمل')}</span><b>{p.wholeSite ? tr('كل الموقع') : p.accessPointNames.join(tr('، '))}</b></div>
       {(p.allowedDays.length > 0 || p.allowedFrom) && (
-        <div className="kv"><span>الأوقات</span><b>
-          {p.allowedDays.length ? p.allowedDays.map((d) => DAY[d]).join('، ') : 'كل الأيام'}
+        <div className="kv"><span>{tr('الأوقات')}</span><b>
+          {p.allowedDays.length ? p.allowedDays.map((d) => DAY[d]).join(tr('، ')) : tr('كل الأيام')}
           {p.allowedFrom && <> · <Num>{hhmm(p.allowedFrom)}–{hhmm(p.allowedTo)}</Num></>}
         </b></div>
       )}
       <div className="form-actions" style={{ marginTop: 12 }}>
-        <ConfirmButton className="btn wide" onConfirm={() => subscribe.mutate()} disabled={subscribe.isPending}>
-          اشترك بـ {money(p.price)} ر.س
-        </ConfirmButton>
+        <ConfirmButton className="btn wide" onConfirm={() => subscribe.mutate()} disabled={subscribe.isPending}>{tr('اشترك بـ')}{' '}{money(p.price)}{' '}{tr('ر.س')}</ConfirmButton>
       </div>
-      <p className="mu" style={{ margin: '6px 0 0' }}>{p.requiresApproval ? 'يحتاج موافقة مقدم الخدمة' : 'تفعيل فوري'}</p>
+      <p className="mu" style={{ margin: '6px 0 0' }}>{p.requiresApproval ? tr('يحتاج موافقة مقدم الخدمة') : tr('تفعيل فوري')}</p>
     </div>
   )
 }

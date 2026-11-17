@@ -1,4 +1,5 @@
 import type { AuthResponse, ProblemDetail } from './types'
+import { tr } from '../i18n'
 
 /**
  * The one place that talks HTTP to the backend.
@@ -70,7 +71,7 @@ export async function api<T>(path: string, { method = 'GET', body, auth = true }
   try {
     res = await send()
   } catch {
-    throw new ApiError(0, { status: 0, detail: 'تعذّر الاتصال بالخادم. تحقق من الإنترنت ثم حاول مجددًا.' })
+    throw new ApiError(0, { status: 0, detail: tr('تعذّر الاتصال بالخادم. تحقق من الإنترنت ثم حاول مجددًا.') })
   }
 
   if (res.status === 401 && auth) {
@@ -78,7 +79,7 @@ export async function api<T>(path: string, { method = 'GET', body, auth = true }
       res = await send()
     } else {
       onSessionEnded?.()
-      throw new ApiError(401, { status: 401, detail: 'انتهت الجلسة. سجّل الدخول مرة أخرى.' })
+      throw new ApiError(401, { status: 401, detail: tr('انتهت الجلسة. سجّل الدخول مرة أخرى.') })
     }
   }
 
@@ -135,57 +136,57 @@ async function doRefresh(): Promise<boolean> {
 // ---------- Arabic messages for the error codes the backend sends ----------
 
 const CODES: Record<string, string> = {
-  EMAIL_TAKEN: 'هذا البريد مسجّل مسبقًا. سجّل الدخول أو استعد كلمة المرور.',
-  PHONE_TAKEN: 'رقم الجوال مسجّل مسبقًا.',
-  PASSWORD_MISMATCH: 'كلمتا المرور غير متطابقتين.',
-  WRONG_PASSWORD: 'كلمة المرور الحالية غير صحيحة.',
-  SAME_PASSWORD: 'كلمة المرور الجديدة يجب أن تختلف عن الحالية.',
-  RESET_LINK_INVALID: 'رابط إعادة التعيين غير صالح أو منتهي أو مستخدم.',
-  INSUFFICIENT_FUNDS: 'رصيد محفظتك لا يكفي.',
-  SELF_TRANSFER: 'لا يمكنك التحويل لنفسك.',
-  TOP_UP_DISABLED: 'شحن المحفظة غير متاح حاليًا.',
-  TOO_MANY_PENDING: 'لديك عمليات شحن لم تكتمل. حاول بعد قليل.',
-  PAYMENT_PROVIDER_ERROR: 'خدمة الدفع لا تستجيب الآن. حاول مرة أخرى.',
-  CARD_NOT_ACTIVE: 'يمكن الإبلاغ عن فقد البطاقة النشطة فقط.',
-  ALREADY_REGISTERED: 'لديك تذكرة لهذه الفعالية مسبقًا.',
-  EVENT_FULL: 'اكتمل عدد المقاعد في هذه الفعالية.',
-  REGISTRATION_CLOSED: 'أُغلق التسجيل: بدأت الفعالية.',
-  CANNOT_CANCEL: 'لا يمكن إلغاء هذا الآن.',
-  PLAN_UNAVAILABLE: 'هذه الباقة لم تعد متاحة.',
-  REQUEST_PENDING: 'لديك طلب قيد المراجعة لهذا الاشتراك.',
-  CANNOT_RENEW: 'يمكن تجديد الاشتراك النشط أو المنتهي فقط.',
-  REQUEST_NOT_PENDING: 'تم البت في هذا الطلب مسبقًا.',
-  ACCOUNT_INACTIVE: 'حسابك غير نشط. تواصل مع الدعم.',
-  CODE_INVALID: 'الرمز غير صحيح.',
-  CODE_EXPIRED: 'انتهت صلاحية الرمز. اطلب رمزًا جديدًا.',
-  CODE_RESEND_TOO_SOON: 'انتظر قليلًا قبل طلب رمز جديد.',
-  CODE_RESEND_LIMIT: 'وصلت للحد الأقصى من الرموز. سجّل الدخول من جديد.',
-  LOGIN_CHALLENGE_INVALID: 'انتهت خطوة التحقق. ابدأ من جديد.',
-  CODE_RESEND_NOT_AVAILABLE: 'استخدم الرمز من تطبيق المصادقة أو رمز استرداد.',
-  PHONE_NOT_VERIFIED: 'أكّد رقم جوالك أولًا.',
-  PHONE_ALREADY_VERIFIED: 'رقم جوالك مؤكَّد مسبقًا.',
-  PHONE_VERIFICATION_OFF: 'تأكيد الجوال غير متاح حاليًا.',
-  PHONE_INVALID: 'لا يمكن إرسال رمز إلى رقم جوالك. تواصل معنا.',
-  PHONE_CHANGED: 'تغيّر رقم جوالك. اطلب رمزًا جديدًا.',
-  WHATSAPP_UNAVAILABLE: 'تعذّر إرسال رسالة واتساب الآن. حاول بعد قليل.',
-  TOTP_ALREADY_ON: 'تطبيق المصادقة مفعّل مسبقًا.',
-  TOTP_SETUP_NEEDED: 'ابدأ الإعداد من جديد.',
-  TOTP_CODE_INVALID: 'الرمز غير صحيح. تأكد أن وقت جوالك مضبوط تلقائيًا.',
-  PHONE_MISMATCH: 'رقم الجوال لا يطابق رقم حسابك.',
-  PHONE_VERIFICATION_FAILED: 'تعذّر التحقق من رقم الجوال. حاول مجددًا أو اطلب الرمز بالبريد.',
-  SMS_LOGIN_DISABLED: 'الدخول بالرسائل النصية غير متاح الآن. اطلب الرمز بالبريد.',
+  EMAIL_TAKEN: tr('هذا البريد مسجّل مسبقًا. سجّل الدخول أو استعد كلمة المرور.'),
+  PHONE_TAKEN: tr('رقم الجوال مسجّل مسبقًا.'),
+  PASSWORD_MISMATCH: tr('كلمتا المرور غير متطابقتين.'),
+  WRONG_PASSWORD: tr('كلمة المرور الحالية غير صحيحة.'),
+  SAME_PASSWORD: tr('كلمة المرور الجديدة يجب أن تختلف عن الحالية.'),
+  RESET_LINK_INVALID: tr('رابط إعادة التعيين غير صالح أو منتهي أو مستخدم.'),
+  INSUFFICIENT_FUNDS: tr('رصيد محفظتك لا يكفي.'),
+  SELF_TRANSFER: tr('لا يمكنك التحويل لنفسك.'),
+  TOP_UP_DISABLED: tr('شحن المحفظة غير متاح حاليًا.'),
+  TOO_MANY_PENDING: tr('لديك عمليات شحن لم تكتمل. حاول بعد قليل.'),
+  PAYMENT_PROVIDER_ERROR: tr('خدمة الدفع لا تستجيب الآن. حاول مرة أخرى.'),
+  CARD_NOT_ACTIVE: tr('يمكن الإبلاغ عن فقد البطاقة النشطة فقط.'),
+  ALREADY_REGISTERED: tr('لديك تذكرة لهذه الفعالية مسبقًا.'),
+  EVENT_FULL: tr('اكتمل عدد المقاعد في هذه الفعالية.'),
+  REGISTRATION_CLOSED: tr('أُغلق التسجيل: بدأت الفعالية.'),
+  CANNOT_CANCEL: tr('لا يمكن إلغاء هذا الآن.'),
+  PLAN_UNAVAILABLE: tr('هذه الباقة لم تعد متاحة.'),
+  REQUEST_PENDING: tr('لديك طلب قيد المراجعة لهذا الاشتراك.'),
+  CANNOT_RENEW: tr('يمكن تجديد الاشتراك النشط أو المنتهي فقط.'),
+  REQUEST_NOT_PENDING: tr('تم البت في هذا الطلب مسبقًا.'),
+  ACCOUNT_INACTIVE: tr('حسابك غير نشط. تواصل مع الدعم.'),
+  CODE_INVALID: tr('الرمز غير صحيح.'),
+  CODE_EXPIRED: tr('انتهت صلاحية الرمز. اطلب رمزًا جديدًا.'),
+  CODE_RESEND_TOO_SOON: tr('انتظر قليلًا قبل طلب رمز جديد.'),
+  CODE_RESEND_LIMIT: tr('وصلت للحد الأقصى من الرموز. سجّل الدخول من جديد.'),
+  LOGIN_CHALLENGE_INVALID: tr('انتهت خطوة التحقق. ابدأ من جديد.'),
+  CODE_RESEND_NOT_AVAILABLE: tr('استخدم الرمز من تطبيق المصادقة أو رمز استرداد.'),
+  PHONE_NOT_VERIFIED: tr('أكّد رقم جوالك أولًا.'),
+  PHONE_ALREADY_VERIFIED: tr('رقم جوالك مؤكَّد مسبقًا.'),
+  PHONE_VERIFICATION_OFF: tr('تأكيد الجوال غير متاح حاليًا.'),
+  PHONE_INVALID: tr('لا يمكن إرسال رمز إلى رقم جوالك. تواصل معنا.'),
+  PHONE_CHANGED: tr('تغيّر رقم جوالك. اطلب رمزًا جديدًا.'),
+  WHATSAPP_UNAVAILABLE: tr('تعذّر إرسال رسالة واتساب الآن. حاول بعد قليل.'),
+  TOTP_ALREADY_ON: tr('تطبيق المصادقة مفعّل مسبقًا.'),
+  TOTP_SETUP_NEEDED: tr('ابدأ الإعداد من جديد.'),
+  TOTP_CODE_INVALID: tr('الرمز غير صحيح. تأكد أن وقت جوالك مضبوط تلقائيًا.'),
+  PHONE_MISMATCH: tr('رقم الجوال لا يطابق رقم حسابك.'),
+  PHONE_VERIFICATION_FAILED: tr('تعذّر التحقق من رقم الجوال. حاول مجددًا أو اطلب الرمز بالبريد.'),
+  SMS_LOGIN_DISABLED: tr('الدخول بالرسائل النصية غير متاح الآن. اطلب الرمز بالبريد.'),
 }
 
 function arabicMessage(status: number, p?: ProblemDetail): string {
-  if (p?.code === 'CODE_INVALID' && p.attemptsLeft) return `الرمز غير صحيح. المحاولات المتبقية: ${p.attemptsLeft}`
+  if (p?.code === 'CODE_INVALID' && p.attemptsLeft) return tr('الرمز غير صحيح. المحاولات المتبقية: {0}', { 0: p.attemptsLeft })
   if (p?.code && CODES[p.code]) return CODES[p.code]
-  if (status === 429) return 'محاولات كثيرة. انتظر بضع دقائق ثم حاول مجددًا.'
+  if (status === 429) return tr('محاولات كثيرة. انتظر بضع دقائق ثم حاول مجددًا.')
   if (p?.errors) return Object.values(p.errors).join(' · ')
-  if (status === 401) return p?.detail === 'Invalid email or password' ? 'البريد أو كلمة المرور غير صحيحة.' : 'سجّل الدخول للمتابعة.'
-  if (status === 403) return p?.detail?.includes('suspended') ? 'الحساب أو الجهة معلّقة.' : 'ليست لديك صلاحية لهذا الإجراء.'
-  if (status === 404) return p?.detail?.startsWith('Customer') ? 'لا يوجد عميل بهذا الرقم.' : 'العنصر غير موجود.'
-  if (status >= 500) return 'حدث خطأ في الخادم. حاول لاحقًا.'
-  return p?.detail ?? 'حدث خطأ غير متوقع.'
+  if (status === 401) return p?.detail === 'Invalid email or password' ? tr('البريد أو كلمة المرور غير صحيحة.') : tr('سجّل الدخول للمتابعة.')
+  if (status === 403) return p?.detail?.includes('suspended') ? tr('الحساب أو الجهة معلّقة.') : tr('ليست لديك صلاحية لهذا الإجراء.')
+  if (status === 404) return p?.detail?.startsWith('Customer') ? tr('لا يوجد عميل بهذا الرقم.') : tr('العنصر غير موجود.')
+  if (status >= 500) return tr('حدث خطأ في الخادم. حاول لاحقًا.')
+  return p?.detail ?? tr('حدث خطأ غير متوقع.')
 }
 
 // localStorage can throw (private mode, blocked storage): never let that break the app.

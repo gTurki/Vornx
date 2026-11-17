@@ -101,7 +101,7 @@ code{font-family:Montserrat,monospace;font-size:12.5px;direction:ltr;display:inl
 
 /* ---------- drawer (a bottom sheet on phones) & toast ---------- */
 .drawer{position:fixed;inset:0;z-index:40;background:rgba(5,10,30,.45)}
-.drawer-panel{position:absolute;inset-block:0;left:0;width:min(460px,100%);background:var(--sf);padding:22px 24px;overflow-y:auto;animation:sl .22s ease-out}
+.drawer-panel{position:absolute;inset-block:0;inset-inline-end:0;width:min(460px,100%);background:var(--sf);padding:22px 24px;overflow-y:auto;animation:sl .22s ease-out}
 .drawer-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.drawer-head h2{margin:0}
 @keyframes sl{from{transform:translateX(-30px);opacity:0}}
 .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:11px 18px;border-radius:12px;font-weight:600;z-index:60;max-width:90vw}
@@ -151,3 +151,12 @@ code{font-family:Montserrat,monospace;font-size:12.5px;direction:ltr;display:inl
 .pw .eye{position:absolute;inset-inline-end:6px;top:50%;transform:translateY(-50%);width:34px;height:34px;display:grid;place-items:center;border:0;background:none;color:var(--mu);border-radius:8px;cursor:pointer}
 .pw .eye:hover{color:var(--tx);background:var(--hv)}
 .pw .eye svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* language switch: on top of the login card (like the design) and in the top bar */
+.auth-card .lang{align-self:center;background:none;border:0;color:var(--pr);font-weight:700;font-size:13.5px;padding:2px 8px;cursor:pointer}
+.lang-ib{width:auto!important;padding:0 14px;border-radius:21px!important;font-weight:700;font-size:12.5px}
+.legal .lang{float:inline-end;background:none;border:1px solid var(--ln);border-radius:10px;color:var(--pr);font-weight:700;padding:5px 12px;cursor:pointer}
+
+/* card: frosted plate behind the number and name (from the design) */
+.vcard .vc-plate{padding:9px 14px 10px;border-radius:12px;background:linear-gradient(160deg,rgba(8,40,170,.66),rgba(0,20,120,.72));border:1px solid rgba(255,255,255,.3);-webkit-backdrop-filter:blur(14px) saturate(150%);backdrop-filter:blur(14px) saturate(150%)}
+.vcard .vc-plate .foot{margin-top:4px}

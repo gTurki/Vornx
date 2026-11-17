@@ -9,9 +9,10 @@ import { Kv, Loading, Tag } from '../ui/bits'
 import { useToast } from '../ui/Toast'
 import { digitsOnly } from './AuthPages'
 import { PasswordInput } from '../ui/PasswordInput'
+import { tr } from '../i18n'
 
 function msg(e: unknown) {
-  return e instanceof ApiError ? e.message : 'حدث خطأ غير متوقع.'
+  return e instanceof ApiError ? e.message : tr('حدث خطأ غير متوقع.')
 }
 
 /** "حسابي" > الأمان: verified email / mobile, and the authenticator app. */
@@ -19,13 +20,13 @@ export function SecuritySection() {
   const { me } = useAuth()
   return (
     <>
-      <h2 className="section">الأمان</h2>
+      <h2 className="section">{tr('الأمان')}</h2>
       <div className="panel">
-        <Kv k="البريد الإلكتروني">
-          {me?.emailVerified ? <Tag label={{ text: 'مؤكَّد', tone: 'ok' }} /> : <Tag label={{ text: 'غير مؤكَّد', tone: 'soon' }} />}
+        <Kv k={tr('البريد الإلكتروني')}>
+          {me?.emailVerified ? <Tag label={{ text: tr('مؤكَّد'), tone: 'ok' }} /> : <Tag label={{ text: tr('غير مؤكَّد'), tone: 'soon' }} />}
         </Kv>
-        <Kv k="رقم الجوال">
-          {me?.phoneVerified ? <Tag label={{ text: 'مؤكَّد عبر واتساب', tone: 'ok' }} /> : <Tag label={{ text: 'غير مؤكَّد', tone: 'mu' }} />}
+        <Kv k={tr('رقم الجوال')}>
+          {me?.phoneVerified ? <Tag label={{ text: tr('مؤكَّد عبر واتساب'), tone: 'ok' }} /> : <Tag label={{ text: tr('غير مؤكَّد'), tone: 'mu' }} />}
         </Kv>
         <Authenticator />
       </div>
@@ -68,17 +69,15 @@ function Authenticator() {
   if (recovery) {
     return (
       <div className="totp">
-        <b>تم تفعيل تطبيق المصادقة ✅</b>
-        <p className="mu">
-          احفظ رموز الاسترداد هذه في مكان آمن (خارج جوالك). إذا فقدت جوالك، يعمل كل رمز مرة واحدة بدل رمز التطبيق.
-          <b> لن تظهر مرة أخرى.</b>
+        <b>{tr('تم تفعيل تطبيق المصادقة ✅')}</b>
+        <p className="mu">{tr('احفظ رموز الاسترداد هذه في مكان آمن (خارج جوالك). إذا فقدت جوالك، يعمل كل رمز مرة واحدة بدل رمز التطبيق.')}<b>{' '}{tr('لن تظهر مرة أخرى.')}</b>
         </p>
         <ol className="recovery" dir="ltr">{recovery.map((r) => <li key={r}><code>{r}</code></li>)}</ol>
         <div className="form-actions">
           <button className="btn gh sm" type="button" onClick={() => {
-            navigator.clipboard?.writeText(recovery.join('\n')).then(() => toast('نُسخت الرموز'), () => undefined)
-          }}>نسخ الرموز</button>
-          <button className="btn sm" type="button" onClick={() => { setRecovery(null); refresh() }}>حفظتها</button>
+            navigator.clipboard?.writeText(recovery.join('\n')).then(() => toast(tr('نُسخت الرموز')), () => undefined)
+          }}>{tr('نسخ الرموز')}</button>
+          <button className="btn sm" type="button" onClick={() => { setRecovery(null); refresh() }}>{tr('حفظتها')}</button>
         </div>
       </div>
     )
@@ -87,12 +86,10 @@ function Authenticator() {
   if (status.data?.enabled) {
     return (
       <div className="totp">
-        <Kv k="تطبيق المصادقة"><Tag label={{ text: 'مفعّل', tone: 'ok' }} /></Kv>
-        <p className="mu">
-          منذ {status.data.enabledAt ? dateTime(status.data.enabledAt) : '-'} · رموز استرداد متبقية: {status.data.recoveryCodesLeft}.
-          {' '}يطلب تسجيل الدخول الرمز من التطبيق بدل البريد.
-        </p>
-        <TurnOff onDone={() => { refresh(); toast('أُوقف تطبيق المصادقة') }} />
+        <Kv k={tr('تطبيق المصادقة')}><Tag label={{ text: tr('مفعّل'), tone: 'ok' }} /></Kv>
+        <p className="mu">{tr('منذ')}{' '}{status.data.enabledAt ? dateTime(status.data.enabledAt) : '-'}{' '}{tr('· رموز استرداد متبقية:')}{' '}{status.data.recoveryCodesLeft}.
+          {' '}{tr('يطلب تسجيل الدخول الرمز من التطبيق بدل البريد.')}</p>
+        <TurnOff onDone={() => { refresh(); toast(tr('أُوقف تطبيق المصادقة')) }} />
       </div>
     )
   }
@@ -103,13 +100,10 @@ function Authenticator() {
 
   return (
     <div className="totp">
-      <Kv k="تطبيق المصادقة"><Tag label={{ text: 'غير مفعّل', tone: 'mu' }} /></Kv>
-      <p className="mu">
-        حماية أقوى: يطلب تسجيل الدخول رمزًا من تطبيق على جوالك (Google Authenticator أو Microsoft Authenticator) بدل
-        الرمز الذي يصل بالبريد. مجاني ويعمل بدون إنترنت.
-      </p>
+      <Kv k={tr('تطبيق المصادقة')}><Tag label={{ text: tr('غير مفعّل'), tone: 'mu' }} /></Kv>
+      <p className="mu">{tr('حماية أقوى: يطلب تسجيل الدخول رمزًا من تطبيق على جوالك (Google Authenticator أو Microsoft Authenticator) بدل الرمز الذي يصل بالبريد. مجاني ويعمل بدون إنترنت.')}</p>
       {error && <div className="error-box">{error}</div>}
-      <div className="form-actions"><button className="btn sm" disabled={busy} onClick={start}>تفعيل تطبيق المصادقة</button></div>
+      <div className="form-actions"><button className="btn sm" disabled={busy} onClick={start}>{tr('تفعيل تطبيق المصادقة')}</button></div>
     </div>
   )
 }
@@ -148,20 +142,18 @@ function SetupSteps({ setup, onCancel, onEnabled }: { setup: TotpSetup; onCancel
 
   return (
     <form className="totp form" onSubmit={submit}>
-      <b>1. امسح الرمز بتطبيق المصادقة</b>
-      <div className="qr">{qr ? <img src={qr} width={200} height={200} alt="رمز QR لتطبيق المصادقة" /> : <Loading />}</div>
-      <p className="mu">
-        على نفس الجوال؟ <a href={setup.otpauthUri}>افتح في تطبيق المصادقة</a>، أو اكتب هذا المفتاح يدويًا:
-      </p>
+      <b>{tr('1. امسح الرمز بتطبيق المصادقة')}</b>
+      <div className="qr">{qr ? <img src={qr} width={200} height={200} alt={tr('رمز QR لتطبيق المصادقة')} /> : <Loading />}</div>
+      <p className="mu">{tr('على نفس الجوال؟')}{' '}<a href={setup.otpauthUri}>{tr('افتح في تطبيق المصادقة')}</a>{tr('، أو اكتب هذا المفتاح يدويًا:')}</p>
       <code className="secret" dir="ltr">{setup.secret.match(/.{1,4}/g)?.join(' ')}</code>
-      <label className="field"><span>2. اكتب الرمز الذي يظهر في التطبيق</span>
+      <label className="field"><span>{tr('2. اكتب الرمز الذي يظهر في التطبيق')}</span>
         <input className="input otp" dir="ltr" inputMode="numeric" autoComplete="one-time-code" maxLength={12} required
           value={code} onChange={(e) => setCode(digitsOnly(e.target.value))} placeholder="••••••" />
       </label>
       {error && <div className="error-box">{error}</div>}
       <div className="form-actions">
-        <button className="btn sm" disabled={busy || code.length !== 6}>{busy ? 'جارٍ التحقق…' : 'تفعيل'}</button>
-        <button className="btn gh sm" type="button" onClick={onCancel}>إلغاء</button>
+        <button className="btn sm" disabled={busy || code.length !== 6}>{busy ? tr('جارٍ التحقق…') : tr('تفعيل')}</button>
+        <button className="btn gh sm" type="button" onClick={onCancel}>{tr('إلغاء')}</button>
       </div>
     </form>
   )
@@ -174,7 +166,7 @@ function TurnOff({ onDone }: { onDone: () => void }) {
   const [busy, setBusy] = useState(false)
 
   if (!open) {
-    return <div className="form-actions"><button className="btn gh sm" onClick={() => setOpen(true)}>إيقاف تطبيق المصادقة</button></div>
+    return <div className="form-actions"><button className="btn gh sm" onClick={() => setOpen(true)}>{tr('إيقاف تطبيق المصادقة')}</button></div>
   }
 
   async function submit(e: FormEvent) {
@@ -193,14 +185,14 @@ function TurnOff({ onDone }: { onDone: () => void }) {
 
   return (
     <form className="form" onSubmit={submit}>
-      <label className="field"><span>للتأكيد، اكتب كلمة المرور</span>
+      <label className="field"><span>{tr('للتأكيد، اكتب كلمة المرور')}</span>
         <PasswordInput className="input" dir="ltr" required autoComplete="current-password" value={password}
           onChange={(e) => setPassword(e.target.value)} />
       </label>
       {error && <div className="error-box">{error}</div>}
       <div className="form-actions">
-        <button className="btn sm" disabled={busy}>إيقاف</button>
-        <button className="btn gh sm" type="button" onClick={() => setOpen(false)}>إلغاء</button>
+        <button className="btn sm" disabled={busy}>{tr('إيقاف')}</button>
+        <button className="btn gh sm" type="button" onClick={() => setOpen(false)}>{tr('إلغاء')}</button>
       </div>
     </form>
   )

@@ -9,6 +9,7 @@ import { Empty, ErrorBox, Loading, Num, Pager } from '../ui/bits'
 import { Drawer } from '../ui/Drawer'
 import { Icon } from '../ui/Icon'
 import { useToast } from '../ui/Toast'
+import { tr } from '../i18n'
 
 /** "المحفظة": balance, history, top up, and send money to another VORNX customer. */
 export function WalletPage() {
@@ -21,22 +22,22 @@ export function WalletPage() {
     <div className="cols">
       <section>
         <div className="panel" style={{ background: 'linear-gradient(145deg,var(--card2),var(--card1))', color: '#fff', border: 0 }}>
-          <small style={{ opacity: .8 }}>الرصيد المتاح</small>
-          <div><span className="big">{money(wallet.data?.balance)}</span> ر.س</div>
+          <small style={{ opacity: .8 }}>{tr('الرصيد المتاح')}</small>
+          <div><span className="big">{money(wallet.data?.balance)}</span>{' '}{tr('ر.س')}</div>
           <small style={{ opacity: .8 }}>IBAN <span className="num">{wallet.data?.iban}</span></small>
         </div>
         <ReturnFromPayment />
         <div className="form-actions" style={{ marginTop: 14 }}>
-          <button className="btn" onClick={() => setSheet('topup')}><Icon name="plus" />شحن</button>
-          <button className="btn soft" onClick={() => setSheet('send')}><Icon name="send" />تحويل</button>
+          <button className="btn" onClick={() => setSheet('topup')}><Icon name="plus" />{tr('شحن')}</button>
+          <button className="btn soft" onClick={() => setSheet('send')}><Icon name="send" />{tr('تحويل')}</button>
         </div>
         {wallet.error && <ErrorBox error={wallet.error} />}
       </section>
 
       <section>
-        <h2>العمليات</h2>
+        <h2>{tr('العمليات')}</h2>
         {txs.isLoading && <Loading />}
-        {txs.data?.content.length === 0 && <Empty>لا توجد عمليات بعد.</Empty>}
+        {txs.data?.content.length === 0 && <Empty>{tr('لا توجد عمليات بعد.')}</Empty>}
         <div className="panel" hidden={!txs.data?.content.length}>
           {txs.data?.content.map((t) => (
             <div key={t.reference} className="li">
@@ -53,7 +54,7 @@ export function WalletPage() {
         {txs.data && <Pager page={txs.data.page} totalPages={txs.data.totalPages} onChange={setPage} />}
       </section>
 
-      <Drawer open={sheet !== null} onClose={() => setSheet(null)} title={sheet === 'topup' ? 'شحن المحفظة' : 'تحويل لعميل VORNX'}>
+      <Drawer open={sheet !== null} onClose={() => setSheet(null)} title={sheet === 'topup' ? tr('شحن المحفظة') : tr('تحويل لعميل VORNX')}>
         {sheet === 'topup' && <TopUp onDone={() => setSheet(null)} />}
         {sheet === 'send' && <Send onDone={() => setSheet(null)} />}
       </Drawer>
@@ -93,41 +94,39 @@ function TopUp({ onDone }: { onDone: () => void }) {
       }
       await endpoints.topUp(Number(amount)) // dev only: simulated money
       refresh()
-      toast('شُحنت محفظتك (تجريبي)')
+      toast(tr('شُحنت محفظتك (تجريبي)'))
       onDone()
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'تعذّر بدء الدفع')
+      setError(err instanceof ApiError ? err.message : tr('تعذّر بدء الدفع'))
     }
     setBusy(false)
   }
 
   if (options.isLoading) return <Loading />
   if (o && !o.cardEnabled && !o.simulatedEnabled) {
-    return <div className="notice">الشحن بالبطاقة غير متاح حاليًا. سنفعّله قريبًا.</div>
+    return <div className="notice">{tr('الشحن بالبطاقة غير متاح حاليًا. سنفعّله قريبًا.')}</div>
   }
 
   return (
     <form className="form" onSubmit={submit}>
       <div className="chips">
         {['50', '100', '200', '500'].map((v) => (
-          <button type="button" key={v} className={`chip${amount === v ? ' on' : ''}`} onClick={() => setAmount(v)}>{v} ر.س</button>
+          <button type="button" key={v} className={`chip${amount === v ? ' on' : ''}`} onClick={() => setAmount(v)}>{v}{' '}{tr('ر.س')}</button>
         ))}
       </div>
-      <label className="field"><span>المبلغ (ر.س)</span>
+      <label className="field"><span>{tr('المبلغ (ر.س)')}</span>
         <input className="input" type="number" dir="ltr" required min={o?.min ?? 10} max={o?.max ?? 10000} step="0.01"
                value={amount} onChange={(e) => setAmount(e.target.value)} />
       </label>
       {o?.cardEnabled ? (
-        <p className="mu" style={{ margin: 0 }}>
-          ستنتقل إلى صفحة الدفع الآمنة من ميسّر (مدى، فيزا، ماستركارد، Apple Pay). لا نرى ولا نحفظ بيانات بطاقتك.
-          {o.testMode && <><br /><b className="soon">وضع تجريبي: لن تُخصم أموال حقيقية، استخدم بطاقة اختبار من ميسّر.</b></>}
+        <p className="mu" style={{ margin: 0 }}>{tr('ستنتقل إلى صفحة الدفع الآمنة من ميسّر (مدى، فيزا، ماستركارد، Apple Pay). لا نرى ولا نحفظ بيانات بطاقتك.')}{o.testMode && <><br /><b className="soon">{tr('وضع تجريبي: لن تُخصم أموال حقيقية، استخدم بطاقة اختبار من ميسّر.')}</b></>}
         </p>
       ) : (
-        <p className="mu" style={{ margin: 0 }}>بيئة التطوير: شحن تجريبي فوري بدون بطاقة.</p>
+        <p className="mu" style={{ margin: 0 }}>{tr('بيئة التطوير: شحن تجريبي فوري بدون بطاقة.')}</p>
       )}
       {error && <div className="error-box">{error}</div>}
       <button className="btn wide" disabled={busy}>
-        {busy ? 'جارٍ التحويل لصفحة الدفع…' : o?.cardEnabled ? `ادفع ${money(Number(amount) || 0)} ر.س` : `شحن ${money(Number(amount) || 0)} ر.س`}
+        {busy ? tr('جارٍ التحويل لصفحة الدفع…') : o?.cardEnabled ? tr('ادفع {0} ر.س', { 0: money(Number(amount) || 0) }) : tr('شحن {0} ر.س', { 0: money(Number(amount) || 0) })}
       </button>
     </form>
   )
@@ -166,17 +165,17 @@ function ReturnFromPayment() {
 
   return (
     <div className="notice" style={{ marginTop: 14 }} role="status">
-      {status.error && <span className="bad">تعذّر التحقق من عملية الدفع {ref}.</span>}
-      {!status.error && !done && <span><span className="pulse" />نتحقق من الدفع مع ميسّر…</span>}
-      {t?.status === 'PAID' && <b className="ok">✓ تم شحن <Num>{money(t.amount)}</Num> ر.س في محفظتك.</b>}
-      {t?.status === 'FAILED' && <b className="bad">لم يكتمل الدفع، ولم يُخصم شيء من رصيدك. يمكنك المحاولة مرة أخرى.</b>}
-      {t?.status === 'EXPIRED' && <b className="bad">انتهت مهلة الدفع لهذه العملية.</b>}
+      {status.error && <span className="bad">{tr('تعذّر التحقق من عملية الدفع')}{' '}{ref}.</span>}
+      {!status.error && !done && <span><span className="pulse" />{tr('نتحقق من الدفع مع ميسّر…')}</span>}
+      {t?.status === 'PAID' && <b className="ok">{tr('✓ تم شحن')}{' '}<Num>{money(t.amount)}</Num>{' '}{tr('ر.س في محفظتك.')}</b>}
+      {t?.status === 'FAILED' && <b className="bad">{tr('لم يكتمل الدفع، ولم يُخصم شيء من رصيدك. يمكنك المحاولة مرة أخرى.')}</b>}
+      {t?.status === 'EXPIRED' && <b className="bad">{tr('انتهت مهلة الدفع لهذه العملية.')}</b>}
       {t?.status === 'PENDING' && Date.now() - startedAt >= 60_000 && (
-        <span className="mu"> ما زالت قيد المعالجة. ستصلك رسالة فور اكتمالها، ويُضاف المبلغ تلقائيًا.</span>
+        <span className="mu">{' '}{tr('ما زالت قيد المعالجة. ستصلك رسالة فور اكتمالها، ويُضاف المبلغ تلقائيًا.')}</span>
       )}
       <div className="form-actions" style={{ marginTop: 8 }}>
-        {t?.status === 'PENDING' && t.checkoutUrl && <a className="btn sm" href={t.checkoutUrl}>إكمال الدفع</a>}
-        <button className="btn gh sm" onClick={close}>إغلاق</button>
+        {t?.status === 'PENDING' && t.checkoutUrl && <a className="btn sm" href={t.checkoutUrl}>{tr('إكمال الدفع')}</a>}
+        <button className="btn gh sm" onClick={close}>{tr('إغلاق')}</button>
       </div>
     </div>
   )
@@ -200,10 +199,10 @@ function Send({ onDone }: { onDone: () => void }) {
     try {
       await endpoints.transfer(to.trim().toUpperCase(), Number(amount), note.trim() || undefined)
       refresh()
-      toast('تم التحويل')
+      toast(tr('تم التحويل'))
       onDone()
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'تعذّر التحويل')
+      setError(err instanceof ApiError ? err.message : tr('تعذّر التحويل'))
       setConfirming(false)
     } finally {
       setBusy(false)
@@ -212,16 +211,16 @@ function Send({ onDone }: { onDone: () => void }) {
 
   return (
     <form className="form" onSubmit={submit}>
-      <label className="field"><span>رقم VORNX للمستلم</span>
+      <label className="field"><span>{tr('رقم VORNX للمستلم')}</span>
         <input className="input" dir="ltr" required placeholder="VX0000000000" value={to} onChange={(e) => { setTo(e.target.value); setConfirming(false) }} />
       </label>
-      <label className="field"><span>المبلغ (ر.س، حتى 5,000)</span>
+      <label className="field"><span>{tr('المبلغ (ر.س، حتى 5,000)')}</span>
         <input className="input" type="number" dir="ltr" required min={1} max={5000} step="0.01" value={amount} onChange={(e) => { setAmount(e.target.value); setConfirming(false) }} />
       </label>
-      <label className="field"><span>ملاحظة (اختياري)</span><input className="input" maxLength={100} value={note} onChange={(e) => setNote(e.target.value)} /></label>
+      <label className="field"><span>{tr('ملاحظة (اختياري)')}</span><input className="input" maxLength={100} value={note} onChange={(e) => setNote(e.target.value)} /></label>
       {error && <div className="error-box">{error}</div>}
-      {confirming && <div className="notice" style={{ margin: 0 }}>ستحوّل <b><Num>{money(Number(amount))}</Num> ر.س</b> إلى <b><Num>{to.trim().toUpperCase()}</Num></b>. لا يمكن التراجع.</div>}
-      <button className={`btn wide${confirming ? ' danger' : ''}`} disabled={busy}>{confirming ? 'تأكيد التحويل' : 'متابعة'}</button>
+      {confirming && <div className="notice" style={{ margin: 0 }}>{tr('ستحوّل')}{' '}<b><Num>{money(Number(amount))}</Num>{' '}{tr('ر.س')}</b>{' '}{tr('إلى')}{' '}<b><Num>{to.trim().toUpperCase()}</Num></b>{tr('. لا يمكن التراجع.')}</div>}
+      <button className={`btn wide${confirming ? ' danger' : ''}`} disabled={busy}>{confirming ? tr('تأكيد التحويل') : tr('متابعة')}</button>
     </form>
   )
 }

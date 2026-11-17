@@ -1,4 +1,5 @@
 import { useState, type InputHTMLAttributes } from 'react'
+import { tr } from '../i18n'
 
 /**
  * A password field with the design's 👁 button: shows / hides what was typed (handy on phones).
@@ -10,7 +11,7 @@ export function PasswordInput(props: Omit<InputHTMLAttributes<HTMLInputElement>,
     <span className="pw">
       <input {...props} type={shown ? 'text' : 'password'} />
       <button type="button" className="eye" onClick={() => setShown(!shown)}
-        aria-label={shown ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'} aria-pressed={shown} title={shown ? 'إخفاء' : 'إظهار'}>
+        aria-label={shown ? tr('إخفاء كلمة المرور') : tr('إظهار كلمة المرور')} aria-pressed={shown} title={shown ? tr('إخفاء') : tr('إظهار')}>
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
           <circle cx="12" cy="12" r="3" />

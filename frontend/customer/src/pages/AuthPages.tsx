@@ -7,18 +7,21 @@ import { useAuth } from '../auth/AuthContext'
 import { Logo } from '../ui/Logo'
 import { sendSms, smsAvailable, smsError, type SmsSession } from '../lib/firebasePhone'
 import { PasswordInput } from '../ui/PasswordInput'
+import { LangSwitch } from '../ui/LangSwitch'
+import { tr } from '../i18n'
 
 /** Keeps a phone number or email in left-to-right order inside Arabic text (Unicode isolate). */
 export const ltr = (s?: string | null) => '\u2066' + (s ?? '') + '\u2069'
 
 export function errorText(e: unknown) {
-  return e instanceof ApiError ? e.message : 'حدث خطأ غير متوقع.'
+  return e instanceof ApiError ? e.message : tr('حدث خطأ غير متوقع.')
 }
 
 export function AuthCard({ title, sub, children, onSubmit }: { title: string; sub?: string; children: ReactNode; onSubmit: (e: FormEvent) => void }) {
   return (
     <div className="auth-page">
       <form className="auth-card form" onSubmit={onSubmit}>
+        <LangSwitch />
         <div className="logo"><Logo variant="mark" /></div>
         <h1>{title}</h1>
         {sub && <p className="sub">{sub}</p>}
@@ -59,16 +62,16 @@ export function LoginPage() {
   }
 
   return (
-    <AuthCard title="تسجيل الدخول" sub="أدخل بريدك الإلكتروني وكلمة المرور" onSubmit={submit}>
-      <label className="field"><span>البريد الإلكتروني</span>
+    <AuthCard title={tr('تسجيل الدخول')} sub={tr('أدخل بريدك الإلكتروني وكلمة المرور')} onSubmit={submit}>
+      <label className="field"><span>{tr('البريد الإلكتروني')}</span>
         <input className="input" type="email" dir="ltr" autoComplete="username" required value={email} onChange={(e) => setEmail(e.target.value)} />
       </label>
-      <label className="field"><span>كلمة المرور</span>
+      <label className="field"><span>{tr('كلمة المرور')}</span>
         <PasswordInput className="input" dir="ltr" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
       </label>
       {error && <div className="error-box">{error}</div>}
-      <button className="btn wide" disabled={busy}>{busy ? 'جارٍ الدخول…' : 'متابعة'}</button>
-      <div className="auth-links"><Link to="/register">إنشاء حساب</Link>·<Link to="/forgot-password">نسيت كلمة المرور؟</Link></div>
+      <button className="btn wide" disabled={busy}>{busy ? tr('جارٍ الدخول…') : tr('متابعة')}</button>
+      <div className="auth-links"><Link to="/register">{tr('إنشاء حساب')}</Link>·<Link to="/forgot-password">{tr('نسيت كلمة المرور؟')}</Link></div>
     </AuthCard>
   )
 }
@@ -127,7 +130,7 @@ function CodeStep({ challenge, onRestart }: { challenge: LoginChallenge; onResta
     } catch (err) {
       const { text, useEmail } = smsError(err)
       setSmsState('failed')
-      if (useEmail) await byEmail(`${text} أرسلنا الرمز إلى بريدك بدلًا من ذلك.`)
+      if (useEmail) await byEmail(tr('{0} أرسلنا الرمز إلى بريدك بدلًا من ذلك.', { 0: text }))
       else setError(text)
     }
   }
@@ -188,7 +191,7 @@ function CodeStep({ challenge, onRestart }: { challenge: LoginChallenge; onResta
       setC(next)
       setWait(next.resendIn)
       setCode(next.devCode ?? '')
-      setInfo(message ?? (isSms ? 'أرسلنا الرمز إلى بريدك.' : 'أرسلنا رمزًا جديدًا. الرمز السابق لم يعد صالحًا.'))
+      setInfo(message ?? (isSms ? tr('أرسلنا الرمز إلى بريدك.') : tr('أرسلنا رمزًا جديدًا. الرمز السابق لم يعد صالحًا.')))
     } catch (err) {
       if (err instanceof ApiError && err.code === 'LOGIN_CHALLENGE_INVALID') return onRestart()
       if (err instanceof ApiError && err.problem?.resendIn) setWait(err.problem.resendIn)
@@ -215,53 +218,53 @@ function CodeStep({ challenge, onRestart }: { challenge: LoginChallenge; onResta
     if (digits.length === 6) verify(digits)
   }
 
-  const title = signup ? 'تأكيد بريدك الإلكتروني' : isTotp ? 'رمز تطبيق المصادقة' : 'رمز التحقق'
+  const title = signup ? tr('تأكيد بريدك الإلكتروني') : isTotp ? tr('رمز تطبيق المصادقة') : tr('رمز التحقق')
   const sub = isTotp
     ? recovery
-      ? 'اكتب أحد رموز الاسترداد التي حفظتها عند تفعيل التطبيق. كل رمز يعمل مرة واحدة.'
-      : 'افتح تطبيق المصادقة على جوالك (Google أو Microsoft Authenticator) واكتب رمز VORNX المكوّن من 6 أرقام.'
+      ? tr('اكتب أحد رموز الاسترداد التي حفظتها عند تفعيل التطبيق. كل رمز يعمل مرة واحدة.')
+      : tr('افتح تطبيق المصادقة على جوالك (Google أو Microsoft Authenticator) واكتب رمز VORNX المكوّن من 6 أرقام.')
     : isSms
-      ? smsState === 'sending' ? `جارٍ إرسال رسالة نصية إلى ${ltr(c.destination)}…` : `أرسلنا رسالة نصية من 6 أرقام إلى ${ltr(c.destination)}`
+      ? smsState === 'sending' ? tr('جارٍ إرسال رسالة نصية إلى {0}…', { 0: ltr(c.destination) }) : tr('أرسلنا رسالة نصية من 6 أرقام إلى {0}', { 0: ltr(c.destination) })
       : signup
-        ? `أرسلنا رمزًا من 6 أرقام إلى ${ltr(c.destination)}. اكتبه هنا لتأكيد بريدك.`
-        : `أرسلنا رمزًا من 6 أرقام إلى ${ltr(c.destination)}`
+        ? tr('أرسلنا رمزًا من 6 أرقام إلى {0}. اكتبه هنا لتأكيد بريدك.', { 0: ltr(c.destination) })
+        : tr('أرسلنا رمزًا من 6 أرقام إلى {0}', { 0: ltr(c.destination) })
   const canType = !isSms || smsState === 'sent'
   const ready = recovery ? code.replace(/-/g, '').length === 10 : code.length === 6
 
   return (
     <AuthCard title={title} sub={sub}
       onSubmit={(e) => { e.preventDefault(); if (ready) verify(code) }}>
-      <label className="field"><span>{recovery ? 'رمز الاسترداد' : 'الرمز'}</span>
+      <label className="field"><span>{recovery ? tr('رمز الاسترداد') : tr('الرمز')}</span>
         <input className="input otp" dir="ltr" inputMode={recovery ? 'text' : 'numeric'} autoComplete="one-time-code" autoFocus
           maxLength={12} required disabled={!canType} value={code} onChange={(e) => onChange(e.target.value)}
           placeholder={recovery ? 'XXXXX-XXXXX' : '••••••'} />
       </label>
       {error && <div className="error-box">{error}</div>}
       {info && <p className="mu" style={{ textAlign: 'center', margin: 0 }}>{info}</p>}
-      <button className="btn wide" disabled={busy || !canType || !ready}>{busy ? 'جارٍ التحقق…' : 'تأكيد'}</button>
+      <button className="btn wide" disabled={busy || !canType || !ready}>{busy ? tr('جارٍ التحقق…') : tr('تأكيد')}</button>
       <div className="auth-links">
         {isTotp ? (
           <button type="button" className="link" onClick={() => { setRecovery(!recovery); setCode(''); setError(null) }}>
-            {recovery ? 'استخدم رمز التطبيق' : 'فقدت جوالك؟ استخدم رمز استرداد'}
+            {recovery ? tr('استخدم رمز التطبيق') : tr('فقدت جوالك؟ استخدم رمز استرداد')}
           </button>
         ) : isSms ? (
           smsResends.current < 2 && smsState !== 'sending'
             ? <button type="button" className="link" disabled={wait > 0} onClick={resendSms}>
-                {wait > 0 ? `إعادة الإرسال بعد ${wait} ث` : 'إعادة إرسال الرسالة'}
+                {wait > 0 ? tr('إعادة الإرسال بعد {0} ث', { 0: wait }) : tr('إعادة إرسال الرسالة')}
               </button>
             : null
         ) : c.resendsLeft > 0
           ? <button type="button" className="link" disabled={wait > 0} onClick={() => byEmail(null)}>
-              {wait > 0 ? `إعادة الإرسال بعد ${wait} ث` : 'إعادة إرسال الرمز'}
+              {wait > 0 ? tr('إعادة الإرسال بعد {0} ث', { 0: wait }) : tr('إعادة إرسال الرمز')}
             </button>
-          : <span className="mu">لا مزيد من الرموز لهذه المحاولة</span>}
-        {isSms && <>·<button type="button" className="link" onClick={() => byEmail(null)}>أرسل الرمز بالبريد</button></>}
-        ·<button type="button" className="link" onClick={onRestart}>{signup ? 'تسجيل الدخول' : 'تغيير الحساب'}</button>
+          : <span className="mu">{tr('لا مزيد من الرموز لهذه المحاولة')}</span>}
+        {isSms && <>·<button type="button" className="link" onClick={() => byEmail(null)}>{tr('أرسل الرمز بالبريد')}</button></>}
+        ·<button type="button" className="link" onClick={onRestart}>{signup ? tr('تسجيل الدخول') : tr('تغيير الحساب')}</button>
       </div>
       <p className="mu" style={{ textAlign: 'center', margin: 0, fontSize: 12.5 }}>
         {isTotp
-          ? 'فقدت جوالك ورموز الاسترداد معًا؟ تواصل مع دعم VORNX.'
-          : isSms ? 'لم تصلك الرسالة؟ انتظر دقيقة أو اطلب الرمز بالبريد.' : 'لم يصلك؟ تحقق من مجلد الرسائل غير المرغوبة.'}
+          ? tr('فقدت جوالك ورموز الاسترداد معًا؟ تواصل مع دعم VORNX.')
+          : isSms ? tr('لم تصلك الرسالة؟ انتظر دقيقة أو اطلب الرمز بالبريد.') : tr('لم يصلك؟ تحقق من مجلد الرسائل غير المرغوبة.')}
       </p>
       {/* Firebase's invisible reCAPTCHA lives here */}
       <div ref={captchaBox} />
@@ -285,7 +288,7 @@ export function RegisterPage() {
 
   async function submit(e: FormEvent) {
     e.preventDefault()
-    if (!agree) return setError('يلزم الموافقة على الشروط وسياسة الخصوصية.')
+    if (!agree) return setError(tr('يلزم الموافقة على الشروط وسياسة الخصوصية.'))
     setBusy(true)
     setError(null)
     try {
@@ -301,27 +304,26 @@ export function RegisterPage() {
   }
 
   return (
-    <AuthCard title="إنشاء حساب" sub="بطاقة واحدة لغرفتك، ناديك، موقفك، ودوامك" onSubmit={submit}>
+    <AuthCard title={tr('إنشاء حساب')} sub={tr('بطاقة واحدة لغرفتك، ناديك، موقفك، ودوامك')} onSubmit={submit}>
       <div className="row2">
-        <label className="field"><span>الاسم الأول</span><input className="input" required maxLength={50} autoComplete="given-name" value={f.firstName} onChange={set('firstName')} /></label>
-        <label className="field"><span>اسم العائلة</span><input className="input" required maxLength={50} autoComplete="family-name" value={f.lastName} onChange={set('lastName')} /></label>
+        <label className="field"><span>{tr('الاسم الأول')}</span><input className="input" required maxLength={50} autoComplete="given-name" value={f.firstName} onChange={set('firstName')} /></label>
+        <label className="field"><span>{tr('اسم العائلة')}</span><input className="input" required maxLength={50} autoComplete="family-name" value={f.lastName} onChange={set('lastName')} /></label>
       </div>
-      <label className="field"><span>البريد الإلكتروني</span><input className="input" type="email" dir="ltr" required autoComplete="email" value={f.email} onChange={set('email')} /></label>
-      <label className="field"><span>رقم الجوال</span>
+      <label className="field"><span>{tr('البريد الإلكتروني')}</span><input className="input" type="email" dir="ltr" required autoComplete="email" value={f.email} onChange={set('email')} /></label>
+      <label className="field"><span>{tr('رقم الجوال')}</span>
         <input className="input" type="tel" dir="ltr" required pattern="05[0-9]{8}" placeholder="05XXXXXXXX" autoComplete="tel" value={f.phone} onChange={set('phone')} />
       </label>
-      <label className="field"><span>كلمة المرور (10 أحرف على الأقل)</span><PasswordInput className="input" dir="ltr" required minLength={10} autoComplete="new-password" value={f.password} onChange={set('password')} /></label>
-      <label className="field"><span>تأكيد كلمة المرور</span><PasswordInput className="input" dir="ltr" required minLength={10} autoComplete="new-password" value={f.confirmPassword} onChange={set('confirmPassword')} /></label>
+      <label className="field"><span>{tr('كلمة المرور (10 أحرف على الأقل)')}</span><PasswordInput className="input" dir="ltr" required minLength={10} autoComplete="new-password" value={f.password} onChange={set('password')} /></label>
+      <label className="field"><span>{tr('تأكيد كلمة المرور')}</span><PasswordInput className="input" dir="ltr" required minLength={10} autoComplete="new-password" value={f.confirmPassword} onChange={set('confirmPassword')} /></label>
       <label className="agree">
         <input type="checkbox" required checked={agree} onChange={(e) => setAgree(e.target.checked)} />
-        <span>
-          قرأت وأوافق على <Link to="/terms" target="_blank">شروط الاستخدام</Link> و<Link to="/privacy" target="_blank">سياسة الخصوصية</Link>
+        <span>{tr('قرأت وأوافق على')}{' '}<Link to="/terms" target="_blank">{tr('شروط الاستخدام')}</Link>{' '}{tr('و')}<Link to="/privacy" target="_blank">{tr('سياسة الخصوصية')}</Link>
         </span>
       </label>
       {error && <div className="error-box">{error}</div>}
-      <button className="btn wide" disabled={busy}>{busy ? 'جارٍ الإنشاء…' : 'إنشاء الحساب'}</button>
-      <p className="mu" style={{ textAlign: 'center', margin: 0, fontSize: 12.5 }}>سنرسل رمزًا إلى بريدك لتأكيده.</p>
-      <div className="auth-links">لديك حساب؟ <Link to="/login">سجّل الدخول</Link></div>
+      <button className="btn wide" disabled={busy}>{busy ? tr('جارٍ الإنشاء…') : tr('إنشاء الحساب')}</button>
+      <p className="mu" style={{ textAlign: 'center', margin: 0, fontSize: 12.5 }}>{tr('سنرسل رمزًا إلى بريدك لتأكيده.')}</p>
+      <div className="auth-links">{tr('لديك حساب؟')}{' '}<Link to="/login">{tr('سجّل الدخول')}</Link></div>
     </AuthCard>
   )
 }
@@ -343,17 +345,17 @@ export function ForgotPasswordPage() {
   }
 
   return (
-    <AuthCard title="نسيت كلمة المرور" onSubmit={submit}>
+    <AuthCard title={tr('نسيت كلمة المرور')} onSubmit={submit}>
       {sent ? (
-        <p>إذا كان البريد مسجّلًا لدينا، ستصلك رسالة فيها رابط لإعادة التعيين خلال دقائق. الرابط صالح لمدة 30 دقيقة.</p>
+        <p>{tr('إذا كان البريد مسجّلًا لدينا، ستصلك رسالة فيها رابط لإعادة التعيين خلال دقائق. الرابط صالح لمدة 30 دقيقة.')}</p>
       ) : (
         <>
-          <label className="field"><span>البريد الإلكتروني</span><input className="input" type="email" dir="ltr" required value={email} onChange={(e) => setEmail(e.target.value)} /></label>
+          <label className="field"><span>{tr('البريد الإلكتروني')}</span><input className="input" type="email" dir="ltr" required value={email} onChange={(e) => setEmail(e.target.value)} /></label>
           {error && <div className="error-box">{error}</div>}
-          <button className="btn wide">إرسال رابط الاستعادة</button>
+          <button className="btn wide">{tr('إرسال رابط الاستعادة')}</button>
         </>
       )}
-      <div className="auth-links"><Link to="/login">رجوع لتسجيل الدخول</Link></div>
+      <div className="auth-links"><Link to="/login">{tr('رجوع لتسجيل الدخول')}</Link></div>
     </AuthCard>
   )
 }
@@ -379,21 +381,21 @@ export function ResetPasswordPage() {
   }
 
   return (
-    <AuthCard title="كلمة مرور جديدة" onSubmit={submit}>
+    <AuthCard title={tr('كلمة مرور جديدة')} onSubmit={submit}>
       {done ? (
-        <p>تم تغيير كلمة المرور، وتم تسجيل خروجك من جميع الأجهزة. <Link to="/login">سجّل الدخول</Link></p>
+        <p>{tr('تم تغيير كلمة المرور، وتم تسجيل خروجك من جميع الأجهزة.')}{' '}<Link to="/login">{tr('سجّل الدخول')}</Link></p>
       ) : !token ? (
-        <div className="error-box">الرابط ناقص. افتح الرابط من رسالة البريد كما هو.</div>
+        <div className="error-box">{tr('الرابط ناقص. افتح الرابط من رسالة البريد كما هو.')}</div>
       ) : (
         <>
-          <label className="field"><span>كلمة المرور الجديدة (10 أحرف على الأقل)</span>
+          <label className="field"><span>{tr('كلمة المرور الجديدة (10 أحرف على الأقل)')}</span>
             <PasswordInput className="input" dir="ltr" minLength={10} required autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />
           </label>
-          <label className="field"><span>تأكيد كلمة المرور</span>
+          <label className="field"><span>{tr('تأكيد كلمة المرور')}</span>
             <PasswordInput className="input" dir="ltr" minLength={10} required autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
           </label>
           {error && <div className="error-box">{error}</div>}
-          <button className="btn wide">حفظ كلمة المرور</button>
+          <button className="btn wide">{tr('حفظ كلمة المرور')}</button>
         </>
       )}
     </AuthCard>
