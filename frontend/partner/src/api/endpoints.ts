@@ -1,6 +1,6 @@
 import { api } from './client'
 import type {
-  AccessEvent, AccessPoint, AccessPointRequest, AccessPointStatus, ActivityLog, ApiKey, ApiKeyCreated, AppNotification,
+  PartnerOverview, AccessEvent, AccessPoint, AccessPointRequest, AccessPointStatus, ActivityLog, ApiKey, ApiKeyCreated, AppNotification,
   AttendeeRole, AuthResponse, Contract, EventRequest, EventTicket, InviteResponse, Invoice, Page, PartnerRole, PartnerUser,
   AccountStatus, Permit, PermitIssueRequest, Plan, PlanRequest, RequestStatus, ServiceRequest, Session, Site, SiteRequest,
   Subscription, SupportTicket, TicketCategory, TicketPriority, VEvent,
@@ -89,6 +89,7 @@ export const endpoints = {
 
   // ---------- contract & invoices ----------
   contract: () => api<Contract>(`${P}/contract`),
+  overview: () => api<PartnerOverview>(`${P}/overview`),
   invoices: () => api<Invoice[]>(`${P}/invoices`),
   requestRenewal: () => api<SupportTicket>(`${P}/contract/renewal-request`, { method: 'POST' }),
 

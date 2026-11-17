@@ -10,6 +10,7 @@ import { Empty, ErrorBox, Loading, Num, Pager, Tag } from '../ui/bits'
 import { Drawer } from '../ui/Drawer'
 import { Icon } from '../ui/Icon'
 import { useToast } from '../ui/Toast'
+import { useOverview } from '../api/useOverview'
 
 /** "الدعم": the partner's tickets with the VORNX team. */
 export function SupportPage() {
@@ -22,6 +23,7 @@ export function SupportPage() {
   return (
     <>
       <p className="lead">مفتاح لا يفتح؟ تحتاج خدمة جديدة؟ افتح طلبًا وسيرد عليك فريق VORNX هنا وعلى بريدك.</p>
+      <AccountManagerCard />
       <div className="toolbar">
         <span className="grow" />
         {can('operate') && <button className="btn" onClick={() => setCreating(true)}><Icon name="plus" />طلب جديد</button>}
@@ -54,6 +56,21 @@ export function SupportPage() {
         {creating && <NewTicket onDone={(id) => { setCreating(false); setOpenId(id) }} />}
       </Drawer>
     </>
+  )
+}
+
+/** "مدير حسابك" from hotel.html: the VORNX person looking after this partner, with call / email buttons. */
+function AccountManagerCard() {
+  const m = useOverview().data?.accountManager
+  if (!m) return null
+  return (
+    <div className="panel" style={{ marginBottom: 18, display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', justifyContent: 'space-between' }}>
+      <span><span className="mu" style={{ display: 'block' }}>مدير حسابك</span><b>{m.name}</b></span>
+      <span style={{ display: 'flex', gap: 8 }}>
+        {m.phone && <a className="btn sm" href={`tel:${m.phone.replace(/[^\d+]/g, '')}`}>اتصال</a>}
+        <a className="btn gh sm" href={`mailto:${m.email}`}>بريد</a>
+      </span>
+    </div>
   )
 }
 

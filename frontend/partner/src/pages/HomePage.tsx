@@ -7,6 +7,8 @@ import { ACTIONS, CONTRACT_STATUS, REQUEST_TYPE } from '../lib/labels'
 import { Empty, ErrorBox, Loading, Num, Tag } from '../ui/bits'
 import { useSites } from '../ui/pickers'
 import { AccessRow } from './LivePage'
+import { useOverview } from '../api/useOverview'
+import { WeekChart } from '../ui/WeekChart'
 
 /** "نظرة عامة": today at a glance, and what is waiting for a decision. */
 export function HomePage() {
@@ -18,6 +20,7 @@ export function HomePage() {
   const live = useQuery({ queryKey: ['access-events', { home: true }], queryFn: () => endpoints.accessEvents({ size: 6 }), refetchInterval: 60_000 })
   const contract = useQuery({ queryKey: ['contract'], queryFn: endpoints.contract, retry: false })
   const activity = useQuery({ queryKey: ['activity', { home: true }], queryFn: () => endpoints.activity({ size: 5 }) })
+  const overview = useOverview()
   const c = contract.data
   const waiting = pending.data?.totalElements ?? 0
 
@@ -42,7 +45,12 @@ export function HomePage() {
 
       <div className="cols">
         <section>
-          <h2><span className="pulse" />آخر عمليات الدخول</h2>
+          <h2>الدخول خلال آخر 7 أيام</h2>
+          <div className="panel">
+            {overview.error ? <ErrorBox error={overview.error} /> : <WeekChart days={overview.data?.lastSevenDays} />}
+          </div>
+
+          <h2 className="section"><span className="pulse" />آخر عمليات الدخول</h2>
           <div className="panel">
             {live.error && <ErrorBox error={live.error} />}
             {live.isLoading && <Loading />}

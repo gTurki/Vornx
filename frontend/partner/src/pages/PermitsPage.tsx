@@ -4,11 +4,13 @@ import { ApiError } from '../api/client'
 import { endpoints } from '../api/endpoints'
 import type { AccessLevel, DayOfWeek, Permit, PermitType } from '../api/types'
 import { useCan } from '../auth/AuthContext'
-import { dateTime, fromRiyadhInput, hhmm, riyadhInputIn, toRiyadhInput } from '../lib/format'
+import { count, date, dateTime, fromRiyadhInput, hhmm, riyadhInputIn, toRiyadhInput } from '../lib/format'
 import { DAY, keys, LEVEL, PERMIT_STATUS, PERMIT_TYPE } from '../lib/labels'
 import { ConfirmButton, Empty, ErrorBox, Kv, Loading, Num, Pager, Tag } from '../ui/bits'
 import { Drawer } from '../ui/Drawer'
 import { Icon } from '../ui/Icon'
+import { Logo } from '../ui/Logo'
+import { useOverview } from '../api/useOverview'
 import { AccessPointChecks, DayChecks, SiteSelect } from '../ui/pickers'
 import { useToast } from '../ui/Toast'
 
@@ -21,6 +23,7 @@ export function PermitsPage() {
   const [issuing, setIssuing] = useState(false)
   const params = { siteId: siteId ?? undefined, page }
   const list = useQuery({ queryKey: ['permits', params], queryFn: () => endpoints.permits(params) })
+  const overview = useOverview()
 
   return (
     <>
@@ -28,6 +31,14 @@ export function PermitsPage() {
         التصريح هو المفتاح الرقمي: يربط عميل VORNX بموقعك وأبوابه لفترة محددة. يفتح العميل بالبطاقة أو الجوال،
         ويُلغى المفتاح تلقائيًا عند انتهاء الفترة.
       </p>
+      <KeyPreview permit={list.data?.content.find((p) => p.status === 'ACTIVE') ?? null} />
+
+      <div className="kpis" style={{ marginTop: 0 }}>
+        <div className="kp"><span className="num">{count(overview.data?.arrivalsToday)}</span><span>وصول اليوم (مفاتيح تبدأ اليوم)</span></div>
+        <div className="kp"><span className="num">{count(overview.data?.departuresToday)}</span><span>مغادرة اليوم (مفاتيح تنتهي اليوم)</span></div>
+        <div className="kp"><span className="num">{count(overview.data?.activeKeys)}</span><span>مفتاح فعّال الآن</span></div>
+      </div>
+
       <div className="toolbar">
         <SiteSelect all value={siteId} onChange={(v) => { setSiteId(v); setPage(0) }} />
         <span className="grow" />
@@ -38,15 +49,21 @@ export function PermitsPage() {
       {list.isLoading ? <Loading /> : (
         <div className="tw">
           <table>
-            <thead><tr><th>صاحب التصريح</th><th>النوع</th><th>الموقع</th><th>صالح حتى</th><th>الحالة</th></tr></thead>
+            <thead><tr><th>صاحب التصريح</th><th>النوع</th><th>الموقع</th><th>من</th><th>حتى</th><th>الحالة</th>{can('operate') && <th />}</tr></thead>
             <tbody>
               {list.data?.content.map((p) => (
                 <tr key={p.id} className="click" onClick={() => setOpenId(p.id)}>
                   <td className="ent"><b>{p.holderName}</b><small><Num>{p.holderVornxId}</Num> · <Num>{p.permitNumber}</Num></small></td>
                   <td>{PERMIT_TYPE[p.type]}</td>
                   <td className="ent"><b>{p.siteName}</b><small>{p.wholeSite ? 'كل الموقع' : p.accessPoints.map((a) => a.name).join('، ')}</small></td>
-                  <td>{dateTime(p.validUntil)}</td>
+                  <td className="when">{dateTime(p.validFrom)}</td>
+                  <td className="when">{dateTime(p.validUntil)}</td>
                   <td><Tag label={PERMIT_STATUS[p.status]} /></td>
+                  {can('operate') && (
+                    <td onClick={(e) => e.stopPropagation()}>
+                      {(p.status === 'ACTIVE' || p.status === 'PENDING') && <QuickActions permit={p} />}
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -63,6 +80,76 @@ export function PermitsPage() {
         {issuing && <IssueForm onDone={(id) => { setIssuing(false); setOpenId(id) }} />}
       </Drawer>
     </>
+  )
+}
+
+/**
+ * The design's digital key preview: the key as the guest sees it on the phone, the backup card, and the stay
+ * details. Shows the newest active key on this page.
+ */
+function KeyPreview({ permit }: { permit: Permit | null }) {
+  if (!permit) return null
+  // the room if the key has one ("الغرفة 1204" / code "R-1204" -> "1204"), else the first door's name
+  const room = permit.accessPoints.find((a) => /\d{2,}/.test(a.name) || /\d{2,}/.test(a.code))
+  const door = permit.wholeSite ? null : (room ?? permit.accessPoints[0])?.name ?? null
+  const number = room ? (room.name.match(/\d{2,}/) ?? room.code.match(/\d{2,}/))![0] : null
+  const range = `${date(permit.validFrom)} — ${date(permit.validUntil)}`
+  return (
+    <div className="kd">
+      <div className="ph" aria-hidden="true">
+        <div className="scr">
+          <Logo variant="mark" />
+          <small>{permit.siteName}</small>
+          <div className={`rm${number ? '' : ' txt'}`}>{number ?? door ?? 'كل الموقع'}</div>
+          <small>{range}</small>
+          <div className="ring"><Icon name="key" /></div>
+          <b>قرّب الجوال من القفل</b>
+        </div>
+      </div>
+      <div style={{ display: 'grid', gap: 18, justifyItems: 'center' }}>
+        <div className="kc" aria-hidden="true">
+          <Logo variant="mark" />
+          <div className="chip" />
+          <svg className="nf" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M8 6a8 8 0 010 12M12 3a12 12 0 010 18M4 9a4 4 0 010 6" /></svg>
+          <div className="r">{number ? 'ROOM' : 'VORNX'}<b>{number ?? permit.holderVornxId}</b></div>
+          <div className="e">{permit.holderName}<br />حتى {date(permit.validUntil)}</div>
+        </div>
+        <small className="mu">البطاقة الاحتياطية: بطاقة VORNX نفسها تفتح الباب</small>
+      </div>
+      <div className="pol">
+        <h2>تفاصيل المفتاح</h2>
+        <Kv k="الضيف">{permit.holderName}</Kv>
+        <Kv k="يبدأ">{dateTime(permit.validFrom)}</Kv>
+        <Kv k="ينتهي">{dateTime(permit.validUntil)}</Kv>
+        <Kv k="يفتح">{permit.wholeSite ? 'كل الموقع' : permit.accessPoints.map((a) => a.name).join('، ')}</Kv>
+        <Kv k="يعمل المفتاح">من البداية حتى النهاية تلقائيًا</Kv>
+        <p className="mu" style={{ fontSize: 12.5, margin: '10px 0 0' }}>هكذا يرى الضيف مفتاحه في تطبيق VORNX.</p>
+      </div>
+    </div>
+  )
+}
+
+/** Row buttons from the design: "تمديد" (one more day) and "إلغاء". */
+function QuickActions({ permit }: { permit: Permit }) {
+  const qc = useQueryClient()
+  const toast = useToast()
+  const done = (msg: string) => { qc.invalidateQueries({ queryKey: ['permits'] }); qc.invalidateQueries({ queryKey: ['overview'] }); toast(msg) }
+  const onError = (e: unknown) => toast(e instanceof ApiError ? e.message : 'تعذّر الحفظ', true)
+  const extend = useMutation({
+    mutationFn: () => endpoints.extendPermit(permit.id, new Date(new Date(permit.validUntil).getTime() + 864e5).toISOString()),
+    onSuccess: (p) => done(`مُدّد مفتاح ${p.holderName} يومًا حتى ${dateTime(p.validUntil)}`),
+    onError,
+  })
+  const revoke = useMutation({
+    mutationFn: () => endpoints.revokePermit(permit.id),
+    onSuccess: (p) => done(`أُلغي مفتاح ${p.holderName}`),
+    onError,
+  })
+  return (
+    <span className="row-actions">
+      <button className="btn sm" disabled={extend.isPending} onClick={() => extend.mutate()} title="يومًا إضافيًا">تمديد</button>
+      <ConfirmButton className="btn gh sm" onConfirm={() => revoke.mutate()} disabled={revoke.isPending}>إلغاء</ConfirmButton>
+    </span>
   )
 }
 

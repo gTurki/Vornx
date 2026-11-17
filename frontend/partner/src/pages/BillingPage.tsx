@@ -4,10 +4,13 @@ import { endpoints } from '../api/endpoints'
 import { useCan } from '../auth/AuthContext'
 import { count, date, money } from '../lib/format'
 import { CONTRACT_STATUS, INVOICE_STATUS, TIER } from '../lib/labels'
-import { ConfirmButton, Empty, ErrorBox, Kv, Loading, Num, Tag } from '../ui/bits'
+import { ConfirmButton, Empty, ErrorBox, Loading, Num, Tag } from '../ui/bits'
 import { useToast } from '../ui/Toast'
 
-/** "العقد والفواتير": the partner's contract with VORNX, its monthly invoices, and asking to renew. */
+/**
+ * "العقد والفواتير", laid out like hotel.html: the 3 contract numbers, the plan with how much of the contract has
+ * passed (and "اطلب تجديد العقد"), then the monthly invoices.
+ */
 export function BillingPage() {
   const can = useCan()
   const qc = useQueryClient()
@@ -21,59 +24,70 @@ export function BillingPage() {
   })
   const c = contract.data
   const unpaid = invoices.data?.filter((i) => i.status !== 'PAID').reduce((s, i) => s + i.amount, 0) ?? 0
+  const monthsLeft = c ? Math.max(0, Math.round(c.daysLeft / 30)) : 0
 
   return (
-    <div className="cols">
-      <section>
-        <h2>الفواتير</h2>
-        {invoices.error && <ErrorBox error={invoices.error} />}
-        {invoices.isLoading ? <Loading /> : (
-          <div className="tw">
-            <table>
-              <thead><tr><th>الفاتورة</th><th>الفترة</th><th>المبلغ</th><th>الاستحقاق</th><th>الحالة</th></tr></thead>
-              <tbody>
-                {invoices.data?.map((i) => (
-                  <tr key={i.id}>
-                    <td><Num>{i.number}</Num></td>
-                    <td><Num>{i.period}</Num></td>
-                    <td><Num>{money(i.amount)}</Num> {i.currency === 'SAR' ? 'ر.س' : i.currency}</td>
-                    <td>{i.paidAt ? <>دُفعت {date(i.paidAt)}</> : date(i.dueDate)}</td>
-                    <td><Tag label={INVOICE_STATUS[i.status]} /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {invoices.data?.length === 0 && <Empty>لا توجد فواتير بعد.</Empty>}
+    <>
+      {contract.isLoading && <Loading />}
+      {contract.error && <div className="panel" style={{ marginBottom: 22 }}><Empty>لا يوجد عقد ساري بعد. سيضيفه مدير حسابك.</Empty></div>}
+      {c && (
+        <>
+          <div className="kpis" style={{ marginTop: 0 }}>
+            <div className="kp"><span className="num">{count(Math.round(c.monthlyFee))}</span><span>القيمة الشهرية، ر.س</span></div>
+            <div className="kp">
+              <span className="num">{c.maxBeneficiaries ? count(c.maxBeneficiaries) : '∞'}</span><span>الحد الأقصى للمستفيدين</span>
+            </div>
+            <div className={`kp${c.status !== 'ACTIVE' ? ' warn' : ''}`}>
+              <span className="num">{c.endDate}</span>
+              <span>انتهاء العقد · {c.daysLeft < 0 ? `انتهى منذ ${-c.daysLeft} يومًا` : monthsLeft >= 1 ? `يتبقى ${monthsLeft} ${monthsLeft === 1 ? 'شهر' : 'أشهر'}` : `يتبقى ${c.daysLeft} يومًا`}</span>
+            </div>
           </div>
-        )}
-        {unpaid > 0 && <p className="mu">غير المدفوع: <Num>{money(unpaid)}</Num> ر.س. للسداد تواصل مع مدير حسابك.</p>}
-      </section>
 
-      <section>
-        <h2>العقد</h2>
-        <div className="panel">
-          {contract.isLoading && <Loading />}
-          {contract.error && <Empty>لا يوجد عقد ساري بعد.</Empty>}
-          {c && (
-            <>
-              <div className="li"><b>{c.planName}</b><Tag label={CONTRACT_STATUS[c.status]} /></div>
-              <Kv k="رقم العقد"><Num>{c.number}</Num></Kv>
-              <Kv k="الفئة">{TIER[c.tier]}</Kv>
-              <Kv k="الرسوم الشهرية"><Num>{money(c.monthlyFee)}</Num> ر.س</Kv>
-              <Kv k="الحد الأقصى للمستفيدين">{c.maxBeneficiaries ? <Num>{count(c.maxBeneficiaries)}</Num> : 'غير محدود'}</Kv>
-              <Kv k="من">{date(c.startDate)}</Kv>
-              <Kv k="إلى">{date(c.endDate)}</Kv>
-              <Kv k="المتبقي"><Num>{count(Math.max(c.daysLeft, 0))}</Num> يوم</Kv>
-              <div className="bar"><i style={{ width: `${c.progressPercent}%` }} /></div>
-              {can('admin') && c.status !== 'TERMINATED' && (
-                <div className="form-actions" style={{ marginTop: 14 }}>
-                  <ConfirmButton className="btn" onConfirm={() => renew.mutate()} disabled={renew.isPending}>طلب تجديد العقد</ConfirmButton>
-                </div>
-              )}
-            </>
-          )}
+          <div className="panel" style={{ marginBottom: 22 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+              <b>{c.planName} <span className="mu">· {TIER[c.tier]} · <Num>{c.number}</Num></span></b>
+              <Tag label={CONTRACT_STATUS[c.status]} />
+            </div>
+            <div className="bar"><i style={{ width: `${c.progressPercent}%` }} /></div>
+            <small className="mu">
+              مضى <Num>{c.progressPercent}%</Num> من مدة العقد ({date(c.startDate)} — {date(c.endDate)}).
+              {c.status === 'EXPIRING_SOON' && ' نوصي بطلب التجديد الآن.'}
+            </small>
+            {can('admin') && c.status !== 'TERMINATED' && (
+              <div style={{ marginTop: 12 }}>
+                <ConfirmButton className="btn" onConfirm={() => renew.mutate()} disabled={renew.isPending}>اطلب تجديد العقد</ConfirmButton>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
+      <h2>الفواتير</h2>
+      {invoices.error && <ErrorBox error={invoices.error} />}
+      {invoices.isLoading ? <Loading /> : (
+        <div className="tw">
+          <table>
+            <thead><tr><th>الفترة</th><th>الفاتورة</th><th>المبلغ</th><th>الاستحقاق</th><th>الحالة</th></tr></thead>
+            <tbody>
+              {invoices.data?.map((i) => (
+                <tr key={i.id}>
+                  <td>{period(i.period)}</td>
+                  <td><Num>{i.number}</Num></td>
+                  <td><Num>{money(i.amount)}</Num> {i.currency === 'SAR' ? 'ر.س' : i.currency}</td>
+                  <td>{i.paidAt ? <>دُفعت {date(i.paidAt)}</> : date(i.dueDate)}</td>
+                  <td><Tag label={INVOICE_STATUS[i.status]} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {invoices.data?.length === 0 && <Empty>لا توجد فواتير بعد.</Empty>}
         </div>
-      </section>
-    </div>
+      )}
+      {unpaid > 0 && <p className="mu">غير المدفوع: <Num>{money(unpaid)}</Num> ر.س. للسداد تواصل مع مدير حسابك.</p>}
+    </>
   )
 }
+
+const MONTH = new Intl.DateTimeFormat('ar-SA-u-ca-gregory-nu-latn', { month: 'long', year: 'numeric', timeZone: 'UTC' })
+/** "2026-09" -> "سبتمبر 2026" */
+const period = (p: string) => MONTH.format(new Date(p + '-15T12:00:00Z'))

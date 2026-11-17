@@ -40,6 +40,28 @@ export type InviteResponse = { user: PartnerUser; inviteToken: string | null; in
 
 // ---------- sites & access points ----------
 
+/** GET /api/partner/overview: the portal's numbers (all real data). */
+export type PartnerOverview = {
+  planName: string | null
+  accountManager: { name: string; email: string; phone: string | null } | null
+  lastSevenDays: { date: string; allowed: number; denied: number }[]
+  arrivalsToday: number
+  departuresToday: number
+  activeKeys: number
+  sites: {
+    siteId: number
+    name: string
+    type: SiteType
+    city: string | null
+    accessPoints: number
+    rooms: number
+    occupiedRooms: number
+    activeKeys: number
+    entriesToday: number
+    allowedToday: number
+  }[]
+}
+
 export type SiteType = 'HOTEL' | 'OFFICE' | 'CLUB' | 'PARKING' | 'VENUE' | 'TRANSIT_STATION' | 'HOME'
 
 export type Site = {

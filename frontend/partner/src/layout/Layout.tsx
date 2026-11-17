@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../auth/AuthContext'
 import { endpoints } from '../api/endpoints'
 import { useRealtime } from '../api/useRealtime'
+import { useOverview } from '../api/useOverview'
 import { ago } from '../lib/format'
 import { PARTNER_ROLE } from '../lib/labels'
 import { Icon, type IconName } from '../ui/Icon'
@@ -45,6 +46,8 @@ const TITLES: Record<string, string> = Object.fromEntries(NAV.flatMap((g) => g.i
 export function Layout() {
   useRealtime()
   const { me, logout } = useAuth()
+  const overview = useOverview()
+  const o = overview.data
   const { pathname } = useLocation()
   const title = TITLES['/' + (pathname.split('/')[1] ?? '')] ?? 'VORNX'
 
@@ -52,7 +55,7 @@ export function Layout() {
     <div className="app">
       <aside>
         <div className="logo"><Logo /><Logo variant="mark" /></div>
-        <div className="host"><b>{me?.partnerName}</b>بوابة الشريك</div>
+        <div className="host"><b>{me?.partnerName}</b>بوابة الشريك{o?.planName ? ` · ${o.planName}` : ''}</div>
         {NAV.map((g) => (
           <nav key={g.group} aria-label={g.group}>
             <div className="nav-group">{g.group}</div>
@@ -65,6 +68,7 @@ export function Layout() {
           </nav>
         ))}
         <div className="side-foot">
+          {o?.accountManager && <p className="mgr">مدير حسابك: {o.accountManager.name}</p>}
           <div className="me">
             <b>{me?.fullName}</b>
             <small>{me ? PARTNER_ROLE[me.role] : ''}</small>

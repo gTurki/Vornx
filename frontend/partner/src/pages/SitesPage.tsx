@@ -4,13 +4,17 @@ import { ApiError } from '../api/client'
 import { endpoints } from '../api/endpoints'
 import type { AccessMethod, AccessPoint, AccessPointStatus, AccessPointType, Site, SiteType } from '../api/types'
 import { useCan } from '../auth/AuthContext'
-import { hhmm } from '../lib/format'
+import { count, hhmm } from '../lib/format'
 import { AP_STATUS, AP_TYPE, keys, METHOD, SITE_TYPE } from '../lib/labels'
 import { Empty, ErrorBox, Loading, Num, Tag } from '../ui/bits'
 import { Drawer } from '../ui/Drawer'
 import { Icon } from '../ui/Icon'
 import { useAccessPoints, useSites } from '../ui/pickers'
 import { useToast } from '../ui/Toast'
+import { useOverview } from '../api/useOverview'
+
+/** 3 of 4 -> "75%"; nothing to divide -> "—" */
+const pct = (part: number, whole: number) => (whole > 0 ? `${Math.round((part / whole) * 100)}%` : '—')
 
 /** "المواقع ونقاط الدخول": the partner's places (a hotel, an office...) and their doors, gates and rooms. */
 export function SitesPage() {
@@ -19,6 +23,14 @@ export function SitesPage() {
   const [openId, setOpenId] = useState<number | null>(null)
   const [editing, setEditing] = useState<Site | 'new' | null>(null)
   const open = sites.data?.find((s) => s.id === openId) ?? null
+  // live numbers per site (occupancy = rooms covered by a valid key right now)
+  const overview = useOverview()
+  const stats = new Map((overview.data?.sites ?? []).map((s) => [s.siteId, s]))
+  const all = overview.data?.sites ?? []
+  const totalRooms = all.reduce((n, s) => n + s.rooms, 0)
+  const totalOccupied = all.reduce((n, s) => n + s.occupiedRooms, 0)
+  const totalEntries = all.reduce((n, s) => n + s.entriesToday, 0)
+  const totalAllowed = all.reduce((n, s) => n + s.allowedToday, 0)
 
   return (
     <>
@@ -30,15 +42,39 @@ export function SitesPage() {
       {sites.error && <ErrorBox error={sites.error} />}
       {sites.isLoading && <Loading />}
       {sites.data?.length === 0 && <Empty>لا توجد مواقع بعد. أضف أول موقع لتبدأ بإضافة نقاط الدخول.</Empty>}
-      <div className="cards">
-        {sites.data?.map((s) => (
-          <button key={s.id} className="card" onClick={() => setOpenId(s.id)}>
-            <h3>{s.name}</h3>
-            <span className="mu">{SITE_TYPE[s.type]}{s.city ? ` · ${s.city}` : ''}</span>
-            <span className="mu">{s.open24Hours ? 'مفتوح 24 ساعة' : <>يفتح <Num>{hhmm(s.opensAt)}</Num> – <Num>{hhmm(s.closesAt)}</Num></>}</span>
-          </button>
-        ))}
-      </div>
+      {sites.data && sites.data.length > 0 && (
+        <>
+          <div className="kpis" style={{ marginTop: 0 }}>
+            <div className="kp"><span className="num">{count(sites.data.length)}</span><span>موقع</span></div>
+            <div className="kp"><span className="num">{count(totalRooms)}</span><span>غرفة · الإشغال <Num>{pct(totalOccupied, totalRooms)}</Num></span></div>
+            <div className="kp"><span className="num">{count(totalEntries)}</span><span>دخول اليوم · مسموح <Num>{pct(totalAllowed, totalEntries)}</Num></span></div>
+          </div>
+          <div className="tw">
+            <table>
+              <thead><tr><th>الموقع</th><th>المدينة</th><th>نقاط الدخول</th><th>الإشغال</th><th>مفاتيح فعّالة</th><th>دخول اليوم</th><th>الدوام</th></tr></thead>
+              <tbody>
+                {sites.data.map((s) => {
+                  const st = stats.get(s.id)
+                  const occ = st && st.rooms > 0 ? Math.round((st.occupiedRooms / st.rooms) * 100) : null
+                  return (
+                    <tr key={s.id} className="click" onClick={() => setOpenId(s.id)}>
+                      <td className="ent"><b>{s.name}</b><small>{SITE_TYPE[s.type]}</small></td>
+                      <td>{s.city ?? '—'}</td>
+                      <td><Num>{count(st?.accessPoints ?? 0)}</Num>{st && st.rooms > 0 && <small className="mu"> · <Num>{st.rooms}</Num> غرفة</small>}</td>
+                      <td style={{ minWidth: 110 }}>
+                        {occ === null ? <span className="mu">—</span> : <><Num>{occ}%</Num><div className="bar"><i style={{ width: `${occ}%` }} /></div></>}
+                      </td>
+                      <td><Num>{count(st?.activeKeys ?? 0)}</Num></td>
+                      <td><Num>{count(st?.entriesToday ?? 0)}</Num>{st && st.entriesToday > 0 && <small className="mu"> · مسموح <Num>{pct(st.allowedToday, st.entriesToday)}</Num></small>}</td>
+                      <td>{s.open24Hours ? <span className="mu">24 ساعة</span> : <Num>{hhmm(s.opensAt)} – {hhmm(s.closesAt)}</Num>}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
 
       <Drawer open={open !== null} onClose={() => setOpenId(null)} title={open?.name ?? ''}>
         {open && <SiteDetails site={open} onEdit={() => setEditing(open)} />}
