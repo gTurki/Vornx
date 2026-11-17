@@ -42,13 +42,15 @@ main{padding:26px 34px 60px;max-width:1080px}
 
 /* ---------- the VORNX card ---------- */
 .vcard{aspect-ratio:1.586;width:100%;max-width:440px;border-radius:20px;padding:22px 24px;color:#fff;display:flex;flex-direction:column;justify-content:space-between;
-  background:radial-gradient(120% 90% at 85% 10%,rgba(255,255,255,.18),transparent 55%),linear-gradient(145deg,var(--card2),var(--card1) 60%,#0A0070);
+  /* the design's card art (Riyadh skyline), over the brand gradient while it loads */
+  background:url(/brand/card-riyadh.svg) center/cover no-repeat,linear-gradient(145deg,var(--card2),var(--card1) 60%,#0A0070);
   box-shadow:0 22px 50px -22px rgba(16,0,180,.6);position:relative;overflow:hidden;direction:ltr;text-align:left}
 .vcard.off{filter:grayscale(.85);opacity:.75}
-.vcard .brand{display:flex;justify-content:space-between;align-items:center;font:700 19px Montserrat,sans-serif;letter-spacing:4px}
-.vcard .brand small{font:500 13px Montserrat;letter-spacing:6px;opacity:.85}
+.vcard .vc-head{display:flex;justify-content:space-between;align-items:center}
+.vcard .vc-logo{display:block;width:34%;aspect-ratio:428/72;background:#fff;-webkit-mask:url(/brand/vornx-mark.png) left center/contain no-repeat;mask:url(/brand/vornx-mark.png) left center/contain no-repeat}
+.vcard .vc-head small{font:300 15px Montserrat;letter-spacing:7px}
 .vcard .tag-line{font:500 10px Montserrat;letter-spacing:2px;opacity:.75;margin-top:4px}
-.vcard .pan{font:600 clamp(18px,5vw,25px) Montserrat,sans-serif;letter-spacing:2px;direction:ltr;text-align:start}
+.vcard .pan{font:600 clamp(18px,5vw,25px) Montserrat,sans-serif;letter-spacing:2px;direction:ltr;text-align:start;text-shadow:0 1px 8px rgba(0,0,40,.35)}
 .vcard .foot{display:flex;justify-content:space-between;align-items:flex-end;font-size:13px}
 .vcard .foot .num{font-size:13px}
 
@@ -143,3 +145,9 @@ code{font-family:Montserrat,monospace;font-size:12.5px;direction:ltr;display:inl
 @keyframes up{from{transform:translateY(40px);opacity:0}}
 @media(prefers-reduced-motion:reduce){.drawer-panel{animation:none}}
 .pulse{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--pr);margin-inline-end:8px;animation:pl 1.4s infinite}@keyframes pl{50%{opacity:.25}}
+
+/* password field with the show/hide eye (from the design) */
+.pw{position:relative;display:block}.field>span.pw{font-size:inherit;font-weight:inherit;color:inherit}.pw .input{padding-inline-end:44px}
+.pw .eye{position:absolute;inset-inline-end:6px;top:50%;transform:translateY(-50%);width:34px;height:34px;display:grid;place-items:center;border:0;background:none;color:var(--mu);border-radius:8px;cursor:pointer}
+.pw .eye:hover{color:var(--tx);background:var(--hv)}
+.pw .eye svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}

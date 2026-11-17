@@ -6,6 +6,7 @@ import type { LoginChallenge } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 import { Logo } from '../ui/Logo'
 import { sendSms, smsAvailable, smsError, type SmsSession } from '../lib/firebasePhone'
+import { PasswordInput } from '../ui/PasswordInput'
 
 /** Keeps a phone number or email in left-to-right order inside Arabic text (Unicode isolate). */
 export const ltr = (s?: string | null) => '\u2066' + (s ?? '') + '\u2069'
@@ -63,7 +64,7 @@ export function LoginPage() {
         <input className="input" type="email" dir="ltr" autoComplete="username" required value={email} onChange={(e) => setEmail(e.target.value)} />
       </label>
       <label className="field"><span>كلمة المرور</span>
-        <input className="input" type="password" dir="ltr" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+        <PasswordInput className="input" dir="ltr" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
       </label>
       {error && <div className="error-box">{error}</div>}
       <button className="btn wide" disabled={busy}>{busy ? 'جارٍ الدخول…' : 'متابعة'}</button>
@@ -309,8 +310,8 @@ export function RegisterPage() {
       <label className="field"><span>رقم الجوال</span>
         <input className="input" type="tel" dir="ltr" required pattern="05[0-9]{8}" placeholder="05XXXXXXXX" autoComplete="tel" value={f.phone} onChange={set('phone')} />
       </label>
-      <label className="field"><span>كلمة المرور (10 أحرف على الأقل)</span><input className="input" type="password" dir="ltr" required minLength={10} autoComplete="new-password" value={f.password} onChange={set('password')} /></label>
-      <label className="field"><span>تأكيد كلمة المرور</span><input className="input" type="password" dir="ltr" required minLength={10} autoComplete="new-password" value={f.confirmPassword} onChange={set('confirmPassword')} /></label>
+      <label className="field"><span>كلمة المرور (10 أحرف على الأقل)</span><PasswordInput className="input" dir="ltr" required minLength={10} autoComplete="new-password" value={f.password} onChange={set('password')} /></label>
+      <label className="field"><span>تأكيد كلمة المرور</span><PasswordInput className="input" dir="ltr" required minLength={10} autoComplete="new-password" value={f.confirmPassword} onChange={set('confirmPassword')} /></label>
       <label className="agree">
         <input type="checkbox" required checked={agree} onChange={(e) => setAgree(e.target.checked)} />
         <span>
@@ -386,10 +387,10 @@ export function ResetPasswordPage() {
       ) : (
         <>
           <label className="field"><span>كلمة المرور الجديدة (10 أحرف على الأقل)</span>
-            <input className="input" type="password" dir="ltr" minLength={10} required autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />
+            <PasswordInput className="input" dir="ltr" minLength={10} required autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />
           </label>
           <label className="field"><span>تأكيد كلمة المرور</span>
-            <input className="input" type="password" dir="ltr" minLength={10} required autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
+            <PasswordInput className="input" dir="ltr" minLength={10} required autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
           </label>
           {error && <div className="error-box">{error}</div>}
           <button className="btn wide">حفظ كلمة المرور</button>

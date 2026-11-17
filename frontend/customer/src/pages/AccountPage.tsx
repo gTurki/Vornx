@@ -7,6 +7,7 @@ import { dateTime, deviceName } from '../lib/format'
 import { ConfirmButton, ErrorBox, Kv, Loading, Num, Tag } from '../ui/bits'
 import { useToast } from '../ui/Toast'
 import { SecuritySection } from './SecuritySection'
+import { PasswordInput } from '../ui/PasswordInput'
 
 /** "حسابي": my profile, security (verified email/mobile, authenticator app), my logged-in devices, change password. */
 export function AccountPage() {
@@ -80,9 +81,9 @@ function ChangePassword() {
 
   return (
     <form className="form panel" onSubmit={submit}>
-      <label className="field"><span>كلمة المرور الحالية</span><input className="input" type="password" dir="ltr" required autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} /></label>
-      <label className="field"><span>الجديدة (10 أحرف على الأقل)</span><input className="input" type="password" dir="ltr" minLength={10} required autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} /></label>
-      <label className="field"><span>تأكيد الجديدة</span><input className="input" type="password" dir="ltr" minLength={10} required autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} /></label>
+      <label className="field"><span>كلمة المرور الحالية</span><PasswordInput className="input" dir="ltr" required autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} /></label>
+      <label className="field"><span>الجديدة (10 أحرف على الأقل)</span><PasswordInput className="input" dir="ltr" minLength={10} required autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} /></label>
+      <label className="field"><span>تأكيد الجديدة</span><PasswordInput className="input" dir="ltr" minLength={10} required autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} /></label>
       {error && <ErrorBox error={new ApiError(400, { status: 400, detail: error })} />}
       <div className="form-actions"><button className="btn">حفظ</button></div>
     </form>

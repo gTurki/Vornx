@@ -18,7 +18,7 @@ function expiry(d: string) {
 }
 
 /**
- * The VORNX card, drawn like the physical one.
+ * The VORNX card, drawn like the physical one: the Riyadh skyline art and the logo from the design (index_76).
  * `reveal` shows the full number (card page); elsewhere only the last 4 digits.
  */
 export function VCard({ card, name, reveal }: { card: Card | null; name: string; reveal?: boolean }) {
@@ -29,12 +29,12 @@ export function VCard({ card, name, reveal }: { card: Card | null; name: string;
     <div className={`vcard${card && card.status !== 'ACTIVE' ? ' off' : ''}`} role="img"
          aria-label={card ? `بطاقة VORNX تنتهي بالرقم ${card.last4}` : 'لا توجد بطاقة بعد'}>
       <div>
-        <div className="brand">VORNX<small>ONE</small></div>
+        <div className="vc-head"><span className="vc-logo" aria-hidden="true" /><small>ONE</small></div>
         <div className="tag-line">PAY · CAMPUS · WORK · TRANSIT · ACCESS</div>
       </div>
       <div className="pan">{pan}</div>
       <div className="foot">
-        <span>{name}</span>
+        <span dir="auto">{name}</span>
         <span className="num">{card ? expiry(card.expiresAt) : '--/--'}</span>
       </div>
     </div>

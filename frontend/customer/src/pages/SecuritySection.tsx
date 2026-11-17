@@ -8,6 +8,7 @@ import { dateTime } from '../lib/format'
 import { Kv, Loading, Tag } from '../ui/bits'
 import { useToast } from '../ui/Toast'
 import { digitsOnly } from './AuthPages'
+import { PasswordInput } from '../ui/PasswordInput'
 
 function msg(e: unknown) {
   return e instanceof ApiError ? e.message : 'حدث خطأ غير متوقع.'
@@ -193,7 +194,7 @@ function TurnOff({ onDone }: { onDone: () => void }) {
   return (
     <form className="form" onSubmit={submit}>
       <label className="field"><span>للتأكيد، اكتب كلمة المرور</span>
-        <input className="input" type="password" dir="ltr" required autoComplete="current-password" value={password}
+        <PasswordInput className="input" dir="ltr" required autoComplete="current-password" value={password}
           onChange={(e) => setPassword(e.target.value)} />
       </label>
       {error && <div className="error-box">{error}</div>}
