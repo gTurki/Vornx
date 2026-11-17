@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface PartnerRepository extends JpaRepository<Partner, Long> {
@@ -31,6 +32,10 @@ public interface PartnerRepository extends JpaRepository<Partner, Long> {
     Optional<Partner> findWithAccountManagerById(Long id);
 
     long countByStatus(PartnerStatus status);
+
+    /** Admin overview strip: partners per sector (rows of [Sector, Long]), suspended ones left out. */
+    @Query("SELECT p.sector, COUNT(p) FROM Partner p WHERE p.status <> :excluded GROUP BY p.sector")
+    List<Object[]> countBySector(@Param("excluded") PartnerStatus excluded);
 
     boolean existsByCrNumber(String crNumber);
 

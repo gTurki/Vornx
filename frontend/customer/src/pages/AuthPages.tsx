@@ -4,6 +4,7 @@ import { ApiError } from '../api/client'
 import { endpoints } from '../api/endpoints'
 import type { LoginChallenge } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
+import { Logo } from '../ui/Logo'
 import { sendSms, smsAvailable, smsError, type SmsSession } from '../lib/firebasePhone'
 
 /** Keeps a phone number or email in left-to-right order inside Arabic text (Unicode isolate). */
@@ -17,7 +18,7 @@ export function AuthCard({ title, sub, children, onSubmit }: { title: string; su
   return (
     <div className="auth-page">
       <form className="auth-card form" onSubmit={onSubmit}>
-        <div className="logo">VORNX</div>
+        <div className="logo"><Logo variant="mark" /></div>
         <h1>{title}</h1>
         {sub && <p className="sub">{sub}</p>}
         {children}

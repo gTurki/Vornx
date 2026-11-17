@@ -14,7 +14,11 @@ svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stro
 /* ---------- shell ---------- */
 .app{display:grid;grid-template-columns:250px 1fr;min-height:100vh}
 aside{background:var(--sf);border-inline-start:1px solid var(--ln);position:sticky;top:0;height:100vh;overflow-y:auto;padding:26px 16px;display:flex;flex-direction:column;gap:3px;order:0}
-.logo{font:700 26px Montserrat,sans-serif;letter-spacing:5px;text-align:center;margin-bottom:22px}
+.logo{margin:4px 10px 22px;color:var(--tx)}
+/* the logo images, drawn with a mask so they take the text color */
+.brand{display:block;background:currentColor;-webkit-mask:var(--src) center/contain no-repeat;mask:var(--src) center/contain no-repeat}
+.brand.side{--src:url(/brand/vornx-wordmark.png);aspect-ratio:795/150;height:24px}
+.brand.mark{--src:url(/brand/vornx-mark.png);aspect-ratio:428/72;width:132px;margin:0 auto}
 .nb{display:flex;align-items:center;gap:12px;padding:11px 14px;border:0;border-radius:12px;background:none;color:var(--tx);text-align:start;width:100%;font-weight:500;text-decoration:none}
 .nb:hover{background:var(--hv)}.nb.on{background:var(--soft);color:var(--pr);font-weight:700}
 .side-foot{margin-top:auto;padding-top:12px;border-top:1px solid var(--ln)}
@@ -104,7 +108,7 @@ code{font-family:Montserrat,monospace;font-size:12.5px;direction:ltr;display:inl
 /* ---------- login / sign-up ---------- */
 .auth-page{min-height:100vh;display:grid;place-items:center;padding:20px;background:radial-gradient(80% 60% at 90% 0%,#D9E2FF,transparent),radial-gradient(60% 50% at 0% 100%,#E3F3EE,transparent),var(--bg)}
 .auth-card{width:min(420px,100%);background:var(--sf);border-radius:26px;padding:34px 30px;box-shadow:0 24px 60px -24px rgba(16,30,90,.3)}
-.auth-card .logo{margin-bottom:6px}.auth-card h1{font-size:24px;margin:0;text-align:center}.auth-card .sub{text-align:center;color:var(--mu);margin:0 0 8px}
+.auth-card .logo{margin:0 0 10px}.auth-card h1{font-size:24px;margin:0;text-align:center}.auth-card .sub{text-align:center;color:var(--mu);margin:0 0 8px}
 .auth-links{display:flex;justify-content:center;align-items:center;gap:10px;font-size:13.5px}
 .auth-links .link{background:none;border:0;padding:0;font:inherit;color:var(--pr);cursor:pointer}
 .auth-links .link:disabled{color:var(--mu);cursor:default}

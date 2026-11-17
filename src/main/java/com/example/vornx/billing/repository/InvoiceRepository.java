@@ -36,6 +36,10 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
 
     boolean existsByNumber(String number);
 
+    /** Admin overview chart: invoiced amount per month (rows of [period "2026-09", BigDecimal]). */
+    @Query("SELECT i.period, COALESCE(SUM(i.amount), 0) FROM Invoice i WHERE i.period IN :periods GROUP BY i.period")
+    List<Object[]> sumByPeriod(@Param("periods") java.util.Collection<String> periods);
+
     @Query("SELECT COUNT(i) FROM Invoice i WHERE i.status = :status AND i.dueDate < :today")
     long countOverdue(@Param("status") InvoiceStatus status, @Param("today") LocalDate today);
 

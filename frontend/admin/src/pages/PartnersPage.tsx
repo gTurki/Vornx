@@ -1,4 +1,5 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ApiError } from '../api/client'
 import { endpoints } from '../api/endpoints'
@@ -15,13 +16,18 @@ const STATUS_FILTERS: [PartnerStatus | '', string][] = [['', 'كل الحالا�
 
 export function PartnersPage() {
   const { me } = useAuth()
-  const [sector, setSector] = useState<Sector | ''>('')
+  const [url] = useSearchParams()
+  const urlSector = (url.get('sector') ?? '') as Sector | ''
+  const urlQ = url.get('q') ?? ''
+  const [sector, setSector] = useState<Sector | ''>(urlSector)
   const [status, setStatus] = useState<PartnerStatus | ''>('')
-  const [q, setQ] = useState('')
+  const [q, setQ] = useState(urlQ)
   const [page, setPage] = useState(0)
   const [openId, setOpenId] = useState<number | null>(null)
   const [creating, setCreating] = useState(false)
   const query = useDebounced(q)
+  // a new search from the top bar (or a sector from the overview) while this page is already open
+  useEffect(() => { setQ(urlQ); setSector(urlSector); setPage(0) }, [urlQ, urlSector])
 
   const params = { sector: sector || undefined, status: status || undefined, q: query || undefined, page }
   const list = useQuery({ queryKey: ['partners', params], queryFn: () => endpoints.partners(params) })

@@ -7,6 +7,7 @@ import { useRealtime } from '../api/useRealtime'
 import { ago } from '../lib/format'
 import { PARTNER_ROLE } from '../lib/labels'
 import { Icon, type IconName } from '../ui/Icon'
+import { Logo } from '../ui/Logo'
 
 /** The sidebar, grouped: daily operations, setup, and the account with VORNX. */
 const NAV: { group: string; items: { to: string; label: string; icon: IconName }[] }[] = [
@@ -50,7 +51,7 @@ export function Layout() {
   return (
     <div className="app">
       <aside>
-        <div className="logo">VORNX</div>
+        <div className="logo"><Logo /><Logo variant="mark" /></div>
         <div className="host"><b>{me?.partnerName}</b>بوابة الشريك</div>
         {NAV.map((g) => (
           <nav key={g.group} aria-label={g.group}>

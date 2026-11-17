@@ -137,6 +137,41 @@ export type Invoice = {
   status: InvoiceStatus
 }
 
+/** GET /api/admin/overview: the dashboard home. */
+export type AdminOverview = {
+  sectors: { sector: Sector; partners: number }[]
+  customers: number
+  monthlyRecurringRevenue: number
+  mrrChangePercent: number | null
+  activePartners: number
+  contractsNeedingAttention: number
+  overdueInvoices: number
+  overdueAmount: number
+  openSupportTickets: number
+  revenueByMonth: { period: string; amount: number }[]
+  attention: {
+    kind: 'CONTRACT' | 'INVOICE'
+    id: number
+    partnerId: number
+    partnerName: string
+    detail: string
+    daysLeft: number
+    contractStatus: ContractStatus | null
+    amount: number | null
+  }[]
+  topPartners: {
+    partnerId: number
+    name: string
+    sector: Sector
+    city: string | null
+    planName: string
+    tier: PlanTier
+    beneficiaries: number
+    monthlyFee: number
+    contractStatus: ContractStatus
+  }[]
+}
+
 export type BillingSummary = {
   activePartners: number
   runningContracts: number

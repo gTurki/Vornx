@@ -3,6 +3,7 @@ import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import { endpoints } from '../api/endpoints'
 import { useAuth } from '../auth/AuthContext'
+import { Logo } from '../ui/Logo'
 
 function errorText(e: unknown) {
   return e instanceof ApiError ? e.message : 'حدث خطأ غير متوقع.'
@@ -35,7 +36,7 @@ export function LoginPage() {
   return (
     <div className="auth-page">
       <form className="auth-card form" onSubmit={submit}>
-        <div className="logo">VORNX</div>
+        <div className="logo"><Logo /></div>
         <h1>تسجيل الدخول — لوحة الإدارة</h1>
         <label className="field">
           <span>البريد الإلكتروني</span>
@@ -74,7 +75,7 @@ export function ForgotPasswordPage() {
   return (
     <div className="auth-page">
       <form className="auth-card form" onSubmit={submit}>
-        <div className="logo">VORNX</div>
+        <div className="logo"><Logo /></div>
         <h1>نسيت كلمة المرور</h1>
         {sent ? (
           <p>إذا كان البريد مسجّلًا لدينا، ستصلك رسالة فيها رابط لإعادة التعيين خلال دقائق. الرابط صالح لمدة 30 دقيقة.</p>
@@ -117,7 +118,7 @@ export function ResetPasswordPage() {
   return (
     <div className="auth-page">
       <form className="auth-card form" onSubmit={submit}>
-        <div className="logo">VORNX</div>
+        <div className="logo"><Logo /></div>
         <h1>تعيين كلمة مرور جديدة</h1>
         {done ? (
           <p>تم تغيير كلمة المرور، وتم تسجيل خروجك من جميع الأجهزة. <Link to="/login">سجّل الدخول</Link></p>

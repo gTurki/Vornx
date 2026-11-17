@@ -1,6 +1,6 @@
 import { api } from './client'
 import type {
-  ActivityLog, AdminUser, AppNotification, AuthResponse, BillingSummary, Contract, ContractRequest,
+  AdminOverview, ActivityLog, AdminUser, AppNotification, AuthResponse, BillingSummary, Contract, ContractRequest,
   Inquiry, InquiryStatus, InviteResponse, Invoice, InvoiceStatus, Page, Partner, PartnerRequest, PartnerRole, PartnerStatus,
   PartnerUser, Sector, Session, Site, SupportTicket, TicketPriority, TicketStatus,
 } from './types'
@@ -35,6 +35,7 @@ export const endpoints = {
 
   // ---------- dashboard ----------
   summary: () => api<BillingSummary>('/api/admin/billing/summary'),
+  overview: () => api<AdminOverview>('/api/admin/overview'),
 
   // ---------- partners ----------
   partners: (p: { sector?: Sector; status?: PartnerStatus; q?: string; page?: number }) =>

@@ -6,6 +6,7 @@ import { endpoints } from '../api/endpoints'
 import { useRealtime } from '../api/useRealtime'
 import { ago, count } from '../lib/format'
 import { Icon, type IconName } from '../ui/Icon'
+import { Logo } from '../ui/Logo'
 
 type Item = { to: string; label: string; icon: IconName }
 
@@ -40,7 +41,7 @@ export function Layout() {
   return (
     <div className="app">
       <aside>
-        <div className="logo">VORNX</div>
+        <div className="logo"><Logo /></div>
         <nav aria-label="القائمة">
           {NAV.map((i) => (
             <NavLink key={i.to} to={i.to} end={i.to === '/'} className={({ isActive }) => `nb${isActive ? ' on' : ''}`}>

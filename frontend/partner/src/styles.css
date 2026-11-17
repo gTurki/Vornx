@@ -12,7 +12,11 @@ a{color:var(--p2)}
 /* ---------- shell ---------- */
 .app{display:grid;grid-template-columns:240px 1fr;min-height:100%}
 aside{overflow-y:auto;background:var(--sb);color:#fff;position:sticky;top:0;height:100vh;padding:24px 14px;display:flex;flex-direction:column;gap:4px}
-.logo{padding:2px 10px 4px;font:700 26px Montserrat,sans-serif;letter-spacing:5px}
+.logo{padding:2px 10px 8px}
+/* the logo images, drawn with a mask so they take the text color (white on the sidebar, blue on the login card) */
+.brand{display:block;background:currentColor;-webkit-mask:var(--src) center/contain no-repeat;mask:var(--src) center/contain no-repeat}
+.brand.full{--src:url(/brand/vornx-logo.png);aspect-ratio:520/180;width:100%;max-width:170px}
+.brand.mark{--src:url(/brand/vornx-wordmark.png);aspect-ratio:520/88;width:84px;display:none}
 .logo-sub{margin:0 10px 18px;font-size:12px;font-weight:300;color:#C9CDF5}
 .nav-group{margin:14px 12px 6px;font-size:11px;font-weight:700;color:#A9AEEA;letter-spacing:.5px}
 .nb{display:flex;align-items:center;gap:11px;padding:10px 12px;border:0;border-radius:6px;background:none;color:#D5D8FA;text-align:start;width:100%;font-weight:700;font-size:13.5px;text-decoration:none}
@@ -96,12 +100,12 @@ textarea.input{min-height:90px;resize:vertical}
 /* ---------- login ---------- */
 .auth-page{min-height:100%;display:grid;place-items:center;padding:20px;background:var(--sb)}
 .auth-card{width:min(400px,100%);background:var(--sf);border-radius:12px;padding:30px 28px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
-.auth-card .logo{color:var(--pr);padding:0;margin-bottom:4px}.auth-card h1{font-size:18px;margin:0 0 18px}
+.auth-card .logo{color:var(--pr);padding:0;margin:0 auto 10px;width:150px}.auth-card h1{font-size:18px;margin:0 0 18px}
 
 @media(max-width:900px){
   .app{grid-template-columns:1fr}
   aside{position:static;height:auto;flex-direction:row;overflow-x:auto;padding:10px;gap:4px;align-items:center}
-  .logo-sub,.nav-group,.side-foot .me{display:none}.logo{font-size:18px;padding:0 10px}
+  .logo-sub,.nav-group,.side-foot .me{display:none}.logo{padding:0 10px}.logo .brand.full{display:none}.logo .brand.mark{display:block}
   nav{display:flex;gap:4px}.nb{width:auto;white-space:nowrap}.side-foot{margin:0;padding:0;border:0}
   .top,main{padding-inline:16px}.cols{grid-template-columns:1fr}.rem{grid-template-columns:1fr 80px}.rem .bar{grid-column:1/-1}
   .row2{grid-template-columns:1fr}.bell-panel{position:fixed;inset-inline:10px;width:auto;top:60px}

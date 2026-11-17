@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import { Logo } from '../ui/Logo'
 
 /**
  * Terms of use + privacy policy (public pages: /terms, /privacy).
@@ -15,7 +16,7 @@ function LegalPage({ title, children }: { title: string; children: ReactNode }) 
   return (
     <div className="legal-page">
       <article className="legal">
-        <div className="logo">VORNX</div>
+        <div className="logo"><Logo variant="mark" /></div>
         <h1>{title}</h1>
         <p className="mu">آخر تحديث: {UPDATED} · الإصدار <span dir="ltr">{TERMS_VERSION}</span></p>
         {children}

@@ -17,6 +17,8 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
 
     boolean existsByVornxId(String vornxId);
 
+    long countByStatus(com.example.vornx.common.enums.AccountStatus status);
+
     /** Checked on every customer request while mobile verification is on (primary key lookup). */
     boolean existsByIdAndPhoneVerifiedAtIsNotNull(Long id);
 }

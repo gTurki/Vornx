@@ -30,6 +30,16 @@ public interface PermitRepository extends JpaRepository<Permit, Long> {
                                 @Param("siteId") Long siteId,
                                 @Param("accessPoint") AccessPoint accessPoint);
 
+    /** Admin overview: customers holding a valid permit from each partner (rows of [partnerId, Long]). */
+    @Query("""
+            SELECT p.partner.id, COUNT(DISTINCT p.customer.id) FROM Permit p
+            WHERE p.partner.id IN :partnerIds AND p.status = :status AND p.validUntil > :now
+            GROUP BY p.partner.id
+            """)
+    List<Object[]> countCustomersByPartner(@Param("partnerIds") java.util.Collection<Long> partnerIds,
+                                           @Param("status") com.example.vornx.access.enums.PermitStatus status,
+                                           @Param("now") java.time.Instant now);
+
     @EntityGraph(attributePaths = {"site", "customer"})
     Page<Permit> findByPartner_Id(Long partnerId, Pageable pageable);
 

@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../auth/AuthContext'
 import { endpoints } from '../api/endpoints'
@@ -7,6 +7,7 @@ import { useRealtime } from '../api/useRealtime'
 import { ago } from '../lib/format'
 import { ADMIN_ROLE } from '../lib/labels'
 import { Icon, type IconName } from '../ui/Icon'
+import { Logo } from '../ui/Logo'
 
 /** The sidebar groups from the design: "الإدارة" and "المنصة". */
 const NAV: { group: string; items: { to: string; label: string; icon: IconName }[] }[] = [
@@ -41,7 +42,7 @@ export function Layout() {
   return (
     <div className="app">
       <aside>
-        <div className="logo">VORNX</div>
+        <div className="logo"><Logo /><Logo variant="mark" /></div>
         <p className="logo-sub">منصة الجهات مقدمة الخدمات</p>
         {NAV.map((g) => (
           <nav key={g.group} aria-label={g.group}>
@@ -69,7 +70,12 @@ export function Layout() {
       <div className="wrap">
         <header className="top">
           <h1>{title}</h1>
+          <SearchBox />
           <Bell />
+          <Link to="/account" className="ib me-chip" aria-label="حسابي">
+            <b className="av">{me?.fullName.trim().charAt(0).toUpperCase()}</b>
+            <span>{me?.fullName.split(' ')[0]}</span>
+          </Link>
           <ThemeToggle />
         </header>
         <main>
@@ -81,6 +87,37 @@ export function Layout() {
         </main>
       </div>
     </div>
+  )
+}
+
+/** "ابحث عن جهة أو خدمة ( / )": Enter opens the partners list filtered by the text. "/" jumps here. */
+function SearchBox() {
+  const navigate = useNavigate()
+  const ref = useRef<HTMLInputElement>(null)
+  const [q, setQ] = useState('')
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement
+      if (e.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName) && !t.isContentEditable) {
+        e.preventDefault()
+        ref.current?.focus()
+      }
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [])
+
+  function submit(e: FormEvent) {
+    e.preventDefault()
+    navigate(q.trim() ? `/partners?q=${encodeURIComponent(q.trim())}` : '/partners')
+  }
+
+  return (
+    <form className="srch-form" role="search" onSubmit={submit}>
+      <input ref={ref} className="srch" type="search" value={q} onChange={(e) => setQ(e.target.value)}
+        placeholder="ابحث عن جهة أو خدمة  ( / )" aria-label="ابحث عن جهة" />
+    </form>
   )
 }
 
