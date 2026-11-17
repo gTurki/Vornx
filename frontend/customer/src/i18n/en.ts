@@ -426,4 +426,10 @@ export const EN: Record<string, string> = {
   "إظهار": "Show",
   "بطاقة VORNX تنتهي بالرقم {0}": "VORNX card ending in {0}",
   "لا توجد بطاقة بعد": "No card yet",
+  "تثبيت التطبيق": "Install the app",
+  "ثبّت تطبيق VORNX": "Install the VORNX app",
+  "من Safari: اضغط زر المشاركة ⎋ ثم «إضافة إلى الشاشة الرئيسية».": "In Safari: tap the Share button ⎋, then “Add to Home Screen”.",
+  "افتح بطاقتك وتصاريحك بلمسة من الشاشة الرئيسية، حتى بدون متصفح.": "Open your card and permits in one tap from your home screen, no browser needed.",
+  "تثبيت": "Install",
+  "لاحقًا": "Later",
 }

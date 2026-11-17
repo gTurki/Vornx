@@ -16,6 +16,7 @@ import { AccessLogPage, PermitsPage } from './pages/PermitsPage'
 import { SubscriptionsPage } from './pages/SubscriptionsPage'
 import { WalletPage } from './pages/WalletPage'
 import { ToastProvider } from './ui/Toast'
+import { registerServiceWorker } from './lib/install'
 import './styles.css'
 
 // TanStack Query = server data cache: loading/error states, refetching, and no duplicate requests.
@@ -41,6 +42,8 @@ function Protected({ children }: { children: ReactNode }) {
   if (me?.phoneVerificationRequired) return <VerifyPhonePage />
   return <>{children}</>
 }
+
+registerServiceWorker()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

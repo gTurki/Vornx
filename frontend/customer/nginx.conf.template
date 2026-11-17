@@ -21,6 +21,20 @@ server {
         try_files $uri =404;
     }
 
+    # The service worker and the app manifest must always be fresh, and the manifest needs its own type.
+    location = /sw.js {
+        include /etc/nginx/conf.d/security-headers.inc;
+        add_header Cache-Control "no-cache" always;
+        try_files $uri =404;
+    }
+    location = /manifest.webmanifest {
+        include /etc/nginx/conf.d/security-headers.inc;
+        add_header Cache-Control "no-cache" always;
+        default_type application/manifest+json;
+        types { }
+        try_files $uri =404;
+    }
+
     # index.html is never cached, so a new deploy shows up immediately.
     # Unknown paths (/partners, /contracts...) return index.html and React Router shows the right page.
     location / {

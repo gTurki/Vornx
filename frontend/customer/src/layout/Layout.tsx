@@ -8,6 +8,7 @@ import { ago, count } from '../lib/format'
 import { Icon, type IconName } from '../ui/Icon'
 import { Logo } from '../ui/Logo'
 import { LangSwitch } from '../ui/LangSwitch'
+import { InstallBanner } from '../ui/InstallBanner'
 import { tr } from '../i18n'
 
 type Item = { to: string; label: string; icon: IconName }
@@ -70,6 +71,7 @@ export function Layout() {
             <Bell />
             <ThemeToggle />
           </header>
+          <InstallBanner />
           <Outlet />
           <footer className="ft">{tr('© 2026 VORNX · بطاقة واحدة لكل شيء')}</footer>
         </main>
