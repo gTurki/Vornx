@@ -16,6 +16,7 @@ const NAV: { group: string; items: { to: string; label: string; icon: IconName }
     items: [
       { to: '/', label: 'نظرة عامة', icon: 'home' },
       { to: '/partners', label: 'الجهات', icon: 'partners' },
+      { to: '/customers', label: 'العملاء', icon: 'account' },
       { to: '/applications', label: 'طلبات الانضمام', icon: 'plus' },
       { to: '/contracts', label: 'العقود والتجديدات', icon: 'contract' },
       { to: '/invoices', label: 'الفواتير', icon: 'invoice' },

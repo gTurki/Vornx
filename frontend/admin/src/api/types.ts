@@ -47,6 +47,60 @@ export type TeamMember = {
 
 export type TeamInviteResponse = { member: TeamMember; inviteToken: string | null }
 
+// ---------- "العملاء" (GET /api/admin/customers) ----------
+export type LoyaltyTier = 'BRONZE' | 'SILVER' | 'GOLD' | 'PLATINUM'
+export type CustomerRow = {
+  id: number
+  vornxId: string
+  firstName: string
+  lastName: string
+  email: string
+  phone: string
+  status: AccountStatus
+  tier: LoyaltyTier
+  points: number
+  emailVerified: boolean
+  phoneVerified: boolean
+  createdAt: string
+}
+export type CustomerCard = { id: number; cardNumber: string; last4: string; issuedAt: string; expiresAt: string; status: string }
+export type CustomerTx = {
+  reference: string; type: string; direction: 'IN' | 'OUT'; amount: number; balanceAfter: number
+  description: string | null; counterpartyName: string | null; partnerName: string | null; createdAt: string
+}
+export type CustomerPermit = {
+  id: number; permitNumber: string; type: string; status: string; partnerName: string; siteName: string
+  wholeSite: boolean; accessPoints: { id: number; code: string; name: string }[]; validFrom: string; validUntil: string
+}
+export type CustomerSubscription = {
+  id: number; number: string; planName: string; partnerName: string; siteName: string; billingPeriod: string
+  renewalPrice: number; status: string; startAt: string | null; endAt: string | null
+}
+export type CustomerRequest = {
+  id: number; requestNumber: string; type: string; status: string; amount: number; planName: string; createdAt: string
+}
+export type CustomerTicket = {
+  id: number; ticketNumber: string; eventTitle: string; venue: string; startsAt: string; upcoming: boolean; status: string
+}
+export type CustomerAccess = {
+  decisionNumber: string; occurredAt: string; siteName: string; accessPointName: string; method: string
+  decision: 'ALLOW' | 'DENY'; denyReason: string | null
+}
+export type CustomerDetails = {
+  customer: CustomerRow
+  totpEnabled: boolean
+  passkeys: number
+  termsAcceptedAt: string | null
+  cards: CustomerCard[]
+  wallet: { iban: string; balance: number; currency: string }
+  recentTransactions: CustomerTx[]
+  permits: CustomerPermit[]
+  subscriptions: CustomerSubscription[]
+  requests: CustomerRequest[]
+  tickets: CustomerTicket[]
+  recentAccess: CustomerAccess[]
+}
+
 export type Sector = 'HOTEL' | 'BANK' | 'CLUB' | 'TRANSPORT' | 'PARKING' | 'WORKPLACE' | 'EVENTS' | 'AUTOMOTIVE'
 export type PartnerStatus = 'ONBOARDING' | 'ACTIVE' | 'SUSPENDED'
 

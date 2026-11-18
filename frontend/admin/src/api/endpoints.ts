@@ -2,7 +2,7 @@ import { api } from './client'
 import type {
   ApplicationStatus, PartnerApplication, AdminOverview, ActivityLog, AdminRole, AccountStatus, AdminUser, AppNotification, AuthResponse, BillingSummary, Contract, ContractRequest,
   Inquiry, InquiryStatus, InviteResponse, Invoice, InvoiceStatus, Page, Partner, PartnerRequest, PartnerRole, PartnerStatus,
-  PartnerUser, Sector, Session, Site, SupportTicket, TeamInviteResponse, TeamMember, TicketPriority, TicketStatus,
+  CustomerDetails, CustomerRow, PartnerUser, Sector, Session, Site, SupportTicket, TeamInviteResponse, TeamMember, TicketPriority, TicketStatus,
 } from './types'
 
 /** Builds "?a=1&b=x", skipping empty values. */
@@ -53,6 +53,14 @@ export const endpoints = {
   partnerContracts: (id: number) => api<Contract[]>(`/api/admin/partners/${id}/contracts`),
   createContract: (partnerId: number, body: ContractRequest) =>
     api<Contract>(`/api/admin/partners/${partnerId}/contracts`, { method: 'POST', body }),
+
+  // ---------- customers ("العملاء") ----------
+  customers: (p: { q?: string; status?: AccountStatus; page?: number }) =>
+    api<Page<CustomerRow>>(`/api/admin/customers${qs({ ...p, size: 15 })}`),
+  customer: (vornxId: string) => api<CustomerDetails>(`/api/admin/customers/${encodeURIComponent(vornxId)}/details`),
+  setCustomerStatus: (vornxId: string, status: AccountStatus) =>
+    api<CustomerRow>(`/api/admin/customers/${encodeURIComponent(vornxId)}/status`, { method: 'PATCH', body: { status } }),
+  issueCard: (vornxId: string) => api<unknown>(`/api/admin/customers/${encodeURIComponent(vornxId)}/cards`, { method: 'POST' }),
 
   // ---------- contracts & invoices ----------
   contracts: (attention: boolean) => api<Contract[]>(`/api/admin/contracts${qs({ attention })}`),

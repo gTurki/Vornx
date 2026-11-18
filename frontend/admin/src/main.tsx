@@ -10,6 +10,7 @@ import { AcceptInvitePage, ForgotPasswordPage, LoginPage, ResetPasswordPage } fr
 import { ContractsPage, InvoicesPage } from './pages/BillingPages'
 import { HomePage } from './pages/HomePage'
 import { PartnersPage } from './pages/PartnersPage'
+import { CustomersPage } from './pages/CustomersPage'
 import { InquiriesPage } from './pages/InquiriesPage'
 import { ApplicationsPage } from './pages/ApplicationsPage'
 import { SupportPage } from './pages/SupportPage'
@@ -50,6 +51,7 @@ createRoot(document.getElementById('root')!).render(
               <Route element={<Protected><Layout /></Protected>}>
                 <Route index element={<HomePage />} />
                 <Route path="partners" element={<PartnersPage />} />
+                <Route path="customers" element={<CustomersPage />} />
                 <Route path="contracts" element={<ContractsPage />} />
                 <Route path="invoices" element={<InvoicesPage />} />
                 <Route path="support" element={<SupportPage />} />
