@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { NavLink, Outlet } from 'react-router-dom'
+import { Link, NavLink, Outlet } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../auth/AuthContext'
 import { endpoints } from '../api/endpoints'
@@ -44,7 +44,7 @@ export function Layout() {
   return (
     <div className="app">
       <aside>
-        <div className="logo"><Logo /></div>
+        <Link to="/account" className="logo" aria-label={tr('حسابي')}><Logo /></Link>
         <nav aria-label={tr('القائمة')}>
           {NAV.map((i) => (
             <NavLink key={i.to} to={i.to} end={i.to === '/'} className={({ isActive }) => `nb${isActive ? ' on' : ''}`}>
@@ -60,13 +60,14 @@ export function Layout() {
       <div className="wrap">
         <main>
           <header className="top">
-            <div className="hello">
+            {/* the avatar + name opens "حسابي" */}
+            <Link to="/account" className="hello" aria-label={tr('حسابي')}>
               <div className="av" aria-hidden="true">{p?.firstName.charAt(0)}</div>
               <div>
                 <b>{tr('أهلًا يا')}{' '}{p?.firstName}</b>
                 <small>{tr('نقاطك')}{' '}<span className="num" style={{ color: 'var(--pr)' }}>{count(p?.points)}</span></small>
               </div>
-            </div>
+            </Link>
             <LangSwitch className="ib lang-ib" />
             <Bell />
             <ThemeToggle />
@@ -113,6 +114,7 @@ function ThemeToggle() {
   const toggle = () => {
     const next = dark ? 'light' : 'dark'
     document.documentElement.dataset.theme = next
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', next === 'dark' ? '#080B14' : '#F4F6FB')
     try { localStorage.setItem('vornx.customer.theme', next) } catch { /* ignore */ }
     setDark(!dark)
   }

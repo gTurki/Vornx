@@ -39,5 +39,7 @@ public interface PartnerRepository extends JpaRepository<Partner, Long> {
 
     boolean existsByCrNumber(String crNumber);
 
+    Optional<Partner> findByCrNumber(String crNumber);
+
     boolean existsByCrNumberAndIdNot(String crNumber, Long id);
 }

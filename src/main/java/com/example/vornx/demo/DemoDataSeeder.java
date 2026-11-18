@@ -6,6 +6,8 @@ import com.example.vornx.access.dto.PermitResponse;
 import com.example.vornx.access.dto.SiteRequest;
 import com.example.vornx.access.entity.AccessDecision;
 import com.example.vornx.access.entity.AccessPoint;
+import com.example.vornx.access.entity.Site;
+import com.example.vornx.access.repository.SiteRepository;
 import com.example.vornx.access.entity.Permit;
 import com.example.vornx.access.enums.AccessMethod;
 import com.example.vornx.access.enums.AccessPointType;
@@ -39,6 +41,9 @@ import com.example.vornx.customer.service.CardService;
 import com.example.vornx.customer.service.CustomerService;
 import com.example.vornx.events.dto.EventRequest;
 import com.example.vornx.events.dto.EventRequest.AgendaItemDto;
+import com.example.vornx.events.entity.Event;
+import com.example.vornx.events.enums.EventStatus;
+import com.example.vornx.events.repository.EventRepository;
 import com.example.vornx.events.service.EventService;
 import com.example.vornx.events.service.TicketService;
 import com.example.vornx.partner.dto.PartnerRequest;
@@ -53,6 +58,8 @@ import com.example.vornx.partner.service.PartnerService;
 import com.example.vornx.platform.entity.AdminUser;
 import com.example.vornx.platform.repository.AdminUserRepository;
 import com.example.vornx.subscription.dto.PlanRequest;
+import com.example.vornx.subscription.entity.SubscriptionPlan;
+import com.example.vornx.subscription.repository.SubscriptionPlanRepository;
 import com.example.vornx.subscription.enums.BillingPeriod;
 import com.example.vornx.subscription.service.PlanService;
 import com.example.vornx.subscription.service.SubscriptionService;
@@ -82,7 +89,9 @@ import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Demo data to PRESENT the user flow: 3 partners (a hotel group, a sports club, a conference center) with contracts,
@@ -95,6 +104,12 @@ import java.util.Set;
  *  - runs ONCE: if the demo hotel (CR 7012345601) exists, it does nothing;
  *  - one transaction: if anything fails, nothing is saved;
  *  - invoices are created for the demo contracts ONLY (the monthly invoice job would bill real partners too).
+ * YOUR OWN customer account (the one registered with DEMO_EMAIL itself, not an alias) also gets demo data, so you
+ * can present the flow while logged in as yourself: a card (if you have none), hotel keys, a club membership, a
+ * parking request waiting for approval, event tickets and some door activity. The demo partners are paid from your
+ * wallet like any customer, so first a "رصيد تجريبي" top-up of exactly that amount is added: the balance ends where
+ * it started. Done once per account (skipped when you already hold a demo hotel key). Not signed up yet with
+ * DEMO_EMAIL? Sign up in the customer app, then restart the server (DEMO_SEED still true).
  * Afterwards remove DEMO_SEED (or set false).
  */
 @Slf4j
@@ -132,6 +147,9 @@ public class DemoDataSeeder implements ApplicationRunner {
     private final TicketService tickets;
     private final SupportService support;
     private final AccessDecisionRepository decisions;
+    private final SiteRepository siteRepository;
+    private final SubscriptionPlanRepository planRepository;
+    private final EventRepository eventRepository;
 
     @Override
     public void run(ApplicationArguments args) {
@@ -141,13 +159,96 @@ public class DemoDataSeeder implements ApplicationRunner {
             return;
         }
         if (partners.existsByCrNumber(HOTEL_CR)) {
-            log.info("Demo data already exists: nothing to do (you can remove DEMO_SEED)");
+            log.info("Demo partners already exist: not created again");
+        } else {
+            tx.executeWithoutResult(s -> seed());
+            log.info("Demo data created. Accounts (password = DEMO_PASSWORD): partners {} / {} / {} / {}, customers {} / {} / {}",
+                    alias("hotel"), alias("frontdesk"), alias("club"), alias("events"),
+                    alias("khalid"), alias("noura"), alias("sarah"));
+        }
+        tx.executeWithoutResult(s -> seedOwnAccount());
+    }
+
+    // ================= your own account (DEMO_EMAIL itself) =================
+
+    /** Demo keys, membership, tickets and door activity on the account registered with DEMO_EMAIL. Once per account. */
+    void seedOwnAccount() {
+        Optional<Customer> found = customers.findByEmail(props.email().trim().toLowerCase());
+        if (found.isEmpty()) {
+            log.info("No customer account with DEMO_EMAIL yet: sign up with it in the customer app, then restart to get demo data on it");
             return;
         }
-        tx.executeWithoutResult(s -> seed());
-        log.info("Demo data created. Accounts (password = DEMO_PASSWORD): partners {} / {} / {} / {}, customers {} / {} / {}",
-                alias("hotel"), alias("frontdesk"), alias("club"), alias("events"),
-                alias("khalid"), alias("noura"), alias("sarah"));
+        Customer me = found.get();
+        Partner hotel = partners.findByCrNumber(HOTEL_CR).orElseThrow();
+        Partner club = partners.findByCrNumber("7012345602").orElseThrow();
+        Partner venue = partners.findByCrNumber("7012345603").orElseThrow();
+        if (permitRepository.findByCustomer_IdOrderByValidUntilDesc(me.getId()).stream()
+                .anyMatch(p -> p.getPartner().getId().equals(hotel.getId()))) {
+            log.info("Your account already has the demo data");
+            return;
+        }
+        Instant now = Instant.now(clock);
+        LocalDate today = LocalDate.ofInstant(now, businessZone);
+
+        if (cardRepository.findByCustomer_IdOrderByIssuedAtDescIdDesc(me.getId()).isEmpty()) {
+            cards.issue(me.getVornxId());
+        }
+        Card card = card(me);
+
+        // what the demo partners will charge, added first so the wallet balance is unchanged at the end
+        Optional<SubscriptionPlan> monthly = activePlan(club, "العضوية الشهرية");
+        Optional<SubscriptionPlan> parking = activePlan(hotel, "موقف شهري — العليا");
+        List<Event> upcoming = eventRepository.findByPartner_IdOrderByStartsAtDesc(venue.getId()).stream()
+                .filter(e -> e.getStatus() == EventStatus.PUBLISHED && e.getStartsAt().isAfter(now)).toList();
+        BigDecimal cost = monthly.map(SubscriptionPlan::getPrice).orElse(BigDecimal.ZERO)
+                .add(parking.map(SubscriptionPlan::getPrice).orElse(BigDecimal.ZERO))
+                .add(upcoming.stream().map(Event::getFee).reduce(BigDecimal.ZERO, BigDecimal::add));
+        if (cost.signum() > 0) {
+            wallets.creditTopUp(me.getId(), cost, "رصيد تجريبي للعرض");
+        }
+
+        // hotel keys: staying now in Riyadh, and an upcoming stay in Jeddah
+        Map<String, Long> riyadh = doorsOf(hotel, "الواحة — العليا");
+        Map<String, Long> jeddah = doorsOf(hotel, "الواحة — كورنيش جدة");
+        Permit stay = permit(hotel, me, PermitType.HOTEL_KEY, siteOf(hotel, "الواحة — العليا"),
+                Set.of(riyadh.get("R-1201"), riyadh.get("LOBBY"), riyadh.get("P1"), riyadh.get("GYM"), riyadh.get("POOL")),
+                now.minus(Duration.ofDays(2)), now.plus(Duration.ofDays(3)), null, null);
+        permit(hotel, me, PermitType.HOTEL_KEY, siteOf(hotel, "الواحة — كورنيش جدة"), Set.of(jeddah.get("R-0801"), jeddah.get("P1")),
+                now.plus(Duration.ofDays(10)), now.plus(Duration.ofDays(13)), null, null);
+
+        // club membership (active straight away) + a parking subscription the hotel still has to approve
+        monthly.ifPresent(p -> subscriptions.subscribe(me.getId(), p.getId()));
+        parking.ifPresent(p -> subscriptions.subscribe(me.getId(), p.getId()));
+
+        // tickets for the events that haven't started yet
+        upcoming.forEach(e -> tickets.register(me.getId(), e.getId()));
+
+        // 3 days of door activity with your card
+        for (int d = 2; d >= 0; d--) {
+            LocalDate day = today.minusDays(d);
+            entry(day, LocalTime.of(9, 10 + d), riyadh.get("P1"), me, card, stay, Decision.ALLOW, null, now);
+            entry(day, LocalTime.of(9, 14 + d), riyadh.get("LOBBY"), me, card, stay, Decision.ALLOW, null, now);
+            entry(day, LocalTime.of(9, 16 + d), riyadh.get("R-1201"), me, card, stay, Decision.ALLOW, null, now);
+            entry(day, LocalTime.of(18, 30 + d), riyadh.get("GYM"), me, card, stay, Decision.ALLOW, null, now);
+        }
+        entry(today.minusDays(1), LocalTime.of(20, 5), riyadh.get("R-1205"), me, card, null, Decision.DENY, DenyReason.NO_PERMIT, now);
+        log.info("Demo data added to your own account ({})", me.getVornxId());
+    }
+
+    private Optional<SubscriptionPlan> activePlan(Partner p, String name) {
+        return planRepository.findByPartner_IdOrderByName(p.getId()).stream()
+                .filter(pl -> pl.isActive() && pl.getName().equals(name)).findFirst();
+    }
+
+    private Long siteOf(Partner p, String name) {
+        return siteRepository.findByPartner_IdOrderByName(p.getId()).stream()
+                .filter(x -> x.getName().equals(name)).map(Site::getId).findFirst().orElseThrow();
+    }
+
+    /** door code -> id, for one of a partner's sites */
+    private Map<String, Long> doorsOf(Partner p, String siteName) {
+        return accessPointRepository.findBySite_IdOrderByCode(siteOf(p, siteName)).stream()
+                .collect(Collectors.toMap(AccessPoint::getCode, AccessPoint::getId));
     }
 
     /** "you@gmail.com" + "khalid" -> "you+khalid@gmail.com" (delivered to your own inbox). */
