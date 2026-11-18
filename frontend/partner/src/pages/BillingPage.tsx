@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ApiError } from '../api/client'
 import { endpoints } from '../api/endpoints'
 import { useCan } from '../auth/AuthContext'
-import { count, date, money } from '../lib/format'
+import { count, date, days, money } from '../lib/format'
 import { CONTRACT_STATUS, INVOICE_STATUS, TIER } from '../lib/labels'
 import { ConfirmButton, Empty, ErrorBox, Loading, Num, Tag } from '../ui/bits'
 import { useToast } from '../ui/Toast'
@@ -39,7 +39,7 @@ export function BillingPage() {
             </div>
             <div className={`kp${c.status !== 'ACTIVE' ? ' warn' : ''}`}>
               <span className="num">{c.endDate}</span>
-              <span>انتهاء العقد · {c.daysLeft < 0 ? `انتهى منذ ${-c.daysLeft} يومًا` : monthsLeft >= 1 ? `يتبقى ${monthsLeft} ${monthsLeft === 1 ? 'شهر' : 'أشهر'}` : `يتبقى ${c.daysLeft} يومًا`}</span>
+              <span>انتهاء العقد · {c.daysLeft < 0 ? `انتهى منذ ${days(-c.daysLeft)}` : monthsLeft >= 1 ? `يتبقى ${monthsLeft} ${monthsLeft === 1 ? 'شهر' : 'أشهر'}` : `يتبقى ${days(c.daysLeft)}`}</span>
             </div>
           </div>
 

@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { endpoints } from '../api/endpoints'
 import type { AdminOverview } from '../api/types'
-import { count, money } from '../lib/format'
+import { count, days, money } from '../lib/format'
 import { CONTRACT_STATUS, SECTORS, TIER } from '../lib/labels'
 import { Empty, ErrorBox, Loading, Num, Tag } from '../ui/bits'
 import { SECTOR_ORDER, SectorIcon } from '../ui/SectorIcon'
@@ -122,13 +122,13 @@ function Attention({ items }: { items: AdminOverview['attention'] }) {
     <>
       {items.map((a) => a.kind === 'CONTRACT' ? (
         <Link key={`c${a.id}`} to="/contracts" className="li">
-          <span>{a.partnerName}<small className="mu">{a.daysLeft < 0 ? `انتهى منذ ${-a.daysLeft} يومًا` : `يتبقى ${a.daysLeft} يومًا`}</small></span>
+          <span>{a.partnerName}<small className="mu">{a.daysLeft < 0 ? `انتهى منذ ${days(-a.daysLeft)}` : `يتبقى ${days(a.daysLeft)}`}</small></span>
           {a.contractStatus && <Tag label={CONTRACT_STATUS[a.contractStatus]} />}
         </Link>
       ) : (
         <Link key={`i${a.id}`} to="/invoices" className="li">
           <span>{a.partnerName}
-            <small className="mu">فاتورة <Num>{a.detail}</Num> · <Num>{money(a.amount)}</Num> ر.س · متأخرة {-a.daysLeft} يومًا</small>
+            <small className="mu">فاتورة <Num>{a.detail}</Num> · <Num>{money(a.amount)}</Num> ر.س · متأخرة {days(-a.daysLeft)}</small>
           </span>
           <Tag label={{ text: 'فاتورة متأخرة', tone: 'bad' }} />
         </Link>

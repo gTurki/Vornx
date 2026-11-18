@@ -4,7 +4,7 @@ import { ApiError } from '../api/client'
 import { endpoints } from '../api/endpoints'
 import type { InvoiceStatus } from '../api/types'
 import { canManage, useAuth } from '../auth/AuthContext'
-import { date, money, thisMonth } from '../lib/format'
+import { date, days, money, thisMonth } from '../lib/format'
 import { CONTRACT_STATUS, INVOICE_STATUS, TIER } from '../lib/labels'
 import { ConfirmButton, Empty, ErrorBox, Loading, Num, Pager, Tag } from '../ui/bits'
 import { useToast } from '../ui/Toast'
@@ -52,7 +52,7 @@ export function ContractsPage() {
                   <td className="ent"><b>{c.partnerName}</b><small><Num>{c.number}</Num></small></td>
                   <td>{c.planName}<div className="mu">{TIER[c.tier]} · جُدّد {c.renewalCount} مرة</div></td>
                   <td><Num>{money(c.monthlyFee)}</Num></td>
-                  <td>{date(c.endDate)}<div className="mu">{c.daysLeft >= 0 ? `يتبقى ${c.daysLeft} يومًا` : `منذ ${-c.daysLeft} يومًا`}</div></td>
+                  <td>{date(c.endDate)}<div className="mu">{c.daysLeft >= 0 ? `يتبقى ${days(c.daysLeft)}` : `منذ ${days(-c.daysLeft)}`}</div></td>
                   <td style={{ minWidth: 110 }}><div className="bar"><i style={{ width: `${c.progressPercent}%` }} /></div><small className="mu">{c.progressPercent}%</small></td>
                   <td><Tag label={CONTRACT_STATUS[c.status]} /></td>
                   {canManage(me) && (

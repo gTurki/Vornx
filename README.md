@@ -58,6 +58,21 @@ Built from the `Dockerfile`; health check `/actuator/health` (see `railway.json`
 | `ADMIN_URL`, `PARTNER_URL`, `CUSTOMER_URL` | used in email links |
 | `API_DOCS_ENABLED` | `false` in production (default) |
 
+## Demo data (to present the user flow)
+
+`DEMO_SEED=true` creates, once, three partners with real-looking data: a hotel group (2 hotels, rooms, guest keys),
+a sports club (plans, an active and a pending membership), a conference center (2 published events). Plus contracts,
+6 months of invoices (one overdue), staff, 3 customers with cards, wallet money, tickets, and 7 days of door activity.
+
+| Variable (API) | Value |
+|---|---|
+| `DEMO_SEED` | `true` for one deploy, then remove it (a second run does nothing anyway) |
+| `DEMO_EMAIL` | **your** inbox. Demo accounts use aliases of it (`you+khalid@gmail.com`), so customer login codes reach you |
+| `DEMO_PASSWORD` | the password of every demo account (10+ characters; a secret, only in Railway) |
+
+Accounts: partners `+hotel` (PARTNER_ADMIN), `+frontdesk` (FRONT_DESK), `+club`, `+events`; customers `+khalid`,
+`+noura`, `+sarah`. Everything runs in one transaction; invoices are created for the demo contracts only.
+
 ## Admin dashboard (`frontend/admin`)
 
 React 19 + TypeScript + Vite, TanStack Query, React Router. Arabic (RTL) UI from the `index 55` design, light/dark.

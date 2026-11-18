@@ -137,7 +137,7 @@ function QuickActions({ permit }: { permit: Permit }) {
   const onError = (e: unknown) => toast(e instanceof ApiError ? e.message : 'تعذّر الحفظ', true)
   const extend = useMutation({
     mutationFn: () => endpoints.extendPermit(permit.id, new Date(new Date(permit.validUntil).getTime() + 864e5).toISOString()),
-    onSuccess: (p) => done(`مُدّد مفتاح ${p.holderName} يومًا حتى ${dateTime(p.validUntil)}`),
+    onSuccess: (p) => done(`مُدّد مفتاح ${p.holderName} يومًا واحدًا حتى ${dateTime(p.validUntil)}`),
     onError,
   })
   const revoke = useMutation({

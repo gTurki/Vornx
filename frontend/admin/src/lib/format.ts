@@ -64,3 +64,11 @@ export function thisMonth(): string {
   const parts = new Intl.DateTimeFormat('en-CA', { timeZone: ZONE, year: 'numeric', month: '2-digit' }).formatToParts(new Date())
   return `${parts.find((p) => p.type === 'year')!.value}-${parts.find((p) => p.type === 'month')!.value}`
 }
+
+/** Arabic day counts: 1 يوم، 2 يومان، 3-10 أيام، 11+ يومًا ("3 أيام", not "3 يومًا"). */
+export function days(n: number): string {
+  if (n === 1) return 'يوم واحد'
+  if (n === 2) return 'يومان'
+  if (n >= 3 && n <= 10) return `${n} أيام`
+  return `${n} يومًا`
+}

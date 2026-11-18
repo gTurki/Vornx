@@ -94,3 +94,11 @@ const timeFmt = new Intl.DateTimeFormat(LOCALE, { timeZone: ZONE, hour: '2-digit
 export function time(value: string): string {
   return timeFmt.format(new Date(value))
 }
+
+/** Arabic day counts: 1 يوم، 2 يومان، 3-10 أيام، 11+ يومًا ("3 أيام", not "3 يومًا"). */
+export function days(n: number): string {
+  if (n === 1) return 'يوم واحد'
+  if (n === 2) return 'يومان'
+  if (n >= 3 && n <= 10) return `${n} أيام`
+  return `${n} يومًا`
+}
