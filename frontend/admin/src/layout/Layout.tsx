@@ -86,7 +86,8 @@ export function Layout() {
           <ThemeToggle />
         </header>
         <main>
-          <Outlet />
+          {/* keyed by the page: each page plays its entrance (blocks slide up one after another) */}
+          <div key={pathname} className="page-in"><Outlet /></div>
           <footer className="ft">
             <span>© 2026 <b>VORNX</b> — للتقنية والأنظمة الذكية</span>
             <span><i className="dot" />متصل بالخادم</span>
