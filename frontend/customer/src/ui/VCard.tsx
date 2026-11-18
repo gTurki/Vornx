@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { endpoints } from '../api/endpoints'
 import type { Card } from '../api/types'
 import { tr } from '../i18n'
+import { useCardSkin } from './cardSkin'
 
 /** The customer's cards. The newest active one is "the" card. */
 export function useCards() {
@@ -83,6 +84,7 @@ export function VCard({ card, name, reveal, vornxId, flippable }: {
   flippable?: boolean
 }) {
   const tilt = useTilt<HTMLDivElement>()
+  const skin = useCardSkin() // the look chosen on "بطاقتي"
   const [flipped, setFlipped] = useState(false)
   const pan = card
     ? reveal ? card.cardNumber.replace(/(\d{4})(?=\d)/g, '$1 ') : `•••• •••• •••• ${card.last4}`
@@ -90,7 +92,7 @@ export function VCard({ card, name, reveal, vornxId, flippable }: {
   const label = card ? tr('بطاقة VORNX تنتهي بالرقم {0}', { 0: card.last4 }) : tr('لا توجد بطاقة بعد')
 
   const front = (
-    <div ref={flippable ? undefined : tilt} className={`vcard${card && card.status !== 'ACTIVE' ? ' off' : ''}`}
+    <div ref={flippable ? undefined : tilt} className={`vcard skin-${skin.id} ink-${skin.ink}${card && card.status !== 'ACTIVE' ? ' off' : ''}`}
          role={flippable ? undefined : 'img'} aria-label={flippable ? undefined : label}>
       <div>
         <div className="vc-head"><span className="vc-logo" aria-hidden="true" /><small>ONE</small></div>
@@ -119,7 +121,7 @@ export function VCard({ card, name, reveal, vornxId, flippable }: {
              aria-label={flipped ? tr('ظهر البطاقة. اضغط لعرض الوجه') : label + '. ' + tr('اضغط لقلب البطاقة')}
              onClick={turn} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); turn() } }}>
           {front}
-          <div className="vback" aria-hidden={!flipped}>
+          <div className="vback" aria-hidden={!flipped} style={{ background: `linear-gradient(145deg,${skin.back[0]},${skin.back[1]})` }}>
             <div className="stripe" />
             <div className="sig"><i /><b>{card?.last4 ?? '••••'}</b></div>
             <div>

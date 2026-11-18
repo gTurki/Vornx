@@ -8,6 +8,7 @@ import { CARD_STATUS, TIER } from '../lib/labels'
 import { ConfirmButton, Kv, Loading, Num, Tag } from '../ui/bits'
 import { useToast } from '../ui/Toast'
 import { mainCard, useCards, VCard } from '../ui/VCard'
+import { CARD_SKINS, setCardSkin, useCardSkin } from '../ui/cardSkin'
 import { tr } from '../i18n'
 
 /** "بطاقتي": the card itself, its details, loyalty level, and "I lost my card". */
@@ -35,6 +36,7 @@ export function CardPage() {
       <section>
         <VCard card={card} name={`${me?.firstName} ${me?.lastName}`} reveal={reveal} vornxId={me?.vornxId} flippable />
         <p className="flip-hint">{tr('اضغط على البطاقة لقلبها')}</p>
+        <SkinPicker />
         {card && (
           <div className="form-actions" style={{ marginTop: 14 }}>
             <button className="btn gh sm" onClick={() => setReveal(!reveal)}>{reveal ? tr('إخفاء الرقم') : tr('إظهار الرقم كاملًا')}</button>
@@ -79,6 +81,25 @@ export function CardPage() {
           </p>
         </div>
       </section>
+    </div>
+  )
+}
+
+/** "تصميم البطاقة": pick the card's look (4 colors, 4 pictures). Saved on this device; the home card follows. */
+function SkinPicker() {
+  const skin = useCardSkin()
+  return (
+    <div className="skins">
+      <b>{tr('تصميم البطاقة')}</b>
+      <div className="skin-row" role="radiogroup" aria-label={tr('تصميم البطاقة')}>
+        {CARD_SKINS.map((s) => (
+          <button key={s.id} type="button" role="radio" aria-checked={skin.id === s.id} title={s.name}
+                  className={`skin-sw skin-${s.id}${skin.id === s.id ? ' on' : ''}`} onClick={() => setCardSkin(s.id)}>
+            <span className="sr">{s.name}</span>
+          </button>
+        ))}
+      </div>
+      <small className="mu">{skin.name}</small>
     </div>
   )
 }

@@ -463,4 +463,15 @@ export const EN: Record<string, string> = {
   "بطاقاتك": "Your cards",
   "{0}، صالحة حتى {1}": "{0}, valid until {1}",
   "الدفع": "Payments",
+  // card designs
+  "تصميم البطاقة": "Card design",
+  "الأصلية": "Original",
+  "أوكسفورد": "Oxford",
+  "أزرق": "Blue",
+  "أسود": "Black",
+  "رمادي": "Grey",
+  "أفق الرياض": "Riyadh skyline",
+  "تراث وأصالة": "Heritage",
+  "المستحيل ليس سعودياً": "Impossible is not Saudi",
+  "يا السعودي": "Ya Al-Saudi",
 }
