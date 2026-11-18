@@ -26,6 +26,7 @@ const NAV: { group: string; items: { to: string; label: string; icon: IconName }
   {
     group: 'المنصة',
     items: [
+      { to: '/team', label: 'فريق VORNX', icon: 'team' },
       { to: '/activity', label: 'سجل النشاط', icon: 'activity' },
       { to: '/account', label: 'حسابي والأجهزة', icon: 'account' },
     ],

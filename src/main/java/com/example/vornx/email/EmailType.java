@@ -3,6 +3,7 @@ package com.example.vornx.email;
 /** Kept on each outbox row, for reporting ("how many invites failed this week?"). */
 public enum EmailType {
     PARTNER_INVITE,
+    ADMIN_INVITE,
     CUSTOMER_WELCOME,
     PASSWORD_RESET,
     PASSWORD_CHANGED,

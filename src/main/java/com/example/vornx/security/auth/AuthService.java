@@ -10,6 +10,7 @@ import com.example.vornx.partner.enums.PartnerStatus;
 import com.example.vornx.partner.service.PartnerUserService;
 import com.example.vornx.platform.entity.AdminUser;
 import com.example.vornx.platform.service.AdminUserService;
+import com.example.vornx.platform.team.AdminTeamService;
 import com.example.vornx.security.TokenService;
 import com.example.vornx.security.UserType;
 import com.example.vornx.security.auth.dto.AcceptInviteRequest;
@@ -49,6 +50,7 @@ public class AuthService {
     private static final String INVALID = "Invalid email or password";
 
     private final AdminUserService adminUserService;
+    private final AdminTeamService adminTeamService;
     private final PartnerUserService partnerUserService;
     private final CustomerService customerService;
     private final PasswordEncoder passwordEncoder;
@@ -69,9 +71,11 @@ public class AuthService {
     @Transactional
     public AuthResponse loginAdmin(LoginRequest req, ClientInfo client) {
         AdminUser admin = adminUserService.findByEmail(normalize(req.email()))
-                .filter(u -> passwordEncoder.matches(req.password(), u.getPasswordHash()))
+                .filter(u -> u.getPasswordHash() != null && passwordEncoder.matches(req.password(), u.getPasswordHash()))
                 .orElseThrow(() -> new BadCredentialsException(INVALID));
-        return startSession(checkAdmin(admin), client);
+        Principal principal = checkAdmin(admin);
+        admin.setLastLoginAt(Instant.now()); // saved automatically at the end of the transaction
+        return startSession(principal, client);
     }
 
     @Transactional
@@ -149,6 +153,15 @@ public class AuthService {
         Principal principal = checkPartnerUser(user);
         user.setLastLoginAt(Instant.now());
         return startSession(principal, client);
+    }
+
+    /** "فريق VORNX": an invited admin chooses a password, then is logged in straight away. */
+    @Transactional
+    public AuthResponse acceptAdminInvite(AcceptInviteRequest req, ClientInfo client) {
+        if (!req.password().equals(req.confirmPassword())) {
+            throw new BusinessException("PASSWORD_MISMATCH", "Passwords do not match");
+        }
+        return startSession(checkAdmin(adminTeamService.acceptInvite(req.token(), req.password())), client);
     }
 
     // =============== Refresh / logout ===============

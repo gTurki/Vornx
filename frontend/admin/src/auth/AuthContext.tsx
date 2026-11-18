@@ -2,12 +2,14 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { useQueryClient } from '@tanstack/react-query'
 import { refresh, session } from '../api/client'
 import { endpoints } from '../api/endpoints'
-import type { AdminUser } from '../api/types'
+import type { AdminUser, AuthResponse } from '../api/types'
 
 type AuthState = {
   status: 'loading' | 'in' | 'out'
   me: AdminUser | null
   login: (email: string, password: string) => Promise<void>
+  /** After accepting an invite the API already returns tokens: log straight in. */
+  loginWith: (auth: AuthResponse) => Promise<void>
   logout: () => Promise<void>
 }
 
@@ -45,11 +47,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })()
   }, [end])
 
-  const login = useCallback(async (email: string, password: string) => {
-    session.save(await endpoints.login(email, password))
+  const loginWith = useCallback(async (auth: AuthResponse) => {
+    session.save(auth)
     setMe(await endpoints.me())
     setStatus('in')
   }, [])
+
+  const login = useCallback(async (email: string, password: string) => {
+    await loginWith(await endpoints.login(email, password))
+  }, [loginWith])
 
   const logout = useCallback(async () => {
     const rt = session.refreshToken()
@@ -57,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     end()
   }, [end])
 
-  const value = useMemo(() => ({ status, me, login, logout }), [status, me, login, logout])
+  const value = useMemo(() => ({ status, me, login, loginWith, logout }), [status, me, login, loginWith, logout])
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 

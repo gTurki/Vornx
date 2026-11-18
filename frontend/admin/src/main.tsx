@@ -6,13 +6,14 @@ import { ApiError } from './api/client'
 import { AuthProvider, useAuth } from './auth/AuthContext'
 import { Layout } from './layout/Layout'
 import { ActivityPage, AccountPage } from './pages/ActivityAndAccount'
-import { ForgotPasswordPage, LoginPage, ResetPasswordPage } from './pages/AuthPages'
+import { AcceptInvitePage, ForgotPasswordPage, LoginPage, ResetPasswordPage } from './pages/AuthPages'
 import { ContractsPage, InvoicesPage } from './pages/BillingPages'
 import { HomePage } from './pages/HomePage'
 import { PartnersPage } from './pages/PartnersPage'
 import { InquiriesPage } from './pages/InquiriesPage'
 import { ApplicationsPage } from './pages/ApplicationsPage'
 import { SupportPage } from './pages/SupportPage'
+import { TeamPage } from './pages/TeamPage'
 import { ToastProvider } from './ui/Toast'
 import './styles.css'
 
@@ -45,6 +46,7 @@ createRoot(document.getElementById('root')!).render(
               <Route path="/login" element={<LoginPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/accept-invite" element={<AcceptInvitePage />} />
               <Route element={<Protected><Layout /></Protected>}>
                 <Route index element={<HomePage />} />
                 <Route path="partners" element={<PartnersPage />} />
@@ -53,6 +55,7 @@ createRoot(document.getElementById('root')!).render(
                 <Route path="support" element={<SupportPage />} />
                 <Route path="inquiries" element={<InquiriesPage />} />
                 <Route path="applications" element={<ApplicationsPage />} />
+                <Route path="team" element={<TeamPage />} />
                 <Route path="activity" element={<ActivityPage />} />
                 <Route path="account" element={<AccountPage />} />
               </Route>

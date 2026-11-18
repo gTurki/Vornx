@@ -71,7 +71,8 @@ export const ACTOR: Record<ActorType, string> = {
 /** Activity log actions -> readable Arabic. Unknown codes are shown as they are. */
 export const ACTIONS: Record<string, string> = {
   PARTNER_CREATED: 'إضافة جهة', PARTNER_UPDATED: 'تعديل جهة', PARTNER_STATUS_CHANGED: 'تغيير حالة جهة',
-  PARTNER_USER_INVITED: 'دعوة موظف جهة', CARD_ISSUED: 'إصدار بطاقة', CONTRACT_CREATED: 'إنشاء عقد',
+  PARTNER_USER_INVITED: 'دعوة موظف جهة', ADMIN_INVITED: 'دعوة عضو لفريق VORNX', ADMIN_INVITE_RESENT: 'إعادة إرسال دعوة عضو',
+  ADMIN_UPDATED: 'تعديل عضو في فريق VORNX', CARD_ISSUED: 'إصدار بطاقة', CONTRACT_CREATED: 'إنشاء عقد',
   CONTRACT_RENEWED: 'تجديد عقد', CONTRACT_TERMINATED: 'إلغاء عقد', INVOICES_GENERATED: 'إصدار فواتير',
   INVOICE_PAID: 'تسجيل دفع فاتورة', SUPPORT_REPLIED: 'رد على طلب دعم', SUPPORT_TICKET_UPDATED: 'تحديث طلب دعم',
   SUPPORT_TICKET_OPENED: 'فتح طلب دعم', TEAM_MEMBER_INVITED: 'دعوة موظف', TEAM_MEMBER_UPDATED: 'تعديل موظف',

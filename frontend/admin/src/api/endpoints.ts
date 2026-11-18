@@ -1,8 +1,8 @@
 import { api } from './client'
 import type {
-  ApplicationStatus, PartnerApplication, AdminOverview, ActivityLog, AdminUser, AppNotification, AuthResponse, BillingSummary, Contract, ContractRequest,
+  ApplicationStatus, PartnerApplication, AdminOverview, ActivityLog, AdminRole, AccountStatus, AdminUser, AppNotification, AuthResponse, BillingSummary, Contract, ContractRequest,
   Inquiry, InquiryStatus, InviteResponse, Invoice, InvoiceStatus, Page, Partner, PartnerRequest, PartnerRole, PartnerStatus,
-  PartnerUser, Sector, Session, Site, SupportTicket, TicketPriority, TicketStatus,
+  PartnerUser, Sector, Session, Site, SupportTicket, TeamInviteResponse, TeamMember, TicketPriority, TicketStatus,
 } from './types'
 
 /** Builds "?a=1&b=x", skipping empty values. */
@@ -26,6 +26,8 @@ export const endpoints = {
     api<void>('/api/public/auth/admin/forgot-password', { method: 'POST', body: { email }, auth: false }),
   resetPassword: (token: string, password: string, confirmPassword: string) =>
     api<void>('/api/public/auth/reset-password', { method: 'POST', body: { token, password, confirmPassword }, auth: false }),
+  acceptInvite: (token: string, password: string, confirmPassword: string) =>
+    api<AuthResponse>('/api/public/auth/admin/accept-invite', { method: 'POST', body: { token, password, confirmPassword }, auth: false }),
   me: () => api<AdminUser>('/api/admin/me'),
   changePassword: (currentPassword: string, newPassword: string, confirmPassword: string) =>
     api<void>('/api/admin/me/password', { method: 'POST', body: { currentPassword, newPassword, confirmPassword } }),
@@ -86,6 +88,14 @@ export const endpoints = {
     api<Page<Inquiry>>(`/api/admin/inquiries${qs({ ...p, size: 15 })}`),
   setInquiryStatus: (id: number, status: InquiryStatus) =>
     api<Inquiry>(`/api/admin/inquiries/${id}`, { method: 'PATCH', body: { status } }),
+
+  // ---------- "فريق VORNX" ----------
+  team: () => api<TeamMember[]>('/api/admin/team'),
+  inviteAdmin: (body: { fullName: string; email: string; role: AdminRole }) =>
+    api<TeamInviteResponse>('/api/admin/team', { method: 'POST', body }),
+  resendAdminInvite: (id: number) => api<TeamInviteResponse>(`/api/admin/team/${id}/resend-invite`, { method: 'POST' }),
+  updateAdmin: (id: number, body: { role?: AdminRole; status?: AccountStatus }) =>
+    api<TeamMember>(`/api/admin/team/${id}`, { method: 'PATCH', body }),
 
   // ---------- activity & notifications ----------
   activity: (p: { action?: string; partnerId?: number; page?: number; size?: number }) =>

@@ -60,7 +60,11 @@ Built from the `Dockerfile`; health check `/actuator/health` (see `railway.json`
 
 ## How partners and admins get accounts
 
-- **Admins:** never public sign-up. The first SUPER_ADMIN comes from `BOOTSTRAP_ADMIN_*`.
+- **Admins:** never public sign-up. The first SUPER_ADMIN comes from `BOOTSTRAP_ADMIN_*`. After that, a SUPER_ADMIN
+  invites colleagues from "فريق VORNX" (`/api/admin/team`):
+  - The invitee gets an email link (3 days, works once) to `/accept-invite` on the admin dashboard, chooses a password and is logged in.
+  - A SUPER_ADMIN can change roles, suspend (ends their sessions and cancels a pending invite) and resend an invite.
+  - Nobody can change themselves, and the last active SUPER_ADMIN can't be demoted or suspended.
 - **Partners apply on the website ("انضم كشريك"):**
   - The form asks for company, CR number, sector, city and a contact. It posts to `POST /api/public/partner-applications`,
     protected by a honeypot field, 3 per IP per hour and 3 per email per day, and one open application per CR.

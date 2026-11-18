@@ -33,6 +33,20 @@ export type AdminUser = {
   status: AccountStatus
 }
 
+/** "فريق VORNX" (GET /api/admin/team) */
+export type TeamMember = {
+  id: number
+  fullName: string
+  email: string
+  role: AdminRole
+  status: AccountStatus
+  lastLoginAt: string | null
+  inviteExpiresAt: string | null
+  createdAt: string
+}
+
+export type TeamInviteResponse = { member: TeamMember; inviteToken: string | null }
+
 export type Sector = 'HOTEL' | 'BANK' | 'CLUB' | 'TRANSPORT' | 'PARKING' | 'WORKPLACE' | 'EVENTS' | 'AUTOMOTIVE'
 export type PartnerStatus = 'ONBOARDING' | 'ACTIVE' | 'SUSPENDED'
 

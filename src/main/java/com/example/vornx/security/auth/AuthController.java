@@ -49,6 +49,12 @@ public class AuthController {
         return authService.loginPartnerUser(req, ClientInfo.from(http));
     }
 
+    /** Invited VORNX team members (admin dashboard) open the email link and choose their password. */
+    @PostMapping("/admin/accept-invite")
+    public AuthResponse acceptAdminInvite(@Valid @RequestBody AcceptInviteRequest req, HttpServletRequest http) {
+        return authService.acceptAdminInvite(req, ClientInfo.from(http));
+    }
+
     /** Invited partner staff open the email link and choose their password. */
     @PostMapping("/partner/accept-invite")
     public AuthResponse acceptPartnerInvite(@Valid @RequestBody AcceptInviteRequest req, HttpServletRequest http) {

@@ -33,6 +33,22 @@ public class EmailTemplates {
                 "If you weren't expecting this invitation, you can ignore this email.");
     }
 
+    /** "فريق VORNX": a SUPER_ADMIN invited a colleague to the admin dashboard. */
+    public EmailContent adminInvite(String fullName, String invitedBy, String roleAr, String roleEn, String rawToken) {
+        String url = frontend.adminUrl() + "/accept-invite?token=" + encode(rawToken);
+        return new EmailContent(
+                "دعوة للانضمام إلى فريق VORNX · You're invited to the VORNX team",
+                "مرحبًا " + fullName + "، تمت دعوتك",
+                "Hello " + fullName + ", you're invited",
+                List.of(invitedBy + " دعاك للانضمام إلى فريق VORNX في لوحة الإدارة بصلاحية «" + roleAr + "».",
+                        "اضغط الزر لاختيار كلمة المرور وتفعيل حسابك. الرابط صالح لمدة 3 أيام ويُستخدم مرة واحدة."),
+                List.of(invitedBy + " invited you to the VORNX team on the admin dashboard as " + roleEn + ".",
+                        "Click the button to choose your password and activate your account. The link works once and expires in 3 days."),
+                url, "تفعيل الحساب", "Activate account",
+                "إذا لم تكن تتوقع هذه الدعوة، تجاهل هذه الرسالة ولن يُنشأ أي حساب.",
+                "If you weren't expecting this invitation, ignore this email and no account will be activated.");
+    }
+
     public EmailContent customerWelcome(String firstName, String vornxId) {
         return new EmailContent(
                 "أهلًا بك في VORNX · Welcome to VORNX",

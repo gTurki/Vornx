@@ -144,3 +144,60 @@ export function ResetPasswordPage() {
     </div>
   )
 }
+
+/**
+ * Opened from the "فريق VORNX" invite email: /accept-invite?token=...
+ * The new team member picks a password; the API activates the account and logs them in.
+ */
+export function AcceptInvitePage() {
+  const { loginWith } = useAuth()
+  const navigate = useNavigate()
+  const [params] = useSearchParams()
+  const token = params.get('token') ?? ''
+  const [password, setPassword] = useState('')
+  const [confirm, setConfirm] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+
+  async function submit(e: FormEvent) {
+    e.preventDefault()
+    setBusy(true)
+    setError(null)
+    try {
+      await loginWith(await endpoints.acceptInvite(token, password, confirm))
+      navigate('/', { replace: true })
+    } catch (err) {
+      setError(errorText(err))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="auth-page">
+      <form className="auth-card form" onSubmit={submit}>
+        <div className="logo"><Logo /></div>
+        <h1>مرحبًا بك في فريق VORNX</h1>
+        {!token ? (
+          <div className="error-box">الرابط ناقص. افتح الرابط من رسالة الدعوة كما هو.</div>
+        ) : (
+          <>
+            <p className="mu" style={{ margin: 0 }}>اختر كلمة مرور لحسابك في لوحة الإدارة. ستستخدمها مع بريدك لتسجيل الدخول.</p>
+            <label className="field">
+              <span>كلمة المرور (10 أحرف على الأقل)</span>
+              <input className="input" type="password" dir="ltr" minLength={10} required autoComplete="new-password"
+                     value={password} onChange={(e) => setPassword(e.target.value)} />
+            </label>
+            <label className="field">
+              <span>تأكيد كلمة المرور</span>
+              <input className="input" type="password" dir="ltr" minLength={10} required autoComplete="new-password"
+                     value={confirm} onChange={(e) => setConfirm(e.target.value)} />
+            </label>
+            {error && <div className="error-box">{error}</div>}
+            <button className="btn" disabled={busy}>{busy ? 'جارٍ التفعيل…' : 'تفعيل الحساب والدخول'}</button>
+          </>
+        )}
+      </form>
+    </div>
+  )
+}
