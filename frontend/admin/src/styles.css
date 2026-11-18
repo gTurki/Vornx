@@ -178,7 +178,8 @@ body{font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;font-size:15px;tran
 .chart text{font-family:'IBM Plex Sans Arabic',sans-serif}
 
 /* sidebar: white, the active page a tinted blue pill */
-.app{grid-template-columns:264px 1fr}
+/* the wider sidebar on computers only (on phones the menu sits on top and the page uses the full width) */
+@media(min-width:901px){.app{grid-template-columns:264px 1fr}}
 aside{background:var(--sf);color:var(--tx);border-inline-start:1px solid var(--ln);padding:24px 14px;gap:3px}
 .logo{color:var(--tx)}
 .logo-sub,.me small{color:var(--mu);font-weight:400}
@@ -237,7 +238,7 @@ tbody tr.click:hover td{background:var(--soft)}
 .auth-card .logo{color:var(--pr)}
 
 @media(max-width:900px){
-  aside{border-inline-start:0;border-bottom:1px solid var(--ln)}
+  aside{border-inline-start:0;border-bottom:1px solid var(--ln);padding:10px}
   .nb.on{background:var(--soft)}
 }
 

@@ -175,7 +175,8 @@ code{font-family:Montserrat,monospace;font-size:12.5px;direction:ltr;display:inl
 
 /* ===== redesign (vornxone.netlify.app): surfaces, buttons, tags, tab bar and motion ===== */
 body{font-size:15.5px;-webkit-font-smoothing:antialiased;transition:background-color .25s,color .25s}
-.app{grid-template-columns:272px 1fr}
+/* the wider sidebar on computers only (on phones the sidebar is hidden and the page uses the full width) */
+@media(min-width:861px){.app{grid-template-columns:272px 1fr}}
 aside{padding:24px 16px;border-inline-start:1px solid var(--ln)}
 .nb{font-size:15px;font-weight:600;border-radius:14px;padding:12px 14px;transition:background .2s,color .2s,transform .15s}
 .nb .i{transition:transform .2s}.nb:hover .i{transform:scale(1.08)}
