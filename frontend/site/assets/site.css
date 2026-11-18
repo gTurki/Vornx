@@ -470,3 +470,7 @@ html[dir=rtl] .clip .ok{transform-box:fill-box;transform-origin:center;transform
   header nav ul{gap:6px}
   header nav .btn{padding:8px 11px;font-size:.8rem}
 }
+
+/* "Join as a partner" form (same look as the contact form) */
+#j-msg{grid-column:1/-1;margin:0;min-height:1.5em}#j-msg.err{color:#ffb4a8}#j-msg.ok{color:var(--ice)}
+#jf{margin-top:28px}

@@ -11,6 +11,7 @@ import { ContractsPage, InvoicesPage } from './pages/BillingPages'
 import { HomePage } from './pages/HomePage'
 import { PartnersPage } from './pages/PartnersPage'
 import { InquiriesPage } from './pages/InquiriesPage'
+import { ApplicationsPage } from './pages/ApplicationsPage'
 import { SupportPage } from './pages/SupportPage'
 import { ToastProvider } from './ui/Toast'
 import './styles.css'
@@ -51,6 +52,7 @@ createRoot(document.getElementById('root')!).render(
                 <Route path="invoices" element={<InvoicesPage />} />
                 <Route path="support" element={<SupportPage />} />
                 <Route path="inquiries" element={<InquiriesPage />} />
+                <Route path="applications" element={<ApplicationsPage />} />
                 <Route path="activity" element={<ActivityPage />} />
                 <Route path="account" element={<AccountPage />} />
               </Route>

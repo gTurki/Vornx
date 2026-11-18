@@ -76,6 +76,38 @@ public class EmailTemplates {
                 "Never share this code with anyone, not even VORNX staff. If you didn't try to log in, change your password now.");
     }
 
+    /** "انضم كشريك": we received the application. */
+    public EmailContent partnerApplicationReceived(String name, String company) {
+        return new EmailContent(
+                "وصلنا طلب انضمام " + company + " · We received your application",
+                "وصلنا طلبك",
+                "We received your application",
+                List.of("مرحبًا " + name + "، شكرًا لاهتمام " + company + " بالانضمام إلى VORNX.",
+                        "يراجع فريقنا الطلب عادةً خلال يومي عمل. عند الموافقة تصلك رسالة فيها رابط لتعيين كلمة المرور والدخول إلى بوابة الشريك."),
+                List.of("Hello " + name + ", thank you for " + company + "'s interest in joining VORNX.",
+                        "Our team usually reviews applications within two working days. Once approved, you'll get an email with a link to set your password and open the partner portal."),
+                null, null, null,
+                "لأي استفسار راسلنا على vornx@outlook.sa",
+                "Questions? Write to vornx@outlook.sa");
+    }
+
+    /** The application was declined, with the reason. */
+    public EmailContent partnerApplicationRejected(String name, String company, String reason) {
+        return new EmailContent(
+                "بخصوص طلب انضمام " + company + " · About your application",
+                "بخصوص طلب الانضمام",
+                "About your application",
+                List.of("مرحبًا " + name + "، شكرًا لاهتمام " + company + " بـ VORNX.",
+                        "بعد المراجعة، لا نستطيع قبول الطلب حاليًا. السبب: " + reason,
+                        "يسعدنا استقبال طلب جديد متى ما تغيّر ذلك."),
+                List.of("Hello " + name + ", thank you for " + company + "'s interest in VORNX.",
+                        "After review, we can't accept the application at this time. Reason: " + reason,
+                        "You're welcome to apply again once that changes."),
+                null, null, null,
+                "لأي استفسار راسلنا على vornx@outlook.sa",
+                "Questions? Write to vornx@outlook.sa");
+    }
+
     /** Sign-up: confirm the email address with a 6-digit code (typed in the app, so no button). */
     public EmailContent emailVerification(String name, String code, int minutes) {
         return new EmailContent(

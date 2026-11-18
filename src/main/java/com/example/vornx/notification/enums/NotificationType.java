@@ -64,6 +64,9 @@ public enum NotificationType {
     NEW_INQUIRY(
             "New website inquiry", "استفسار جديد من الموقع",
             "{name} ({organization}): {interest}", "{name} ({organization}): {interest}"),
+    NEW_PARTNER_APPLICATION(
+            "New partner application", "طلب انضمام جديد",
+            "{company} ({city}) wants to join VORNX", "{company} ({city}) تطلب الانضمام إلى VORNX"),
     NEW_SUPPORT_TICKET(
             "New support ticket", "طلب دعم جديد",
             "{partner}: {subject} ({priority})", "{partner}: {subject} ({priority})"),

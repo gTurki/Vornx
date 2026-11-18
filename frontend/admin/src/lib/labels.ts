@@ -84,4 +84,5 @@ export const ACTIONS: Record<string, string> = {
   EVENT_CANCELLED: 'إلغاء فعالية', EVENT_TICKET_APPROVED: 'قبول تذكرة', EVENT_TICKET_REJECTED: 'رفض تذكرة',
   EVENT_TICKET_UPDATED: 'تعديل تذكرة', CONTRACT_RENEWAL_REQUESTED: 'طلب تجديد عقد',
   CARD_REPORTED_LOST: 'الإبلاغ عن فقد بطاقة', PASSWORD_CHANGED: 'تغيير كلمة المرور', INQUIRY_UPDATED: 'تحديث رسالة من الموقع',
+  PARTNER_APPLICATION_APPROVED: 'قبول طلب انضمام', PARTNER_APPLICATION_REJECTED: 'رفض طلب انضمام',
 }

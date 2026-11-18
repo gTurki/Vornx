@@ -16,6 +16,7 @@ const NAV: { group: string; items: { to: string; label: string; icon: IconName }
     items: [
       { to: '/', label: 'نظرة عامة', icon: 'home' },
       { to: '/partners', label: 'الجهات', icon: 'partners' },
+      { to: '/applications', label: 'طلبات الانضمام', icon: 'plus' },
       { to: '/contracts', label: 'العقود والتجديدات', icon: 'contract' },
       { to: '/invoices', label: 'الفواتير', icon: 'invoice' },
       { to: '/support', label: 'الدعم', icon: 'support' },
@@ -37,6 +38,9 @@ export function Layout() {
   useRealtime()
   const { me, logout } = useAuth()
   const { pathname } = useLocation()
+  // new "انضم كشريك" requests: a badge on the menu (refreshed with the live notifications too)
+  const pending = useQuery({ queryKey: ['applications-pending'], queryFn: endpoints.pendingApplications, refetchInterval: 120_000 })
+  const pendingApps = pending.data?.count ?? 0
   const title = TITLES['/' + (pathname.split('/')[1] ?? '')] ?? 'VORNX'
 
   return (
@@ -51,6 +55,7 @@ export function Layout() {
               <NavLink key={i.to} to={i.to} end={i.to === '/'} className={({ isActive }) => `nb${isActive ? ' on' : ''}`}>
                 <Icon name={i.icon} />
                 {i.label}
+                {i.to === '/applications' && pendingApps > 0 && <span className="cnt num" aria-label={`${pendingApps} بانتظار القرار`}>{pendingApps}</span>}
               </NavLink>
             ))}
           </nav>

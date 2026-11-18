@@ -240,6 +240,30 @@ export type Session = {
   current: boolean
 }
 
+// ---------- partner applications ("انضم كشريك" on the website) ----------
+
+export type ApplicationStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
+
+export type PartnerApplication = {
+  id: number
+  companyName: string
+  crNumber: string
+  sector: Sector
+  city: string
+  contactName: string
+  jobTitle: string | null
+  email: string
+  phone: string
+  message: string | null
+  language: string
+  status: ApplicationStatus
+  rejectReason: string | null
+  partnerId: number | null
+  reviewedBy: string | null
+  reviewedAt: string | null
+  createdAt: string
+}
+
 // ---------- website inquiries ----------
 
 export type InquiryInterest = 'TECHNICAL_INTEGRATION' | 'ENTERPRISE' | 'PILOT' | 'STRATEGIC' | 'OTHER'

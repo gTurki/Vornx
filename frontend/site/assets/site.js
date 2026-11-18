@@ -104,3 +104,38 @@ addEventListener('scroll',req,{passive:true});addEventListener('resize',req);
 if('ResizeObserver' in window)new ResizeObserver(req).observe(fl);
 upd();
 })();
+
+
+// ---------- "انضم كشريك": the partner application form -> POST /api/public/partner-applications ----------
+(function(){
+const PARTNER_APPLY=(('__VORNX_API_URL__'.startsWith('__'))?'http://localhost:8080':'__VORNX_API_URL__')+'/api/public/partner-applications';
+const f=document.getElementById('jf');if(!f)return;
+const msg=document.getElementById('j-msg'),sent=document.getElementById('j-sent');
+const L=()=>document.documentElement.lang==='ar'?'ar':'en';
+const T={
+ invalid:{en:'Complete the required fields: a 10-digit CR number, a valid email, a mobile like 05XXXXXXXX, and accept the privacy notice',ar:'أكمل الحقول المطلوبة: سجل تجاري من 10 أرقام، بريد صحيح، جوال بصيغة 05XXXXXXXX، ووافق على إشعار الخصوصية'},
+ sending:{en:'Sending…',ar:'جارٍ الإرسال…'},
+ ALREADY_PARTNER:{en:'This company is already a VORNX partner. Sign in to the partner portal, or contact us.',ar:'هذه الجهة شريكة في VORNX مسبقًا. ادخل إلى بوابة الشريك أو تواصل معنا.'},
+ APPLICATION_PENDING:{en:'An application for this company is already under review. We will reply by email.',ar:'يوجد طلب لهذه الجهة قيد المراجعة. سنرد عليك بالبريد.'},
+ tooMany:{en:'Too many applications from here. Please try again later.',ar:'طلبات كثيرة من هنا. حاول لاحقًا.'},
+ failed:{en:'Your application could not be sent. Please try again, or email vornx@outlook.sa',ar:'تعذّر إرسال الطلب. حاول مجددًا أو راسلنا على vornx@outlook.sa'}};
+const show=(k,c)=>{msg.textContent=T[k][L()];msg.className=c};
+f.addEventListener('submit',async e=>{
+ e.preventDefault();const d=Object.fromEntries(new FormData(f));if(d.website)return;
+ const v={co:!d.companyName.trim(),cr:!/^\d{10}$/.test(d.crNumber.trim()),se:!d.sector,ci:!d.city.trim(),na:!d.contactName.trim(),
+  em:!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email.trim()),ph:!/^05\d{8}$/.test(d.phone.trim()),pc:!d.consent};
+ const bad=Object.keys(v).filter(k=>v[k]);
+ Object.keys(v).forEach(k=>{const el=document.getElementById('j-'+k);bad.includes(k)?el.setAttribute('aria-invalid','true'):el.removeAttribute('aria-invalid')});
+ if(bad.length){document.getElementById('j-'+bad[0]).focus();show('invalid','err');return}
+ const sb=f.querySelector('button[type=submit]');sb.disabled=true;show('sending','ok');
+ try{
+  const r=await fetch(PARTNER_APPLY,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({
+   companyName:d.companyName.trim(),crNumber:d.crNumber.trim(),sector:d.sector,city:d.city.trim(),contactName:d.contactName.trim(),
+   jobTitle:(d.jobTitle||'').trim(),email:d.email.trim(),phone:d.phone.trim(),message:(d.message||'').trim(),language:L(),consent:!!d.consent,website:d.website||''})});
+  const j=await r.json().catch(()=>({}));
+  if(r.status===429){show('tooMany','err');return}
+  if(!r.ok){show(T[j.code]?j.code:'failed','err');return}
+  f.reset();msg.textContent='';msg.className='';f.hidden=true;sent.hidden=false;sent.focus();
+ }catch(_){show('failed','err')}finally{sb.disabled=false}
+});
+})();

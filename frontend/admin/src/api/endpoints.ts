@@ -1,6 +1,6 @@
 import { api } from './client'
 import type {
-  AdminOverview, ActivityLog, AdminUser, AppNotification, AuthResponse, BillingSummary, Contract, ContractRequest,
+  ApplicationStatus, PartnerApplication, AdminOverview, ActivityLog, AdminUser, AppNotification, AuthResponse, BillingSummary, Contract, ContractRequest,
   Inquiry, InquiryStatus, InviteResponse, Invoice, InvoiceStatus, Page, Partner, PartnerRequest, PartnerRole, PartnerStatus,
   PartnerUser, Sector, Session, Site, SupportTicket, TicketPriority, TicketStatus,
 } from './types'
@@ -71,6 +71,15 @@ export const endpoints = {
     api<SupportTicket>(`/api/admin/support-tickets/${id}/messages`, { method: 'POST', body: { body } }),
   updateTicket: (id: number, body: { status?: TicketStatus; priority?: TicketPriority }) =>
     api<SupportTicket>(`/api/admin/support-tickets/${id}`, { method: 'PATCH', body }),
+
+  // ---------- partner applications (the website's "انضم كشريك") ----------
+  applications: (p: { status?: ApplicationStatus; page?: number }) =>
+    api<Page<PartnerApplication>>(`/api/admin/partner-applications${qs({ ...p, size: 15 })}`),
+  pendingApplications: () => api<{ count: number }>('/api/admin/partner-applications/pending-count'),
+  approveApplication: (id: number) =>
+    api<{ application: PartnerApplication; partnerId: number }>(`/api/admin/partner-applications/${id}/approve`, { method: 'POST', body: {} }),
+  rejectApplication: (id: number, reason: string) =>
+    api<PartnerApplication>(`/api/admin/partner-applications/${id}/reject`, { method: 'POST', body: { reason } }),
 
   // ---------- website inquiries (the public site's contact form) ----------
   inquiries: (p: { status?: InquiryStatus; page?: number }) =>

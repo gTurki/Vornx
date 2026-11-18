@@ -58,6 +58,18 @@ Built from the `Dockerfile`; health check `/actuator/health` (see `railway.json`
 | `ADMIN_URL`, `PARTNER_URL`, `CUSTOMER_URL` | used in email links |
 | `API_DOCS_ENABLED` | `false` in production (default) |
 
+## How partners and admins get accounts
+
+- **Admins:** never public sign-up. The first SUPER_ADMIN comes from `BOOTSTRAP_ADMIN_*`.
+- **Partners apply on the website ("انضم كشريك"):**
+  - The form asks for company, CR number, sector, city and a contact. It posts to `POST /api/public/partner-applications`,
+    protected by a honeypot field, 3 per IP per hour and 3 per email per day, and one open application per CR.
+  - The applicant gets a confirmation email, and admins get a notification. The application waits in the admin
+    dashboard under "طلبات الانضمام", with a badge.
+  - **Approve:** creates the partner (ONBOARDING, with you as account manager) and emails the contact a PARTNER_ADMIN
+    invite to set a password. Then add the contract under "الجهات".
+  - **Reject:** a reason is required and is emailed to the applicant.
+
 ## Demo data (to present the user flow)
 
 `DEMO_SEED=true` creates, once, three partners with real-looking data: a hotel group (2 hotels, rooms, guest keys),

@@ -9,5 +9,6 @@ public enum EmailType {
     LOGIN_CODE,
     EMAIL_VERIFICATION,
     SECURITY_ALERT,
+    PARTNER_APPLICATION,
     INVOICE_ISSUED
 }
