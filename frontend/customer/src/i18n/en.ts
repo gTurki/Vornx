@@ -454,4 +454,9 @@ export const EN: Record<string, string> = {
   "وصلت للحد الأقصى من الأجهزة (10). أزل جهازًا قديمًا أولًا.": "You've reached the maximum of 10 devices. Remove an old one first.",
   "انتهت المهلة. حاول مجددًا.": "Time ran out. Please try again.",
   "لم نتعرف على هذا الجهاز. سجّل الدخول بكلمة المرور ثم أضِفه من «حسابي».": "We don't recognise this device. Sign in with your password, then add it in My account.",
+  // the card back (tap to flip)
+  "اضغط على البطاقة لقلبها": "Tap the card to turn it over",
+  "ظهر البطاقة. اضغط لعرض الوجه": "Back of the card. Tap to show the front",
+  "اضغط لقلب البطاقة": "Tap to turn the card over",
+  "هذه البطاقة شخصية. إذا وجدتها، سلّمها لأقرب جهة شريكة أو تواصل مع VORNX.": "This card is personal. If you find it, hand it to the nearest partner or contact VORNX.",
 }

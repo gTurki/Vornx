@@ -33,7 +33,8 @@ export function CardPage() {
   return (
     <div className="cols">
       <section>
-        <VCard card={card} name={`${me?.firstName} ${me?.lastName}`} reveal={reveal} />
+        <VCard card={card} name={`${me?.firstName} ${me?.lastName}`} reveal={reveal} vornxId={me?.vornxId} flippable />
+        <p className="flip-hint">{tr('اضغط على البطاقة لقلبها')}</p>
         {card && (
           <div className="form-actions" style={{ marginTop: 14 }}>
             <button className="btn gh sm" onClick={() => setReveal(!reveal)}>{reveal ? tr('إخفاء الرقم') : tr('إظهار الرقم كاملًا')}</button>

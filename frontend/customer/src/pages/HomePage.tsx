@@ -84,7 +84,11 @@ function PermitTile({ p }: { p: Permit }) {
       <span className="ic"><Icon name={PERMIT_ICON[p.type]} /></span>
       <b>{p.siteName}</b>
       <small>{PERMIT_TYPE[p.type]} · {p.wholeSite ? tr('كل الموقع') : p.accessPoints.map((a) => a.name).join(tr('، '))}</small>
-      <Tag label={PERMIT_STATUS[p.status]} />
+      {/* a pulsing dot on keys that work right now */}
+      <span style={{ display: 'flex', alignItems: 'center' }}>
+        {p.status === 'ACTIVE' && new Date(p.validFrom).getTime() <= Date.now() && <i className="live" aria-hidden="true" />}
+        <Tag label={PERMIT_STATUS[p.status]} />
+      </span>
     </Link>
   )
 }

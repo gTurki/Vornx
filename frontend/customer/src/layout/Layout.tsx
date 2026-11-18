@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, NavLink, Outlet } from 'react-router-dom'
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../auth/AuthContext'
 import { endpoints } from '../api/endpoints'
@@ -37,6 +37,7 @@ const TABS: Item[] = [
 export function Layout() {
   useRealtime()
   const { me, logout } = useAuth()
+  const { pathname } = useLocation()
   // Points change after payments, so read them fresh (not from the login-time copy).
   const profile = useQuery({ queryKey: ['me'], queryFn: endpoints.me, initialData: me ?? undefined })
   const p = profile.data
@@ -73,7 +74,8 @@ export function Layout() {
             <ThemeToggle />
           </header>
           <InstallBanner />
-          <Outlet />
+          {/* keyed by the page: each page plays its entrance (blocks slide up one after another) */}
+          <div key={pathname} className="page-in"><Outlet /></div>
           <footer className="ft">{tr('© 2026 VORNX · بطاقة واحدة لكل شيء')}</footer>
         </main>
       </div>
