@@ -11,6 +11,7 @@ import com.example.vornx.partner.service.PartnerUserService;
 import com.example.vornx.platform.entity.AdminUser;
 import com.example.vornx.platform.service.AdminUserService;
 import com.example.vornx.platform.team.AdminTeamService;
+import com.example.vornx.security.passkey.PasskeyService;
 import com.example.vornx.security.TokenService;
 import com.example.vornx.security.UserType;
 import com.example.vornx.security.auth.dto.AcceptInviteRequest;
@@ -51,6 +52,7 @@ public class AuthService {
 
     private final AdminUserService adminUserService;
     private final AdminTeamService adminTeamService;
+    private final PasskeyService passkeyService;
     private final PartnerUserService partnerUserService;
     private final CustomerService customerService;
     private final PasswordEncoder passwordEncoder;
@@ -125,6 +127,16 @@ public class AuthService {
             throw new BadCredentialsException(INVALID);
         }
         return startSession(checkCustomer(customerService.getEntity(challenge.getUserId())), client);
+    }
+
+    /**
+     * Face ID / fingerprint: the phone signed our challenge with a passkey the customer added in "حسابي".
+     * No password and no email code: the passkey already proves both the phone and the person.
+     */
+    @Transactional(noRollbackFor = BusinessException.class)
+    public AuthResponse loginCustomerWithPasskey(String challengeId, String credentialJson, ClientInfo client) {
+        Long customerId = passkeyService.login(challengeId, credentialJson);
+        return startSession(checkCustomer(customerService.getEntity(customerId)), client);
     }
 
     @Transactional(noRollbackFor = BusinessException.class)

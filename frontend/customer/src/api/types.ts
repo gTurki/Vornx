@@ -464,6 +464,10 @@ export type Customer = {
 export type TotpStatus = { enabled: boolean; enabledAt: string | null; recoveryCodesLeft: number }
 export type TotpSetup = { secret: string; otpauthUri: string }
 
+/** Face ID / fingerprint sign-in. options = JSON for navigator.credentials.create() / get(). */
+export type PasskeyOptions = { challengeId: string; options: string }
+export type Passkey = { id: number; name: string; synced: boolean; createdAt: string; lastUsedAt: string | null }
+
 export type RegisterRequest = {
   firstName: string
   lastName: string

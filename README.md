@@ -250,3 +250,17 @@ is the app's code instead of the email code, and 10 one-time recovery codes are 
 - The secret is stored encrypted (AES-GCM). Key: `TOTP_ENCRYPTION_KEY` (base64 of 32 random bytes, e.g.
   `openssl rand -base64 32`); without it, a key derived from `JWT_SECRET`. **Choose it once**: changing it later
   (or changing `JWT_SECRET` while it is unset) breaks the apps already set up.
+
+## Face ID / fingerprint sign-in (passkeys, optional, per customer)
+
+In "حسابي" > الأمان the customer adds the device ("إضافة هذا الجهاز"): Face ID / Touch ID / fingerprint / Windows Hello
+creates a key pair on the phone, and only the PUBLIC key is stored (`passkeys`). The login page then shows
+"الدخول بـ Face ID": no email, no password and no email code (the passkey already proves the phone AND the person,
+and can't be phished: the phone only signs for our domain). Yubico's `webauthn-server-core` checks everything.
+- Add: `POST /api/customer/passkeys/options` -> `navigator.credentials.create()` -> `POST /api/customer/passkeys`.
+  `GET` lists the devices, `DELETE /{id}` removes one. Adding or removing sends a security email.
+- Sign in: `POST /api/public/auth/customer/passkey/options` -> `navigator.credentials.get()` ->
+  `POST /api/public/auth/customer/passkey/login` (tokens). A challenge works once, for 5 minutes; 30 per IP / 10 min.
+- **Domain:** a passkey works only on the domain it was made on. By default that's the host of `CUSTOMER_URL`.
+  When the customer app moves to its own domain (e.g. `my.vornx.sa`), set `PASSKEY_RP_ID` / `PASSKEY_ORIGINS`;
+  passkeys made on the old domain stop working, and customers add their device again after a password sign-in.

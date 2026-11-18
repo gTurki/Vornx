@@ -174,6 +174,11 @@ const CODES: Record<string, string> = {
   TOTP_CODE_INVALID: tr('الرمز غير صحيح. تأكد أن وقت جوالك مضبوط تلقائيًا.'),
   PHONE_MISMATCH: tr('رقم الجوال لا يطابق رقم حسابك.'),
   PHONE_VERIFICATION_FAILED: tr('تعذّر التحقق من رقم الجوال. حاول مجددًا أو اطلب الرمز بالبريد.'),
+  PASSKEY_FAILED: tr('تعذّرت إضافة هذا الجهاز. حاول مجددًا.'),
+  PASSKEY_EXISTS: tr('هذا الجهاز مضاف مسبقًا.'),
+  PASSKEY_LIMIT: tr('وصلت للحد الأقصى من الأجهزة (10). أزل جهازًا قديمًا أولًا.'),
+  PASSKEY_CHALLENGE_INVALID: tr('انتهت المهلة. حاول مجددًا.'),
+  PASSKEY_NOT_RECOGNIZED: tr('لم نتعرف على هذا الجهاز. سجّل الدخول بكلمة المرور ثم أضِفه من «حسابي».'),
   SMS_LOGIN_DISABLED: tr('الدخول بالرسائل النصية غير متاح الآن. اطلب الرمز بالبريد.'),
 }
 

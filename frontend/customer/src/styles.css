@@ -164,3 +164,9 @@ code{font-family:Montserrat,monospace;font-size:12.5px;direction:ltr;display:inl
 /* install the app (PWA) banner */
 .install{display:flex;align-items:center;gap:12px;background:var(--sf);border:1px solid var(--ln);border-radius:18px;padding:12px 14px;margin-bottom:18px}
 .install img{border-radius:12px;flex-shrink:0}.install .grow{flex:1;min-width:0}.install b{display:block;font-size:14px}.install small{color:var(--mu);font-size:12.5px;line-height:1.6}
+
+/* login: "أو" + the Face ID button */
+.or{display:flex;align-items:center;gap:10px;color:var(--mu);font-size:12.5px}
+.or::before,.or::after{content:"";flex:1;height:1px;background:var(--ln)}
+.btn.face{display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.pk-list{margin:8px 0 4px}

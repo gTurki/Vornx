@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import com.example.vornx.security.passkey.PasskeyService;
 import com.example.vornx.security.session.ClientInfo;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -36,6 +37,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+    private final PasskeyService passkeyService;
+
+    /** credential = JSON.stringify of what navigator.credentials.get() returned. */
+    public record PasskeyLoginRequest(@jakarta.validation.constraints.NotBlank String challengeId,
+                                      @jakarta.validation.constraints.NotBlank @jakarta.validation.constraints.Size(max = 20_000) String credential) {
+    }
 
     /** Admin dashboard (index 55) */
     @PostMapping("/admin/login")
@@ -59,6 +66,20 @@ public class AuthController {
     @PostMapping("/partner/accept-invite")
     public AuthResponse acceptPartnerInvite(@Valid @RequestBody AcceptInviteRequest req, HttpServletRequest http) {
         return authService.acceptPartnerInvite(req, ClientInfo.from(http));
+    }
+
+    @Operation(summary = "Face ID / fingerprint sign-in, step 1: options for navigator.credentials.get()",
+            description = "No email needed: the phone offers the VORNX passkeys it has. 429 when asked too often.")
+    @PostMapping("/customer/passkey/options")
+    public PasskeyService.Options customerPasskeyOptions(HttpServletRequest http) {
+        return passkeyService.loginOptions(ClientInfo.from(http).ipAddress());
+    }
+
+    @Operation(summary = "Face ID / fingerprint sign-in, step 2: the signed challenge -> tokens",
+            description = "409 PASSKEY_NOT_RECOGNIZED (e.g. removed in My account) / PASSKEY_CHALLENGE_INVALID.")
+    @PostMapping("/customer/passkey/login")
+    public AuthResponse customerPasskeyLogin(@Valid @RequestBody PasskeyLoginRequest req, HttpServletRequest http) {
+        return authService.loginCustomerWithPasskey(req.challengeId(), req.credential(), ClientInfo.from(http));
     }
 
     /** Customer app (index_76), step 1. */

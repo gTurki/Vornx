@@ -157,6 +157,24 @@ public class EmailTemplates {
                 "If this wasn't you, change your password now and contact us.");
     }
 
+    /** A passkey (Face ID / fingerprint sign-in) was added to or removed from the account. */
+    public EmailContent passkeyChanged(String name, String device, boolean added) {
+        return new EmailContent(
+                added ? "أُضيف دخول بـ Face ID أو البصمة · Face ID / fingerprint sign-in added"
+                      : "أُزيل دخول بـ Face ID أو البصمة · Face ID / fingerprint sign-in removed",
+                added ? "أُضيف جهاز للدخول بـ Face ID أو البصمة" : "أُزيل جهاز من الدخول بـ Face ID أو البصمة",
+                added ? "A device can now sign in with Face ID or fingerprint" : "A device can no longer sign in with Face ID or fingerprint",
+                List.of("مرحبًا " + name + "، " + (added
+                        ? "أصبح بإمكان «" + device + "» الدخول إلى حسابك في VORNX بـ Face ID أو البصمة، بدون كلمة مرور."
+                        : "لم يعد بإمكان «" + device + "» الدخول إلى حسابك بـ Face ID أو البصمة.")),
+                List.of("Hello " + name + ", " + (added
+                        ? "\"" + device + "\" can now sign in to your VORNX account with Face ID or fingerprint, without a password."
+                        : "\"" + device + "\" can no longer sign in to your account with Face ID or fingerprint.")),
+                frontend.customerUrl() + "/account", "حسابي", "My account",
+                "إذا لم تقم بذلك، أزل الجهاز من «حسابي» وغيّر كلمة المرور فورًا.",
+                "If this wasn't you, remove the device in My account and change your password now.");
+    }
+
     public EmailContent recoveryCodeUsed(String name, long left) {
         return new EmailContent(
                 "استُخدم رمز استرداد · A recovery code was used",

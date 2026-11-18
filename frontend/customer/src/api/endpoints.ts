@@ -1,7 +1,7 @@
 import { api } from './client'
 import type {
   AccessDecision, AccessEvent, AppNotification, AuthResponse, Card, LoginChallenge, Customer, EventTicket, Page, Permit, Plan,
-  RegisterRequest, ReminderOption, ServiceRequest, Session, Subscription, TopUp, TopUpOptions, TotpSetup, TotpStatus, VEvent, Wallet,
+  Passkey, PasskeyOptions, RegisterRequest, ReminderOption, ServiceRequest, Session, Subscription, TopUp, TopUpOptions, TotpSetup, TotpStatus, VEvent, Wallet,
   WalletTransaction,
 } from './types'
 
@@ -19,6 +19,10 @@ export const endpoints = {
     api<AuthResponse>('/api/public/auth/customer/login/verify-phone', { method: 'POST', body: { challengeToken, firebaseIdToken }, auth: false }),
   resendCode: (challengeToken: string) =>
     api<LoginChallenge>('/api/public/auth/customer/login/resend', { method: 'POST', body: { challengeToken }, auth: false }),
+  passkeyLoginOptions: () =>
+    api<PasskeyOptions>('/api/public/auth/customer/passkey/options', { method: 'POST', auth: false }),
+  passkeyLogin: (challengeId: string, credential: string) =>
+    api<AuthResponse>('/api/public/auth/customer/passkey/login', { method: 'POST', body: { challengeId, credential }, auth: false }),
   /** 202: account created, a code was emailed -> finish with verifyCode (confirms the email and logs in). */
   register: (body: RegisterRequest) =>
     api<LoginChallenge>('/api/public/auth/customer/register', { method: 'POST', body, auth: false }),
@@ -46,6 +50,12 @@ export const endpoints = {
   totpEnable: (code: string) =>
     api<{ recoveryCodes: string[] }>(`${C}/security/totp/enable`, { method: 'POST', body: { code } }),
   totpDisable: (password: string) => api<void>(`${C}/security/totp/disable`, { method: 'POST', body: { password } }),
+  // ---------- Face ID / fingerprint (passkeys) ----------
+  passkeys: () => api<Passkey[]>(`${C}/passkeys`),
+  passkeyOptions: () => api<PasskeyOptions>(`${C}/passkeys/options`, { method: 'POST' }),
+  addPasskey: (challengeId: string, credential: string) =>
+    api<Passkey>(`${C}/passkeys`, { method: 'POST', body: { challengeId, credential } }),
+  removePasskey: (id: number) => api<void>(`${C}/passkeys/${id}`, { method: 'DELETE' }),
   revokeSession: (id: number) => api<void>(`${C}/sessions/${id}`, { method: 'DELETE' }),
   revokeOtherSessions: () => api<{ revoked: number }>(`${C}/sessions?keepCurrent=true`, { method: 'DELETE' }),
 

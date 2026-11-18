@@ -88,6 +88,13 @@
             <version>3.2.0</version>
         </dependency>
 
+        <!-- Passkeys (Face ID / fingerprint sign-in): Yubico's WebAuthn server library checks the signatures -->
+        <dependency>
+            <groupId>com.yubico</groupId>
+            <artifactId>webauthn-server-core</artifactId>
+            <version>2.10.1</version>
+        </dependency>
+
         <!-- Health check endpoint: /actuator/health (shows if the DB is reachable) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

@@ -5,11 +5,12 @@ import { endpoints } from '../api/endpoints'
 import type { TotpSetup } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 import { dateTime } from '../lib/format'
-import { Kv, Loading, Tag } from '../ui/bits'
+import { ConfirmButton, Kv, Loading, Tag } from '../ui/bits'
 import { useToast } from '../ui/Toast'
-import { digitsOnly } from './AuthPages'
+import { digitsOnly, FaceIcon } from './AuthPages'
 import { PasswordInput } from '../ui/PasswordInput'
 import { tr } from '../i18n'
+import { alreadyOnDevice, biometricName, createPasskey, deviceHasBiometrics, passkeySupported, wasCancelled } from '../lib/passkey'
 
 function msg(e: unknown) {
   return e instanceof ApiError ? e.message : tr('حدث خطأ غير متوقع.')
@@ -28,9 +29,86 @@ export function SecuritySection() {
         <Kv k={tr('رقم الجوال')}>
           {me?.phoneVerified ? <Tag label={{ text: tr('مؤكَّد عبر واتساب'), tone: 'ok' }} /> : <Tag label={{ text: tr('غير مؤكَّد'), tone: 'mu' }} />}
         </Kv>
+        <Passkeys />
         <Authenticator />
       </div>
     </>
+  )
+}
+
+/**
+ * Face ID / fingerprint sign-in (passkeys): add this device, see the devices that can sign in, remove one.
+ * A passkey made on an iPhone usually syncs to the person's other Apple devices through iCloud Keychain ("متزامن").
+ */
+function Passkeys() {
+  const qc = useQueryClient()
+  const toast = useToast()
+  const list = useQuery({ queryKey: ['passkeys'], queryFn: endpoints.passkeys, enabled: passkeySupported() })
+  const [canAdd, setCanAdd] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  useEffect(() => { deviceHasBiometrics().then(setCanAdd) }, [])
+
+  if (!passkeySupported()) return null
+  const label = biometricName() === 'faceid' ? 'Face ID' : biometricName() === 'hello' ? 'Windows Hello' : tr('البصمة')
+
+  async function add() {
+    setBusy(true)
+    setError(null)
+    try {
+      const o = await endpoints.passkeyOptions()
+      await endpoints.addPasskey(o.challengeId, await createPasskey(o.options))
+      qc.invalidateQueries({ queryKey: ['passkeys'] })
+      toast(tr('تم. من الآن ادخل بـ {0} بدون كلمة مرور', { 0: label }))
+    } catch (e) {
+      if (alreadyOnDevice(e)) setError(tr('هذا الجهاز مضاف مسبقًا.'))
+      else if (!wasCancelled(e)) setError(msg(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function remove(id: number) {
+    try {
+      await endpoints.removePasskey(id)
+      qc.invalidateQueries({ queryKey: ['passkeys'] })
+      toast(tr('أُزيل الجهاز'))
+    } catch (e) {
+      toast(msg(e), true)
+    }
+  }
+
+  const items = list.data ?? []
+  return (
+    <div className="totp">
+      <Kv k={tr('Face ID والبصمة')}>
+        {items.length ? <Tag label={{ text: tr('مفعّل'), tone: 'ok' }} /> : <Tag label={{ text: tr('غير مفعّل'), tone: 'mu' }} />}
+      </Kv>
+      <p className="mu">{tr('ادخل بلمسة واحدة بـ Face ID أو البصمة، بدون كلمة مرور ولا رمز. بصمتك ووجهك لا يغادران جهازك: نحتفظ فقط بمفتاح عام لا يمكن استخدامه للدخول.')}</p>
+      {items.length > 0 && (
+        <div className="pk-list">
+          {items.map((p) => (
+            <div className="li" key={p.id}>
+              <span>
+                <b>{p.name}</b>{p.synced && <span className="mu">{' · '}{tr('متزامن')}</span>}
+                <small className="mu">{tr('أُضيف')}{' '}{dateTime(p.createdAt)}{p.lastUsedAt ? ' · ' + tr('آخر دخول') + ' ' + dateTime(p.lastUsedAt) : ''}</small>
+              </span>
+              <ConfirmButton className="btn gh sm" onConfirm={() => remove(p.id)}>{tr('إزالة')}</ConfirmButton>
+            </div>
+          ))}
+        </div>
+      )}
+      {error && <div className="error-box">{error}</div>}
+      {canAdd ? (
+        <div className="form-actions">
+          <button className="btn sm face" disabled={busy} onClick={add}>
+            <FaceIcon />{busy ? tr('جارٍ الإضافة…') : tr('إضافة هذا الجهاز ({0})', { 0: label })}
+          </button>
+        </div>
+      ) : (
+        <p className="mu" style={{ fontSize: 13 }}>{tr('هذا الجهاز لا يدعم Face ID أو البصمة. افتح VORNX من جوالك لإضافته.')}</p>
+      )}
+    </div>
   )
 }
 

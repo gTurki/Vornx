@@ -9,6 +9,7 @@ import { sendSms, smsAvailable, smsError, type SmsSession } from '../lib/firebas
 import { PasswordInput } from '../ui/PasswordInput'
 import { LangSwitch } from '../ui/LangSwitch'
 import { tr } from '../i18n'
+import { biometricName, getPasskey, passkeySupported, wasCancelled } from '../lib/passkey'
 
 /** Keeps a phone number or email in left-to-right order inside Arabic text (Unicode isolate). */
 export const ltr = (s?: string | null) => '\u2066' + (s ?? '') + '\u2069'
@@ -33,8 +34,9 @@ export function AuthCard({ title, sub, children, onSubmit }: { title: string; su
 }
 
 export function LoginPage() {
-  const { status, login } = useAuth()
+  const { status, login, loginWith } = useAuth()
   const navigate = useNavigate()
+  const [faceBusy, setFaceBusy] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -61,6 +63,21 @@ export function LoginPage() {
     }
   }
 
+  /** No email or password: the phone offers its VORNX passkeys, Face ID, and we're in. */
+  async function withPasskey() {
+    setFaceBusy(true)
+    setError(null)
+    try {
+      const o = await endpoints.passkeyLoginOptions()
+      await loginWith(await endpoints.passkeyLogin(o.challengeId, await getPasskey(o.options)))
+      navigate('/', { replace: true })
+    } catch (err) {
+      if (!wasCancelled(err)) setError(errorText(err))
+    } finally {
+      setFaceBusy(false)
+    }
+  }
+
   return (
     <AuthCard title={tr('تسجيل الدخول')} sub={tr('أدخل بريدك الإلكتروني وكلمة المرور')} onSubmit={submit}>
       <label className="field"><span>{tr('البريد الإلكتروني')}</span>
@@ -71,8 +88,26 @@ export function LoginPage() {
       </label>
       {error && <div className="error-box">{error}</div>}
       <button className="btn wide" disabled={busy}>{busy ? tr('جارٍ الدخول…') : tr('متابعة')}</button>
+      {passkeySupported() && (
+        <>
+          <div className="or"><span>{tr('أو')}</span></div>
+          <button type="button" className="btn gh wide face" disabled={faceBusy} onClick={withPasskey}>
+            <FaceIcon />
+            {faceBusy ? tr('جارٍ التحقق…') : biometricName() === 'faceid' ? tr('الدخول بـ Face ID') : biometricName() === 'hello' ? tr('الدخول بـ Windows Hello') : tr('الدخول بالبصمة')}
+          </button>
+        </>
+      )}
       <div className="auth-links"><Link to="/register">{tr('إنشاء حساب')}</Link>·<Link to="/forgot-password">{tr('نسيت كلمة المرور؟')}</Link></div>
     </AuthCard>
+  )
+}
+
+/** The Face ID corners + face: one line icon used on the login button and in "حسابي". */
+export function FaceIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
+      <path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2M9 9.5v1M15 9.5v1M12 9.5v3.5h-1M9.5 15.5a3.5 3.5 0 0 0 5 0" />
+    </svg>
   )
 }
 
