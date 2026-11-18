@@ -11,6 +11,7 @@ import { Icon } from '../ui/Icon'
 import { PlaceCard } from '../ui/PlaceCard'
 import { useToast } from '../ui/Toast'
 import { tr } from '../i18n'
+import { IsoHero } from '../ui/IsoHero'
 
 /** "المحفظة": balance, history, top up, and send money to another VORNX customer. */
 export function WalletPage() {
@@ -22,6 +23,7 @@ export function WalletPage() {
   return (
     <div className="cols">
       <section>
+        <IsoHero kind="wal" label={tr('محفظتك')} />
         <div className="panel" style={{ background: 'linear-gradient(145deg,var(--card2),var(--card1))', color: '#fff', border: 0 }}>
           <small style={{ opacity: .8 }}>{tr('الرصيد المتاح')}</small>
           <div><span className="big">{money(wallet.data?.balance)}</span>{' '}{tr('ر.س')}</div>

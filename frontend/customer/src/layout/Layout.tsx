@@ -7,6 +7,7 @@ import { useRealtime } from '../api/useRealtime'
 import { ago, count } from '../lib/format'
 import { Icon, type IconName } from '../ui/Icon'
 import { Logo } from '../ui/Logo'
+import { IsoHero } from '../ui/IsoHero'
 import { LangSwitch } from '../ui/LangSwitch'
 import { InstallBanner } from '../ui/InstallBanner'
 import { tr } from '../i18n'
@@ -97,6 +98,7 @@ export function ServicesPage() {
   return (
     <>
       <h2>{tr('كل الخدمات')}</h2>
+      <IsoHero kind="city" label={tr('كل خدماتك')} />
       <div className="tiles">
         {NAV.filter((i) => i.to !== '/').map((i) => (
           <NavLink key={i.to} to={i.to} className="tile">

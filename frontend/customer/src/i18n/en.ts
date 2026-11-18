@@ -474,4 +474,11 @@ export const EN: Record<string, string> = {
   "تراث وأصالة": "Heritage",
   "المستحيل ليس سعودياً": "Impossible is not Saudi",
   "يا السعودي": "Ya Al-Saudi",
+  // page scenes
+  "تصاريحك": "Your permits",
+  "سجل دخولك": "Your entries",
+  "تذاكرك": "Your tickets",
+  "اشتراكاتك": "Your subscriptions",
+  "محفظتك": "Your wallet",
+  "كل خدماتك": "All your services",
 }

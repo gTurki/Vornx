@@ -9,6 +9,7 @@ import { ConfirmButton, Empty, ErrorBox, Kv, Loading, Num, Pager, Tag } from '..
 import { Drawer } from '../ui/Drawer'
 import { useToast } from '../ui/Toast'
 import { tr } from '../i18n'
+import { IsoHero } from '../ui/IsoHero'
 
 /** "الفعاليات": upcoming events to register for, and my tickets. */
 export function EventsPage() {
@@ -16,6 +17,7 @@ export function EventsPage() {
   const tickets = useQuery({ queryKey: ['tickets'], queryFn: endpoints.tickets })
   return (
     <>
+      <IsoHero kind="ev" label={tr('تذاكرك')} />
       <div className="tabs">
         <button className={tab === 'tickets' ? 'on' : ''} onClick={() => setTab('tickets')}>{tr('تذاكري')}</button>
         <button className={tab === 'browse' ? 'on' : ''} onClick={() => setTab('browse')}>{tr('اكتشف الفعاليات')}</button>

@@ -9,6 +9,7 @@ import { Empty, ErrorBox, Loading, Num, Pager, Tag } from '../ui/bits'
 import { Icon } from '../ui/Icon'
 import { hasPlaceArt, PlaceCard } from '../ui/PlaceCard'
 import { tr } from '../i18n'
+import { IsoHero } from '../ui/IsoHero'
 
 /** "التصاريح": every door the customer may open, and a button to open it from the phone. */
 export function PermitsPage() {
@@ -21,6 +22,7 @@ export function PermitsPage() {
   return (
     <>
       <p className="lead">{tr('كل تصريح يحدد الأبواب التي تفتحها بطاقتك، ومتى. وإن نسيت بطاقتك، افتح الباب من هنا.')}</p>
+      <IsoHero kind="perm" label={tr('تصاريحك')} />
       <div className="tabs">
         <button className={tab === 'now' ? 'on' : ''} onClick={() => setTab('now')}>{tr('الحالية (')}{now.length})</button>
         <button className={tab === 'old' ? 'on' : ''} onClick={() => setTab('old')}>{tr('السابقة (')}{old.length})</button>
@@ -103,6 +105,7 @@ export function AccessLogPage() {
   return (
     <>
       <p className="lead">{tr('كل مرة استخدمت فيها بطاقتك أو جوالك. إن رأيت عملية لا تعرفها، أوقف بطاقتك من صفحة بطاقتي.')}</p>
+      <IsoHero kind="rep" label={tr('سجل دخولك')} />
       {log.error && <ErrorBox error={log.error} />}
       {log.isLoading && <Loading />}
       {log.data?.content.length === 0 && <Empty>{tr('لا توجد عمليات بعد.')}</Empty>}

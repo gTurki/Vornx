@@ -9,12 +9,14 @@ import { ConfirmButton, Empty, ErrorBox, Loading, Num, Pager, Tag } from '../ui/
 import { Icon } from '../ui/Icon'
 import { useToast } from '../ui/Toast'
 import { tr } from '../i18n'
+import { IsoHero } from '../ui/IsoHero'
 
 /** "اشتراكاتي": my subscriptions and requests, and the plans I can subscribe to. */
 export function SubscriptionsPage() {
   const [tab, setTab] = useState<'mine' | 'plans'>('mine')
   return (
     <>
+      <IsoHero kind="subs" label={tr('اشتراكاتك')} />
       <div className="tabs">
         <button className={tab === 'mine' ? 'on' : ''} onClick={() => setTab('mine')}>{tr('اشتراكاتي')}</button>
         <button className={tab === 'plans' ? 'on' : ''} onClick={() => setTab('plans')}>{tr('الباقات المتاحة')}</button>
