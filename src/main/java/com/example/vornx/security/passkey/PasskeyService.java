@@ -25,6 +25,7 @@ import com.yubico.webauthn.data.ByteArray;
 import com.yubico.webauthn.data.PublicKeyCredential;
 import com.yubico.webauthn.data.PublicKeyCredentialCreationOptions;
 import com.yubico.webauthn.data.PublicKeyCredentialDescriptor;
+import com.yubico.webauthn.data.PublicKeyCredentialParameters;
 import com.yubico.webauthn.data.RelyingPartyIdentity;
 import com.yubico.webauthn.data.ResidentKeyRequirement;
 import com.yubico.webauthn.data.UserIdentity;
@@ -97,6 +98,10 @@ public class PasskeyService {
                 .identity(RelyingPartyIdentity.builder().id(rpId).name("VORNX").build())
                 .credentialRepository(new Credentials())
                 .origins(origins)
+                // what phones use (Face ID / Android: ES256, Windows Hello: RS256); also avoids startup warnings
+                // about newer algorithms this Java can't verify
+                .preferredPubkeyParams(List.of(PublicKeyCredentialParameters.ES256, PublicKeyCredentialParameters.EdDSA,
+                        PublicKeyCredentialParameters.RS256))
                 .clock(clock)
                 .build();
         log.info("Passkeys: relying party id {} for {}", rpId, origins);

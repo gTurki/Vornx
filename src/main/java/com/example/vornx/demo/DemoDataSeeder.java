@@ -104,7 +104,8 @@ import java.util.stream.Collectors;
  *  - runs ONCE: if the demo hotel (CR 7012345601) exists, it does nothing;
  *  - one transaction: if anything fails, nothing is saved;
  *  - invoices are created for the demo contracts ONLY (the monthly invoice job would bill real partners too).
- * YOUR OWN customer account (the one registered with DEMO_EMAIL itself, not an alias) also gets demo data, so you
+ * YOUR OWN customer account (the one registered with DEMO_EMAIL itself, not an alias), and any existing accounts listed in
+ * DEMO_EXTRA_EMAILS (comma separated), also get demo data, so you
  * can present the flow while logged in as yourself: a card (if you have none), hotel keys, a club membership, a
  * parking request waiting for approval, event tickets and some door activity. The demo partners are paid from your
  * wallet like any customer, so first a "رصيد تجريبي" top-up of exactly that amount is added: the balance ends where
@@ -166,16 +167,35 @@ public class DemoDataSeeder implements ApplicationRunner {
                     alias("hotel"), alias("frontdesk"), alias("club"), alias("events"),
                     alias("khalid"), alias("noura"), alias("sarah"));
         }
-        tx.executeWithoutResult(s -> seedOwnAccount());
+        // your own account, then DEMO_EXTRA_EMAILS: one transaction each, so one problem doesn't stop the others
+        List<String> accounts = new java.util.ArrayList<>();
+        accounts.add(props.email());
+        accounts.addAll(props.extraEmails());
+        accounts.stream().map(e -> e.trim().toLowerCase()).filter(e -> e.contains("@")).distinct().forEach(e -> {
+            try {
+                tx.executeWithoutResult(s -> seedAccount(e));
+            } catch (RuntimeException ex) {
+                log.warn("Demo data for {} failed: {}", mask(e), ex.getMessage());
+            }
+        });
+    }
+
+    /** "reyofalajam2@gmail.com" -> "re***@gmail.com": the logs don't need full addresses. */
+    static String mask(String email) {
+        int at = email.indexOf('@');
+        return (at <= 2 ? email.substring(0, Math.max(at, 0)) : email.substring(0, 2)) + "***" + email.substring(Math.max(at, 0));
     }
 
     // ================= your own account (DEMO_EMAIL itself) =================
 
-    /** Demo keys, membership, tickets and door activity on the account registered with DEMO_EMAIL. Once per account. */
-    void seedOwnAccount() {
-        Optional<Customer> found = customers.findByEmail(props.email().trim().toLowerCase());
+    /**
+     * Demo keys, membership, tickets and door activity on an existing customer account (DEMO_EMAIL itself, or one of
+     * DEMO_EXTRA_EMAILS). Once per account.
+     */
+    void seedAccount(String email) {
+        Optional<Customer> found = customers.findByEmail(email);
         if (found.isEmpty()) {
-            log.info("No customer account with DEMO_EMAIL yet: sign up with it in the customer app, then restart to get demo data on it");
+            log.info("No customer account with {} yet: sign up with it in the customer app, then restart to get demo data on it", mask(email));
             return;
         }
         Customer me = found.get();
@@ -184,7 +204,7 @@ public class DemoDataSeeder implements ApplicationRunner {
         Partner venue = partners.findByCrNumber("7012345603").orElseThrow();
         if (permitRepository.findByCustomer_IdOrderByValidUntilDesc(me.getId()).stream()
                 .anyMatch(p -> p.getPartner().getId().equals(hotel.getId()))) {
-            log.info("Your account already has the demo data");
+            log.info("{} already has the demo data", mask(email));
             return;
         }
         Instant now = Instant.now(clock);
@@ -207,11 +227,14 @@ public class DemoDataSeeder implements ApplicationRunner {
             wallets.creditTopUp(me.getId(), cost, "رصيد تجريبي للعرض");
         }
 
-        // hotel keys: staying now in Riyadh, and an upcoming stay in Jeddah
+        // hotel keys: staying now in Riyadh (each account its own room), and an upcoming stay in Jeddah
+        List<String> rooms = List.of("R-1201", "R-1202", "R-1205", "R-1206", "R-1204", "R-1203");
+        String room = rooms.get((int) (me.getId() % rooms.size()));
+        String otherRoom = rooms.get((int) ((me.getId() + 1) % rooms.size())); // a refused try at a room that isn't theirs
         Map<String, Long> riyadh = doorsOf(hotel, "الواحة — العليا");
         Map<String, Long> jeddah = doorsOf(hotel, "الواحة — كورنيش جدة");
         Permit stay = permit(hotel, me, PermitType.HOTEL_KEY, siteOf(hotel, "الواحة — العليا"),
-                Set.of(riyadh.get("R-1201"), riyadh.get("LOBBY"), riyadh.get("P1"), riyadh.get("GYM"), riyadh.get("POOL")),
+                Set.of(riyadh.get(room), riyadh.get("LOBBY"), riyadh.get("P1"), riyadh.get("GYM"), riyadh.get("POOL")),
                 now.minus(Duration.ofDays(2)), now.plus(Duration.ofDays(3)), null, null);
         permit(hotel, me, PermitType.HOTEL_KEY, siteOf(hotel, "الواحة — كورنيش جدة"), Set.of(jeddah.get("R-0801"), jeddah.get("P1")),
                 now.plus(Duration.ofDays(10)), now.plus(Duration.ofDays(13)), null, null);
@@ -228,11 +251,11 @@ public class DemoDataSeeder implements ApplicationRunner {
             LocalDate day = today.minusDays(d);
             entry(day, LocalTime.of(9, 10 + d), riyadh.get("P1"), me, card, stay, Decision.ALLOW, null, now);
             entry(day, LocalTime.of(9, 14 + d), riyadh.get("LOBBY"), me, card, stay, Decision.ALLOW, null, now);
-            entry(day, LocalTime.of(9, 16 + d), riyadh.get("R-1201"), me, card, stay, Decision.ALLOW, null, now);
+            entry(day, LocalTime.of(9, 16 + d), riyadh.get(room), me, card, stay, Decision.ALLOW, null, now);
             entry(day, LocalTime.of(18, 30 + d), riyadh.get("GYM"), me, card, stay, Decision.ALLOW, null, now);
         }
-        entry(today.minusDays(1), LocalTime.of(20, 5), riyadh.get("R-1205"), me, card, null, Decision.DENY, DenyReason.NO_PERMIT, now);
-        log.info("Demo data added to your own account ({})", me.getVornxId());
+        entry(today.minusDays(1), LocalTime.of(20, 5), riyadh.get(otherRoom), me, card, null, Decision.DENY, DenyReason.NO_PERMIT, now);
+        log.info("Demo data added to the account {} ({})", mask(email), me.getVornxId());
     }
 
     private Optional<SubscriptionPlan> activePlan(Partner p, String name) {
