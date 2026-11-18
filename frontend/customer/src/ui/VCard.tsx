@@ -25,7 +25,7 @@ const reducedMotion = () => typeof matchMedia === 'function' && matchMedia('(pre
  * The card leans toward the pointer (mouse or finger) and a soft light follows it, like a real card in the hand.
  * CSS variables only (no re-render): --rx/--ry = the tilt, --mx/--my = where the light is, --so = light on/off.
  */
-function useTilt<T extends HTMLElement>() {
+export function useTilt<T extends HTMLElement>() {
   const ref = useRef<T>(null)
   useEffect(() => {
     const el = ref.current

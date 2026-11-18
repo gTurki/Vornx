@@ -459,4 +459,8 @@ export const EN: Record<string, string> = {
   "ظهر البطاقة. اضغط لعرض الوجه": "Back of the card. Tap to show the front",
   "اضغط لقلب البطاقة": "Tap to turn the card over",
   "هذه البطاقة شخصية. إذا وجدتها، سلّمها لأقرب جهة شريكة أو تواصل مع VORNX.": "This card is personal. If you find it, hand it to the nearest partner or contact VORNX.",
+  // the 3D place cards
+  "بطاقاتك": "Your cards",
+  "{0}، صالحة حتى {1}": "{0}, valid until {1}",
+  "الدفع": "Payments",
 }

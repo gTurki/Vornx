@@ -8,6 +8,7 @@ import { PERMIT_ICON, PERMIT_STATUS, PERMIT_TYPE, REQUEST_STATUS, TICKET_STATE }
 import { Empty, Num, Tag } from '../ui/bits'
 import { Icon } from '../ui/Icon'
 import { mainCard, useCards, VCard } from '../ui/VCard'
+import { hasPlaceArt, PlaceCard } from '../ui/PlaceCard'
 import { tr } from '../i18n'
 
 /** "الرئيسية": the card, quick access to every active permit, and what's coming up. */
@@ -33,6 +34,17 @@ export function HomePage() {
         <Link to="/card" style={{ display: 'block', textDecoration: 'none' }}>
           <VCard card={mainCard(cards.data)} name={`${me?.firstName} ${me?.lastName}`} />
         </Link>
+        {/* your keys and memberships as their own 3D cards: swipe through them */}
+        {usable.some((p) => hasPlaceArt(p.type)) && (
+          <>
+            <h2 className="section" style={{ marginBottom: 6 }}>{tr('بطاقاتك')}</h2>
+            <div className="pstrip">
+              {usable.filter((p) => hasPlaceArt(p.type)).map((p) => (
+                <Link key={p.id} to="/permits" style={{ display: 'block' }} aria-label={p.siteName}><PlaceCard permit={p} /></Link>
+              ))}
+            </div>
+          </>
+        )}
         {cards.data && cards.data.length === 0 && (
           <p className="mu">{tr('لم تُصدر بطاقتك بعد. يمكنك فتح الأبواب من جوالك في صفحة التصاريح.')}</p>
         )}

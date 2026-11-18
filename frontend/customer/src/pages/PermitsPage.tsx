@@ -7,6 +7,7 @@ import { dateTime, hhmm, time } from '../lib/format'
 import { DAY, DENY, PERMIT_ICON, PERMIT_STATUS, PERMIT_TYPE } from '../lib/labels'
 import { Empty, ErrorBox, Loading, Num, Pager, Tag } from '../ui/bits'
 import { Icon } from '../ui/Icon'
+import { hasPlaceArt, PlaceCard } from '../ui/PlaceCard'
 import { tr } from '../i18n'
 
 /** "التصاريح": every door the customer may open, and a button to open it from the phone. */
@@ -39,6 +40,8 @@ function PermitCard({ p }: { p: Permit }) {
   const hours = p.allowedFrom ? `${hhmm(p.allowedFrom)} – ${hhmm(p.allowedTo)}` : null
   return (
     <div className="panel">
+      {/* the key / membership / pass as its own 3D VORNX card */}
+      {hasPlaceArt(p.type) && <div className="permit-art"><PlaceCard permit={p} /></div>}
       <div className="li" style={{ paddingTop: 0 }}>
         <span style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
           <span className="tile" style={{ padding: 0, border: 0, background: 'none' }}><span className="ic"><Icon name={PERMIT_ICON[p.type]} /></span></span>

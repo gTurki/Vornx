@@ -8,6 +8,7 @@ import { TX } from '../lib/labels'
 import { Empty, ErrorBox, Loading, Num, Pager } from '../ui/bits'
 import { Drawer } from '../ui/Drawer'
 import { Icon } from '../ui/Icon'
+import { PlaceCard } from '../ui/PlaceCard'
 import { useToast } from '../ui/Toast'
 import { tr } from '../i18n'
 
@@ -32,6 +33,8 @@ export function WalletPage() {
           <button className="btn soft" onClick={() => setSheet('send')}><Icon name="send" />{tr('تحويل')}</button>
         </div>
         {wallet.error && <ErrorBox error={wallet.error} />}
+        {/* pay with the same VORNX card, tap & go */}
+        <div style={{ marginTop: 22 }}><PlaceCard art="pay" /></div>
       </section>
 
       <section>

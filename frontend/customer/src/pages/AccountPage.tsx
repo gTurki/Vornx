@@ -6,13 +6,14 @@ import { useAuth } from '../auth/AuthContext'
 import { dateTime, deviceName } from '../lib/format'
 import { ConfirmButton, ErrorBox, Kv, Loading, Num, Tag } from '../ui/bits'
 import { useToast } from '../ui/Toast'
+import { Icon } from '../ui/Icon'
 import { SecuritySection } from './SecuritySection'
 import { PasswordInput } from '../ui/PasswordInput'
 import { tr } from '../i18n'
 
 /** "حسابي": my profile, security (verified email/mobile, authenticator app), my logged-in devices, change password. */
 export function AccountPage() {
-  const { me } = useAuth()
+  const { me, logout } = useAuth()
   const qc = useQueryClient()
   const toast = useToast()
   const sessions = useQuery({ queryKey: ['sessions'], queryFn: endpoints.sessions })
@@ -56,6 +57,8 @@ export function AccountPage() {
         <SecuritySection />
         <h2 className="section">{tr('تغيير كلمة المرور')}</h2>
         <ChangePassword />
+        {/* a clear way out on every device (on phones the sidebar is hidden) */}
+        <button className="btn gh wide signout" onClick={logout}><Icon name="logout" />{tr('تسجيل الخروج')}</button>
       </section>
     </div>
   )
