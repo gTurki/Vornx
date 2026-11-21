@@ -1,19 +1,20 @@
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
-import type { Permit } from '../api/types'
+import type { Pass, Permit } from '../api/types'
 
 /**
- * "البطاقة التكيفية" (the adaptive card): one card that becomes the card of the place you are at.
- * When it is on, the phone watches its own location and finds the nearest place you have a key or membership for.
+ * "البطاقة التكيفية" (the adaptive card): ONE card that follows you. When it is on, the phone watches its own
+ * location and finds the nearest place you can use: a key / membership (then the card becomes that place's card)
+ * or a card you added by scanning (then its barcode shows under the card).
  * Everything happens ON THE PHONE: the location is never sent to VORNX.
  *
  * Demo mode (for presentations): pick a place and the app behaves as if you were standing there.
  */
 
-/** Within this distance the card switches to that place. */
+/** Within this distance a place takes over. */
 export const NEAR_METERS = 500
 
 const ON_KEY = 'vornx.customer.adaptive'
-const DEMO_KEY = 'vornx.customer.adaptiveDemo'
+const DEMO_KEY = 'vornx.customer.adaptiveDemo2'
 const EVENT = 'vornx-adaptive'
 
 const get = (k: string) => { try { return localStorage.getItem(k) } catch { return null } }
@@ -27,14 +28,15 @@ const subscribe = (cb: () => void) => {
   return () => { window.removeEventListener(EVENT, cb); window.removeEventListener('storage', cb) }
 }
 
+/** demo = "permit:12" or "pass:5" (or null = real location). */
 export function useAdaptiveSettings() {
   const on = useSyncExternalStore(subscribe, () => get(ON_KEY) === '1', () => false)
-  const demoPermitId = useSyncExternalStore(subscribe, () => get(DEMO_KEY), () => null)
+  const demo = useSyncExternalStore(subscribe, () => get(DEMO_KEY), () => null)
   return {
     on,
-    demoPermitId: demoPermitId ? Number(demoPermitId) : null,
+    demo,
     setOn: (v: boolean) => { put(ON_KEY, v ? '1' : null); if (!v) put(DEMO_KEY, null) },
-    setDemo: (id: number | null) => put(DEMO_KEY, id === null ? null : String(id)),
+    setDemo: (key: string | null) => put(DEMO_KEY, key),
   }
 }
 
@@ -46,19 +48,28 @@ function meters(lat1: number, lng1: number, lat2: number, lng2: number) {
 }
 
 export type GpsState = 'off' | 'asking' | 'on' | 'denied' | 'unsupported'
-export type Nearest = { permit: Permit; meters: number | null; demo: boolean }
 
-/**
- * The place to show now: the demo choice, or the nearest usable place within NEAR_METERS.
- * `candidates` = the permits that have their own card art and work now.
- */
-export function useNearestPlace(candidates: Permit[]) {
-  const { on, demoPermitId } = useAdaptiveSettings()
+/** The place you are at: a key / membership, or a scanned card. */
+export type Here =
+  | { kind: 'permit'; key: string; name: string; permit: Permit; meters: number | null; demo: boolean }
+  | { kind: 'pass'; key: string; name: string; pass: Pass; meters: number | null; demo: boolean }
+
+export type Nearby = { on: boolean; gps: GpsState; here: Here | null; places: Here[] }
+
+/** Keys and memberships that work right now and have their own card art (see PlaceCard). */
+export function usablePermits(permits: Permit[], hasArt: (p: Permit) => boolean) {
+  const now = Date.now()
+  return permits.filter((p) => p.status === 'ACTIVE' && hasArt(p) && new Date(p.validFrom).getTime() <= now)
+}
+
+/** Call ONCE per page (it watches the location while the adaptive card is on) and pass the result down. */
+export function useNearby(permits: Permit[], passes: Pass[]): Nearby {
+  const { on, demo } = useAdaptiveSettings()
   const [pos, setPos] = useState<{ lat: number; lng: number } | null>(null)
   const [gps, setGps] = useState<GpsState>('off')
 
   useEffect(() => {
-    if (!on || demoPermitId !== null) { setGps('off'); return }
+    if (!on || demo !== null) { setGps('off'); return }
     if (!('geolocation' in navigator)) { setGps('unsupported'); return }
     setGps('asking')
     const id = navigator.geolocation.watchPosition(
@@ -67,23 +78,29 @@ export function useNearestPlace(candidates: Permit[]) {
       { enableHighAccuracy: false, maximumAge: 60_000, timeout: 20_000 },
     )
     return () => navigator.geolocation.clearWatch(id)
-  }, [on, demoPermitId])
+  }, [on, demo])
 
-  const nearest = useMemo<Nearest | null>(() => {
-    if (!on) return null
-    if (demoPermitId !== null) {
-      const p = candidates.find((c) => c.id === demoPermitId)
-      return p ? { permit: p, meters: null, demo: true } : null
+  return useMemo(() => {
+    const places: Here[] = [
+      ...permits.map((p): Here => ({ kind: 'permit', key: 'permit:' + p.id, name: p.siteName, permit: p, meters: null, demo: false })),
+      ...passes.map((p): Here => ({ kind: 'pass', key: 'pass:' + p.id, name: p.placeName || p.name, pass: p, meters: null, demo: false })),
+    ]
+    const at = (h: Here): [number, number] | null => {
+      const [lat, lng] = h.kind === 'permit' ? [h.permit.siteLatitude, h.permit.siteLongitude] : [h.pass.latitude, h.pass.longitude]
+      return lat == null || lng == null ? null : [lat, lng]
     }
-    if (!pos) return null
-    let best: Nearest | null = null
-    for (const p of candidates) {
-      if (p.siteLatitude == null || p.siteLongitude == null) continue
-      const d = meters(pos.lat, pos.lng, p.siteLatitude, p.siteLongitude)
-      if (d <= NEAR_METERS && (!best || d < (best.meters ?? Infinity))) best = { permit: p, meters: Math.round(d), demo: false }
+    let here: Here | null = null
+    if (on && demo !== null) {
+      const d = places.find((h) => h.key === demo)
+      here = d ? { ...d, demo: true } : null
+    } else if (on && pos) {
+      for (const h of places) {
+        const c = at(h)
+        if (!c) continue
+        const m = Math.round(meters(pos.lat, pos.lng, c[0], c[1]))
+        if (m <= NEAR_METERS && (!here || m < (here.meters ?? Infinity))) here = { ...h, meters: m }
+      }
     }
-    return best
-  }, [on, demoPermitId, pos, candidates])
-
-  return { on, gps, nearest }
+    return { on, gps, here, places }
+  }, [on, demo, pos, gps, permits, passes])
 }

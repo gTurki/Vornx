@@ -12,7 +12,7 @@ server {
     index index.html;
     server_tokens off;
     gzip on;
-    gzip_types text/css application/javascript application/json image/svg+xml;
+    gzip_types text/css application/javascript application/json image/svg+xml application/wasm;
 
     # Built files have a content hash in their name (index-BBPotw-t.js): cache them for a year.
     location /assets/ {

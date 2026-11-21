@@ -298,12 +298,6 @@ a.tile:hover .ic,button.tile:hover .ic{transform:scale(1.08) rotate(-4deg)}
 .pcard .pc-badge.later::before{background:#f0b429}
 .pcard-wrap{max-width:420px}
 .pcard-wrap::before{opacity:.6}
-/* home: swipe through your cards */
-.pstrip{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;padding:6px 2px 18px;margin:0 -2px;scrollbar-width:none;overscroll-behavior-x:contain}
-.pstrip::-webkit-scrollbar{display:none}
-.pstrip>*{flex:0 0 min(78%,320px);scroll-snap-align:center}
-.pstrip .vwrap{max-width:none}
-.pstrip>*{animation:vin .5s cubic-bezier(.2,.8,.2,1) both}.pstrip>*:nth-child(2){animation-delay:.07s}.pstrip>*:nth-child(3){animation-delay:.14s}.pstrip>*:nth-child(n+4){animation-delay:.2s}
 .permit-art{margin:0 0 14px}
 
 /* "حسابي": sign out */
@@ -374,3 +368,37 @@ html{background:var(--bg)}
 .sw{flex-shrink:0;width:50px;height:30px;border-radius:99px;border:0;background:var(--ln);position:relative;padding:0;transition:background .25s}
 .sw i{position:absolute;top:3px;inset-inline-start:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.25);transition:inset-inline-start .25s cubic-bezier(.2,.8,.2,1)}
 .sw.on{background:linear-gradient(135deg,var(--pr),var(--vi))}.sw.on i{inset-inline-start:23px}
+
+/* under the card: the code of the place you're at (a card added by scanning). --pc = that card's color */
+.code-panel{margin-top:14px;background:var(--sf);border:1px solid var(--ln);border-radius:20px;padding:14px 16px 12px;box-shadow:var(--shadow);
+  position:relative;overflow:hidden;display:flex;flex-direction:column;gap:10px;align-items:stretch;text-align:center;width:100%;color:inherit}
+.code-panel::before{content:"";position:absolute;inset:0 0 auto;height:5px;background:var(--pc,var(--pr))}
+.code-head{display:flex;align-items:center;gap:8px;justify-content:center}
+.code-head .dot{width:10px;height:10px;border-radius:50%;background:var(--pc,var(--pr))}
+.code-head b{font-size:15px}
+.code-img{align-self:center;margin:0 auto;background:#fff;border-radius:14px;padding:10px;line-height:0;width:min(220px,70%)}
+.code-img.linear{width:min(320px,92%)}
+.code-img>span{display:block}.code-img svg{width:100%;height:auto;display:block;margin:0 auto}
+.code-img code{line-height:1.6;word-break:break-all}
+.code-wait{display:block;aspect-ratio:1;background:repeating-linear-gradient(90deg,#eef1f8 0 10px,#f7f8fc 10px 20px);border-radius:8px;animation:s3p 1.2s ease-in-out infinite}
+.code-img.linear .code-wait{aspect-ratio:3}
+.code-num{font:600 16px Montserrat,sans-serif;letter-spacing:1px;direction:ltr}
+.code-pick{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px;justify-content:flex-start}
+.code-pick::-webkit-scrollbar{display:none}
+.code-pick button{flex-shrink:0;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--ln);background:var(--sf);border-radius:99px;padding:5px 12px;font-size:12.5px;font-weight:600;color:var(--mu);transition:border-color .2s,color .2s}
+.code-pick button i{width:8px;height:8px;border-radius:50%;background:var(--pc)}
+.code-pick button.on{border-color:var(--pc);color:var(--tx)}
+.code-pick .add{width:32px;justify-content:center;padding:0;font-size:18px;color:var(--pr)}
+.code-panel.empty{flex-direction:row;align-items:center;gap:14px;text-align:start;cursor:pointer;border-style:dashed}
+.code-panel.empty::before{display:none}
+.code-panel.empty .plus{flex-shrink:0;width:44px;height:44px;border-radius:14px;background:var(--soft);color:var(--pr);display:grid;place-items:center;font-size:24px}
+.code-panel.empty:hover{border-color:var(--pr)}
+/* the camera scanner */
+.cam{position:relative;border-radius:18px;overflow:hidden;background:#000;aspect-ratio:3/4;max-height:56vh}
+.cam video{width:100%;height:100%;object-fit:cover;display:block}
+.cam-frame{position:absolute;inset:22% 14%;border:3px solid rgba(255,255,255,.9);border-radius:18px;box-shadow:0 0 0 999px rgba(0,0,0,.35)}
+/* colors */
+.swatches{display:flex;gap:8px;flex-wrap:wrap}
+.swatches button{width:30px;height:30px;border-radius:50%;border:2px solid var(--ln);padding:0;cursor:pointer}
+.swatches button.on{outline:3px solid var(--pr);outline-offset:2px}
+.pass-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;display:inline-block}

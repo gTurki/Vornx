@@ -9,6 +9,8 @@ import { ConfirmButton, Kv, Loading, Num, Tag } from '../ui/bits'
 import { useToast } from '../ui/Toast'
 import { mainCard, useCards, VCard } from '../ui/VCard'
 import { CARD_SKINS, setCardSkin, useCardSkin } from '../ui/cardSkin'
+import { AddPassSheet } from '../ui/AddPassSheet'
+import type { Pass, PassRequest } from '../api/types'
 import { tr } from '../i18n'
 
 /** "بطاقتي": the card itself, its details, loyalty level, and "I lost my card". */
@@ -80,6 +82,7 @@ export function CardPage() {
             {tier?.next ? <>{tr('باقي')}{' '}<Num>{(tier.next - (p?.points ?? 0)).toLocaleString('en-US')}</Num>{' '}{tr('نقطة للمستوى التالي.')}</> : tr('أعلى مستوى. شكرًا لك!')}
           </p>
         </div>
+        <AddedCards />
       </section>
     </div>
   )
@@ -101,5 +104,59 @@ function SkinPicker() {
       </div>
       <small className="mu">{skin.name}</small>
     </div>
+  )
+}
+
+/**
+ * "البطاقات المضافة": the loyalty cards / memberships / tickets added by scanning. Not shown as cards (VORNX is ONE card):
+ * a plain list to set where each is used (so its code shows there by itself), or remove it.
+ */
+function AddedCards() {
+  const qc = useQueryClient()
+  const toast = useToast()
+  const passes = useQuery({ queryKey: ['passes'], queryFn: endpoints.passes })
+  const [adding, setAdding] = useState(false)
+  const [locating, setLocating] = useState<number | null>(null)
+  const refresh = () => qc.invalidateQueries({ queryKey: ['passes'] })
+  const fail = (e: unknown) => toast(e instanceof ApiError ? e.message : tr('تعذّر الحفظ'), true)
+
+  const body = (p: Pass, lat: number | null, lng: number | null): PassRequest => ({
+    name: p.name, code: p.code, format: p.format, shownNumber: p.shownNumber, color: p.color,
+    placeName: lat === null ? null : p.placeName || p.name, latitude: lat, longitude: lng,
+  })
+  function setHere(p: Pass) {
+    setLocating(p.id)
+    navigator.geolocation.getCurrentPosition(
+      (pos) => endpoints.updatePass(p.id, body(p, pos.coords.latitude, pos.coords.longitude))
+        .then(() => { refresh(); toast(tr('سيظهر رمز {0} تلقائيًا هنا', { 0: p.name })) }, fail).finally(() => setLocating(null)),
+      () => { setLocating(null); toast(tr('لم نتمكن من تحديد موقعك.'), true) },
+      { enableHighAccuracy: true, timeout: 15_000 },
+    )
+  }
+
+  return (
+    <>
+      <h2 className="section">{tr('البطاقات المضافة')}</h2>
+      <div className="panel">
+        {passes.isLoading && <Loading />}
+        {passes.data?.length === 0 && <p className="mu" style={{ margin: 0 }}>{tr('لم تضف بطاقات بعد. امسح بطاقة ولاء أو عضوية، ويظهر رمزها تحت بطاقتك في الرئيسية.')}</p>}
+        {passes.data?.map((p) => (
+          <div className="li" key={p.id}>
+            <span className="ent" style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+              <i className="pass-dot" style={{ background: p.color }} aria-hidden="true" />
+              <span><b>{p.name}</b><small>{p.latitude != null ? '📍 ' + (p.placeName ?? tr('مكان محفوظ')) : tr('بدون موقع')}</small></span>
+            </span>
+            <span className="row-actions" style={{ display: 'flex', gap: 6 }}>
+              {p.latitude != null
+                ? <button className="btn gh sm" onClick={() => endpoints.updatePass(p.id, body(p, null, null)).then(refresh, fail)}>{tr('إزالة الموقع')}</button>
+                : <button className="btn gh sm" disabled={locating === p.id} onClick={() => setHere(p)}>{locating === p.id ? '…' : tr('هنا')}</button>}
+              <ConfirmButton className="btn gh sm" onConfirm={() => endpoints.removePass(p.id).then(() => { refresh(); toast(tr('حُذفت البطاقة')) }, fail)}>{tr('حذف')}</ConfirmButton>
+            </span>
+          </div>
+        ))}
+        <div className="form-actions" style={{ marginTop: 10 }}><button className="btn sm" onClick={() => setAdding(true)}>+ {tr('إضافة بطاقة')}</button></div>
+      </div>
+      <AddPassSheet open={adding} onClose={() => setAdding(false)} />
+    </>
   )
 }

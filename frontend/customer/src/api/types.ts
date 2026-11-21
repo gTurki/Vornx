@@ -538,3 +538,18 @@ export type TopUp = {
 }
 
 export type TopUpOptions = { cardEnabled: boolean; testMode: boolean; simulatedEnabled: boolean; min: number; max: number }
+
+/** A card the customer added by scanning it (GET /api/customer/passes). */
+export type Pass = {
+  id: number
+  name: string
+  code: string
+  format: import('../lib/barcode').PassFormat
+  shownNumber: string | null
+  color: string
+  placeName: string | null
+  latitude: number | null
+  longitude: number | null
+  createdAt: string
+}
+export type PassRequest = Omit<Pass, 'id' | 'createdAt'>

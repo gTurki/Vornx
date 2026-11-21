@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { endpoints } from '../api/endpoints'
@@ -8,8 +9,10 @@ import { PERMIT_ICON, PERMIT_STATUS, PERMIT_TYPE, REQUEST_STATUS, TICKET_STATE }
 import { Empty, Num, Tag } from '../ui/bits'
 import { Icon } from '../ui/Icon'
 import { mainCard, useCards } from '../ui/VCard'
-import { AdaptiveCard, AdaptivePanel } from '../ui/AdaptiveCard'
-import { hasPlaceArt, PlaceCard } from '../ui/PlaceCard'
+import { AdaptiveCard, AdaptivePanel, CodePanel } from '../ui/AdaptiveCard'
+import { AddPassSheet } from '../ui/AddPassSheet'
+import { hasPlaceArt } from '../ui/PlaceCard'
+import { useNearby, usablePermits } from '../lib/nearby'
 import { tr } from '../i18n'
 
 /** "الرئيسية": the card, quick access to every active permit, and what's coming up. */
@@ -20,6 +23,10 @@ export function HomePage() {
   const wallet = useQuery({ queryKey: ['wallet'], queryFn: endpoints.wallet })
   const tickets = useQuery({ queryKey: ['tickets'], queryFn: endpoints.tickets })
   const requests = useQuery({ queryKey: ['requests'], queryFn: endpoints.requests })
+  const passes = useQuery({ queryKey: ['passes'], queryFn: endpoints.passes })
+  const [adding, setAdding] = useState(false)
+  // where am I? (only while the adaptive card is on; computed on the phone)
+  const nearby = useNearby(usablePermits(permits.data ?? [], (p) => hasPlaceArt(p.type)), passes.data ?? [])
 
   const usable = (permits.data ?? []).filter((p) => p.status === 'ACTIVE' || p.status === 'PENDING')
   const expiringSoon = usable.filter((p) => new Date(p.validUntil).getTime() - Date.now() < 3 * 86400_000)
@@ -32,20 +39,11 @@ export function HomePage() {
         <p className="mu" style={{ marginTop: 0 }}>
           <Num>{usable.length}</Num>{' '}{tr('خدمات فعّالة')}{expiringSoon.length > 0 && <> · <Num>{expiringSoon.length}</Num>{' '}{tr('تنتهي قريبًا')}</>}
         </p>
-        {/* one card that becomes the card of the place you're at */}
-        <AdaptiveCard card={mainCard(cards.data)} name={`${me?.firstName} ${me?.lastName}`} permits={permits.data ?? []} />
-        <AdaptivePanel permits={permits.data ?? []} />
-        {/* your keys and memberships as their own 3D cards: swipe through them */}
-        {usable.some((p) => hasPlaceArt(p.type)) && (
-          <>
-            <h2 className="section" style={{ marginBottom: 6 }}>{tr('بطاقاتك')}</h2>
-            <div className="pstrip">
-              {usable.filter((p) => hasPlaceArt(p.type)).map((p) => (
-                <Link key={p.id} to="/permits" style={{ display: 'block' }} aria-label={p.siteName}><PlaceCard permit={p} /></Link>
-              ))}
-            </div>
-          </>
-        )}
+        {/* ONE card: it becomes the card of the place you're at, and the code under it is that place's */}
+        <AdaptiveCard card={mainCard(cards.data)} name={`${me?.firstName} ${me?.lastName}`} nearby={nearby} />
+        <CodePanel passes={passes.data ?? []} nearby={nearby} onAdd={() => setAdding(true)} />
+        <AdaptivePanel nearby={nearby} />
+        <AddPassSheet open={adding} onClose={() => setAdding(false)} />
         {cards.data && cards.data.length === 0 && (
           <p className="mu">{tr('لم تُصدر بطاقتك بعد. يمكنك فتح الأبواب من جوالك في صفحة التصاريح.')}</p>
         )}

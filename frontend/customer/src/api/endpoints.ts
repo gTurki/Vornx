@@ -1,7 +1,7 @@
 import { api } from './client'
 import type {
   AccessDecision, AccessEvent, AppNotification, AuthResponse, Card, LoginChallenge, Customer, EventTicket, Page, Permit, Plan,
-  Passkey, PasskeyOptions, RegisterRequest, ReminderOption, ServiceRequest, Session, Subscription, TopUp, TopUpOptions, TotpSetup, TotpStatus, VEvent, Wallet,
+  Pass, PassRequest, Passkey, PasskeyOptions, RegisterRequest, ReminderOption, ServiceRequest, Session, Subscription, TopUp, TopUpOptions, TotpSetup, TotpStatus, VEvent, Wallet,
   WalletTransaction,
 } from './types'
 
@@ -64,6 +64,12 @@ export const endpoints = {
   reportLost: (id: number) => api<Card>(`${C}/cards/${id}/report-lost`, { method: 'POST' }),
 
   // ---------- permits & doors ----------
+  // ---------- cards added by scanning ----------
+  passes: () => api<Pass[]>(C + '/passes'),
+  addPass: (body: PassRequest) => api<Pass>(C + '/passes', { method: 'POST', body }),
+  updatePass: (id: number, body: PassRequest) => api<Pass>(C + '/passes/' + id, { method: 'PUT', body }),
+  removePass: (id: number) => api<void>(C + '/passes/' + id, { method: 'DELETE' }),
+
   permits: () => api<Permit[]>(`${C}/permits`),
   openDoor: (accessPointId: number) =>
     api<AccessDecision>(`${C}/access-points/${accessPointId}/open?direction=ENTRY`, { method: 'POST' }),
