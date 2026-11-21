@@ -2,6 +2,7 @@ import type { Permit, PermitType } from '../api/types'
 import { PERMIT_TYPE } from '../lib/labels'
 import { tr } from '../i18n'
 import { useTilt } from './VCard'
+import { CodeSvg } from './CodeSvg'
 
 /** The 3D card picture for each kind of place (from the VORNX design). HOME and CAR have none yet: the main card is used. */
 const ART: Partial<Record<PermitType, string>> = {
@@ -25,8 +26,10 @@ function cardDate(iso: string) {
 /**
  * A key / membership / pass drawn as its own VORNX card (hotel, club, parking...), with the same 3D tilt and light
  * as the main card. The expiry is printed where the card says "Valid Until"; a small badge names the place.
+ * A white panel with a real barcode (the permit's verification code) sits where the picture has a chip:
+ * these are access cards, not bank cards. `barcode` = what to encode when there is no permit (the pay card).
  */
-export function PlaceCard({ permit, art }: { permit?: Permit; art?: 'pay' }) {
+export function PlaceCard({ permit, art, barcode }: { permit?: Permit; art?: 'pay'; barcode?: string }) {
   const tilt = useTilt<HTMLDivElement>()
   const key = art ?? (permit ? ART[permit.type] : undefined)
   if (!key) return null
@@ -39,6 +42,11 @@ export function PlaceCard({ permit, art }: { permit?: Permit; art?: 'pay' }) {
       <div ref={tilt} className={`vcard pcard${permit && permit.status !== 'ACTIVE' && permit.status !== 'PENDING' ? ' off' : ''}`}
            role="img" aria-label={permit ? tr('{0}، صالحة حتى {1}', { 0: label, 1: cardDate(permit.validUntil) }) : label}>
         <img src={`/cards/${key}.webp`} alt="" draggable={false} loading="lazy" />
+        {(permit || barcode) && (
+          <span className="pc-bar" aria-hidden="true">
+            <CodeSvg code={permit ? permit.verificationCode || permit.permitNumber : barcode!} format="CODE_128" />
+          </span>
+        )}
         {permit && <span className="pc-exp" style={{ right: `${right}%`, top: `${top}%` }}>{cardDate(permit.validUntil)}</span>}
         {permit && <span className={`pc-badge${live ? '' : ' later'}`} dir="auto">{permit.siteName}</span>}
         <span className="vc-shine" aria-hidden="true" />

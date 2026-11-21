@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { ApiError } from '../api/client'
 import { endpoints } from '../api/endpoints'
+import { useAuth } from '../auth/AuthContext'
 import { dateTime, money } from '../lib/format'
 import { TX } from '../lib/labels'
 import { Empty, ErrorBox, Loading, Num, Pager } from '../ui/bits'
@@ -15,6 +16,7 @@ import { IsoHero } from '../ui/IsoHero'
 
 /** "المحفظة": balance, history, top up, and send money to another VORNX customer. */
 export function WalletPage() {
+  const { me } = useAuth()
   const [page, setPage] = useState(0)
   const [sheet, setSheet] = useState<'topup' | 'send' | null>(null)
   const wallet = useQuery({ queryKey: ['wallet'], queryFn: endpoints.wallet })
@@ -36,7 +38,7 @@ export function WalletPage() {
         </div>
         {wallet.error && <ErrorBox error={wallet.error} />}
         {/* pay with the same VORNX card, tap & go */}
-        <div style={{ marginTop: 22 }}><PlaceCard art="pay" /></div>
+        <div style={{ marginTop: 22 }}><PlaceCard art="pay" barcode={me?.vornxId} /></div>
       </section>
 
       <section>

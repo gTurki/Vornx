@@ -64,7 +64,8 @@ export async function drawCode(code: string, format: PassFormat): Promise<string
     const w = /\swidth="([\d.]+)"/.exec(attrs)?.[1], h = /\sheight="([\d.]+)"/.exec(attrs)?.[1]
     let a = attrs.replace(/\s(width|height)="[^"]*"/g, '')
     if (w && h && !/viewBox=/.test(a)) a += ` viewBox="0 0 ${w} ${h}"`
-    return `<svg${a} preserveAspectRatio="xMidYMid meet">`
+    // barcodes may stretch to fill their box (bars just get taller); 2-D codes keep their square shape
+    return `<svg${a} preserveAspectRatio="${isLinear(format) ? 'none' : 'xMidYMid meet'}">`
   })
 }
 

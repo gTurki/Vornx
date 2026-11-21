@@ -4,6 +4,7 @@ import { endpoints } from '../api/endpoints'
 import type { Card } from '../api/types'
 import { tr } from '../i18n'
 import { useCardSkin } from './cardSkin'
+import { CodeSvg } from './CodeSvg'
 
 /** The customer's cards. The newest active one is "the" card. */
 export function useCards() {
@@ -128,6 +129,7 @@ export function VCard({ card, name, reveal, vornxId, flippable }: {
               <small>VORNX ID</small>
               <div className="vid">{vornxId ?? '—'}</div>
             </div>
+            {vornxId && <span className="vb-bar"><CodeSvg code={vornxId} format="CODE_128" /></span>}
             <small dir="rtl" style={{ textAlign: 'right' }}>
               {tr('هذه البطاقة شخصية. إذا وجدتها، سلّمها لأقرب جهة شريكة أو تواصل مع VORNX.')}
             </small>
