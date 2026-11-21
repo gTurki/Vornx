@@ -26,6 +26,9 @@ public record PermitResponse(
         String partnerName,
         Long siteId,
         String siteName,
+        /** Where the site is (may be null): the customer app shows the card of the nearest place, worked out on the phone. */
+        Double siteLatitude,
+        Double siteLongitude,
         boolean wholeSite,
         List<AccessPointRef> accessPoints,
         Instant validFrom,
@@ -47,7 +50,7 @@ public record PermitResponse(
                 p.effectiveStatus(now),
                 p.getCustomer().getVornxId(), p.getCustomer().getFirstName() + " " + p.getCustomer().getLastName(),
                 p.getPartner().getId(), p.getPartner().getName(),
-                p.getSite().getId(), p.getSite().getName(),
+                p.getSite().getId(), p.getSite().getName(), p.getSite().getLatitude(), p.getSite().getLongitude(),
                 p.coversWholeSite(), aps,
                 p.getValidFrom(), p.getValidUntil(),
                 new TreeSet<>(p.getAllowedDays()), p.getAllowedFrom(), p.getAllowedTo(), p.getConditions());

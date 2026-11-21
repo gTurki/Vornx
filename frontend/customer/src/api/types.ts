@@ -129,6 +129,9 @@ export type Permit = {
   partnerName: string
   siteId: number
   siteName: string
+  /** where the site is (null if the partner did not set it): used to show the nearest place's card */
+  siteLatitude: number | null
+  siteLongitude: number | null
   wholeSite: boolean
   accessPoints: { id: number; code: string; name: string }[]
   validFrom: string

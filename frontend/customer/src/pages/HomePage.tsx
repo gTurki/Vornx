@@ -7,7 +7,8 @@ import { dateTime, money } from '../lib/format'
 import { PERMIT_ICON, PERMIT_STATUS, PERMIT_TYPE, REQUEST_STATUS, TICKET_STATE } from '../lib/labels'
 import { Empty, Num, Tag } from '../ui/bits'
 import { Icon } from '../ui/Icon'
-import { mainCard, useCards, VCard } from '../ui/VCard'
+import { mainCard, useCards } from '../ui/VCard'
+import { AdaptiveCard, AdaptivePanel } from '../ui/AdaptiveCard'
 import { hasPlaceArt, PlaceCard } from '../ui/PlaceCard'
 import { tr } from '../i18n'
 
@@ -31,9 +32,9 @@ export function HomePage() {
         <p className="mu" style={{ marginTop: 0 }}>
           <Num>{usable.length}</Num>{' '}{tr('خدمات فعّالة')}{expiringSoon.length > 0 && <> · <Num>{expiringSoon.length}</Num>{' '}{tr('تنتهي قريبًا')}</>}
         </p>
-        <Link to="/card" style={{ display: 'block', textDecoration: 'none' }}>
-          <VCard card={mainCard(cards.data)} name={`${me?.firstName} ${me?.lastName}`} />
-        </Link>
+        {/* one card that becomes the card of the place you're at */}
+        <AdaptiveCard card={mainCard(cards.data)} name={`${me?.firstName} ${me?.lastName}`} permits={permits.data ?? []} />
+        <AdaptivePanel permits={permits.data ?? []} />
         {/* your keys and memberships as their own 3D cards: swipe through them */}
         {usable.some((p) => hasPlaceArt(p.type)) && (
           <>

@@ -360,3 +360,17 @@ html{background:var(--bg)}
 @keyframes s3s{0%{opacity:.9;transform:scale(.6)}100%{opacity:0;transform:scale(1.25)}}
 @keyframes s3t{50%{opacity:.15}}
 @media(max-width:860px){.s3{border-radius:18px;margin-bottom:16px}}
+
+/* the adaptive card: the place card swaps in, a "near you" chip, and the switch panel */
+.swapin{animation:cswp .45s cubic-bezier(.2,.8,.2,1)}
+@keyframes cswp{0%{opacity:.25;transform:scale(.97)}100%{opacity:1;transform:none}}
+.near-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.near-chip{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--ln);background:var(--sf);color:var(--tx);border-radius:99px;padding:5px 12px;font-size:12.5px;font-weight:600;margin-bottom:10px}
+.near-row .near-chip{margin:0}
+.near-chip.on{border-color:color-mix(in srgb,var(--ok) 40%,var(--ln));background:color-mix(in srgb,var(--ok) 10%,var(--sf))}
+.adapt{margin-top:16px;display:flex;flex-direction:column;gap:10px}
+.adapt-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.adapt-status{margin:0;font-size:13px;color:var(--mu)}.adapt-status.ok{color:var(--ok);font-weight:600}
+.sw{flex-shrink:0;width:50px;height:30px;border-radius:99px;border:0;background:var(--ln);position:relative;padding:0;transition:background .25s}
+.sw i{position:absolute;top:3px;inset-inline-start:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.25);transition:inset-inline-start .25s cubic-bezier(.2,.8,.2,1)}
+.sw.on{background:linear-gradient(135deg,var(--pr),var(--vi))}.sw.on i{inset-inline-start:23px}
