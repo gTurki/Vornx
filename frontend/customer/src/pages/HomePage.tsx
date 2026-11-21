@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { endpoints } from '../api/endpoints'
@@ -10,6 +10,7 @@ import { Empty, Num, Tag } from '../ui/bits'
 import { Icon } from '../ui/Icon'
 import { mainCard, useCards } from '../ui/VCard'
 import { AdaptiveCard, AdaptivePanel, CodePanel } from '../ui/AdaptiveCard'
+import { CodeWheel, type WheelItem } from '../ui/CodeWheel'
 import { AddPassSheet } from '../ui/AddPassSheet'
 import { hasPlaceArt } from '../ui/PlaceCard'
 import { useNearby, usablePermits } from '../lib/nearby'
@@ -25,8 +26,17 @@ export function HomePage() {
   const requests = useQuery({ queryKey: ['requests'], queryFn: endpoints.requests })
   const passes = useQuery({ queryKey: ['passes'], queryFn: endpoints.passes })
   const [adding, setAdding] = useState(false)
+  const [wheel, setWheel] = useState(false)
+  const [picked, setPicked] = useState<number | null>(null) // a code chosen from the wheel
   // where am I? (only while the adaptive card is on; computed on the phone)
   const nearby = useNearby(usablePermits(permits.data ?? [], (p) => hasPlaceArt(p.type)), passes.data ?? [])
+  // arriving at a place brings its own code up (instead of the one picked earlier)
+  const hereKey = nearby.here?.key
+  useEffect(() => { setPicked(null) }, [hereKey])
+  const wheelItems: WheelItem[] = [
+    ...(passes.data ?? []).map((p): WheelItem => ({ key: 'pass:' + p.id, name: p.name, sub: p.placeName ?? p.shownNumber ?? '', color: p.color, kind: 'pass' })),
+    { key: 'add', name: tr('إضافة بطاقة'), sub: tr('امسح بطاقة جديدة'), color: '#2250F5', kind: 'add' },
+  ]
 
   const usable = (permits.data ?? []).filter((p) => p.status === 'ACTIVE' || p.status === 'PENDING')
   const expiringSoon = usable.filter((p) => new Date(p.validUntil).getTime() - Date.now() < 3 * 86400_000)
@@ -40,8 +50,13 @@ export function HomePage() {
           <Num>{usable.length}</Num>{' '}{tr('خدمات فعّالة')}{expiringSoon.length > 0 && <> · <Num>{expiringSoon.length}</Num>{' '}{tr('تنتهي قريبًا')}</>}
         </p>
         {/* ONE card: it becomes the card of the place you're at, and the code under it is that place's */}
-        <AdaptiveCard card={mainCard(cards.data)} name={`${me?.firstName} ${me?.lastName}`} nearby={nearby} />
-        <CodePanel passes={passes.data ?? []} nearby={nearby} onAdd={() => setAdding(true)} />
+        <AdaptiveCard card={mainCard(cards.data)} name={`${me?.firstName} ${me?.lastName}`} nearby={nearby} onHold={() => setWheel(true)} />
+        <CodePanel passes={passes.data ?? []} nearby={nearby} picked={picked} onClear={() => setPicked(null)} />
+        <p className="hold-hint">{tr('اضغط مطولًا على البطاقة لاختيار رمز')}</p>
+        {wheel && (
+          <CodeWheel startDrag items={wheelItems} onClose={() => setWheel(false)}
+                     onPick={(k) => { setWheel(false); if (k === 'add') setAdding(true); else setPicked(Number(k.split(':')[1])) }} />
+        )}
         <AdaptivePanel nearby={nearby} />
         <AddPassSheet open={adding} onClose={() => setAdding(false)} />
         {cards.data && cards.data.length === 0 && (

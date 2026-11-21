@@ -539,4 +539,10 @@ export const EN: Record<string, string> = {
   "هنا": "Here",
   "حُذفت البطاقة": "Card removed",
   "حذف": "Delete",
+  // the code wheel
+  "اختر الرمز": "Choose a code",
+  "اسحب إلى بطاقة ثم ارفع إصبعك": "Slide to a card, then lift your finger",
+  "إخفاء الرمز": "Hide the code",
+  "اضغط مطولًا على البطاقة لاختيار رمز": "Press and hold the card to choose a code",
+  "امسح بطاقة جديدة": "Scan a new card",
 }

@@ -413,3 +413,32 @@ html{background:var(--bg)}
 /* the back of the VORNX card: a barcode of the VORNX ID */
 .vback .vb-bar{display:block;background:#fff;border-radius:8px;padding:6px 10px;height:16%;width:62%}
 .vback .vb-bar>span{display:block;width:100%;height:100%}.vback .vb-bar svg{width:100%;height:100%;display:block}
+
+/* ===== the code wheel (press and hold the card) ===== */
+.holdable{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.hold-hint{margin:10px 0 0;text-align:center;font-size:12px;color:var(--mu)}
+.wheel-scrim{position:fixed;inset:0;z-index:80;display:grid;place-items:center;touch-action:none;
+  background:radial-gradient(circle at 50% 50%,rgba(16,24,60,.45),rgba(3,6,18,.78));
+  -webkit-backdrop-filter:blur(14px) saturate(140%);backdrop-filter:blur(14px) saturate(140%);animation:wfade .2s ease-out}
+.wheel{position:relative;width:min(92vw,410px);aspect-ratio:1;animation:wpop .42s cubic-bezier(.2,1.25,.35,1)}
+.wheel-svg{width:100%;height:100%;display:block;overflow:visible;filter:drop-shadow(0 24px 48px rgba(0,0,0,.5))}
+.wseg{cursor:pointer;transition:transform .2s cubic-bezier(.2,.9,.25,1.2);animation:wseg .36s cubic-bezier(.2,.9,.3,1) both;animation-delay:calc(var(--i) * 28ms)}
+.wseg path{transition:fill .18s,fill-opacity .18s,stroke .18s}
+.wseg-t{fill:#fff;font:600 11px 'IBM Plex Sans Arabic',system-ui,sans-serif;paint-order:stroke;stroke:rgba(0,0,0,.35);stroke-width:2px}
+.wseg.on .wseg-t{font-weight:700}
+.wheel-mid{position:absolute;inset:0;margin:auto;width:39%;height:39%;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2px;text-align:center;color:#fff;pointer-events:none;padding:8px}
+.wheel-mid b{font-size:15px;line-height:1.3;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wheel-mid small{font-size:11px;opacity:.75;line-height:1.35;max-width:100%}
+.wheel-pages{display:flex;align-items:center;gap:8px;margin-top:4px;pointer-events:auto}
+.wheel-pages button{width:26px;height:26px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.08);color:#fff;font-size:17px;line-height:1;padding:0}
+.wheel-pages .num{font-size:12px}
+@keyframes wfade{from{opacity:0}}
+@keyframes wpop{from{opacity:0;transform:scale(.78) rotate(-8deg)}}
+@keyframes wseg{from{opacity:0}}
+/* the code under the card rises in when it's needed */
+.code-panel.rise{animation:vin .4s cubic-bezier(.2,.8,.2,1)}
+.code-head{position:relative}
+.code-x{position:absolute;inset-inline-end:0;top:50%;transform:translateY(-50%);width:28px;height:28px;border-radius:50%;border:1px solid var(--ln);background:var(--sf);color:var(--mu);font-size:17px;line-height:1;padding:0}
+.code-x:hover{color:var(--tx);border-color:var(--pr)}
+@media(prefers-reduced-motion:reduce){.wheel,.wheel-scrim,.wseg{animation:none}}

@@ -6,15 +6,20 @@ import { NEAR_METERS, useAdaptiveSettings, type Nearby } from '../lib/nearby'
 import { tr } from '../i18n'
 import { PlaceCard } from './PlaceCard'
 import { VCard } from './VCard'
+import { useLongPress } from './CodeWheel'
 
 /**
  * The ONE card on the home page. At a place with a key / membership it becomes that place's card
  * (the gym's card at the gym...); everywhere else it is the VORNX card.
+ * Press and hold it: the code wheel opens (onHold), to show any of your added cards' codes.
  */
-export function AdaptiveCard({ card, name, nearby }: { card: Card | null; name: string; nearby: Nearby }) {
+export function AdaptiveCard({ card, name, nearby, onHold }: { card: Card | null; name: string; nearby: Nearby; onHold: () => void }) {
   const [showMain, setShowMain] = useState(false)
+  const hold = useLongPress(onHold)
   const here = nearby.here
   const label = here && (here.demo ? tr('وضع العرض: {0}', { 0: here.name }) : tr('قريب منك: {0} · {1} م', { 0: here.name, 1: here.meters ?? 0 }))
+  // a long press must not also open the card page
+  const noClickAfterHold = (e: React.MouseEvent) => { if (hold.fired()) e.preventDefault() }
 
   if (here?.kind === 'permit' && !showMain) {
     const p = here.permit
@@ -25,7 +30,8 @@ export function AdaptiveCard({ card, name, nearby }: { card: Card | null; name: 
           <button className="link" onClick={() => setShowMain(true)}>{tr('بطاقة VORNX')}</button>
         </div>
         {/* keyed by the place: a new place plays the swap animation */}
-        <Link key={p.id} to="/permits" className="swapin" style={{ display: 'block' }} aria-label={p.siteName}><PlaceCard permit={p} /></Link>
+        <Link key={p.id} to="/permits" className="swapin holdable" style={{ display: 'block' }} aria-label={p.siteName}
+              {...hold.props} onClick={noClickAfterHold}><PlaceCard permit={p} /></Link>
       </>
     )
   }
@@ -35,7 +41,9 @@ export function AdaptiveCard({ card, name, nearby }: { card: Card | null; name: 
         <button className="near-chip" onClick={() => setShowMain(false)}>📍 {tr('عرض بطاقة {0}', { 0: here.name })}</button>
       )}
       {here?.kind === 'pass' && <div className="near-row"><span className="near-chip on" role="status"><i className="live" aria-hidden="true" />{label}</span></div>}
-      <Link to="/card" style={{ display: 'block', textDecoration: 'none' }}><VCard card={card} name={name} /></Link>
+      <Link to="/card" className="holdable" style={{ display: 'block', textDecoration: 'none' }} {...hold.props} onClick={noClickAfterHold}>
+        <VCard card={card} name={name} />
+      </Link>
     </>
   )
 }
@@ -58,44 +66,24 @@ export function CodeImage({ pass }: { pass: Pass }) {
 }
 
 /**
- * Under the card: the barcode of the place you're at (a card you added by scanning). Not near any? You pick.
- * Tap "+" to scan a new card.
+ * Under the card: a code shows ONLY when it's needed. Either you're at the place of one of your added cards
+ * (it comes up by itself), or you picked one from the wheel (hold the card). Otherwise: nothing.
  */
-export function CodePanel({ passes, nearby, onAdd }: { passes: Pass[]; nearby: Nearby; onAdd: () => void }) {
-  const [picked, setPicked] = useState<number | null>(null)
+export function CodePanel({ passes, nearby, picked, onClear }: { passes: Pass[]; nearby: Nearby; picked: number | null; onClear: () => void }) {
   const auto = nearby.here?.kind === 'pass' ? nearby.here.pass : null
-  // arriving at a new place brings its code up; tapping a chip still lets you show another one
-  useEffect(() => { setPicked(null) }, [auto?.id])
-  const shown = passes.find((p) => p.id === picked) ?? auto ?? passes[0] ?? null
-
-  if (!shown) {
-    return (
-      <button className="code-panel empty" onClick={onAdd}>
-        <span className="plus" aria-hidden="true">+</span>
-        <span className="ent"><b>{tr('أضف بطاقاتك إلى VORNX')}</b>
-          <small>{tr('امسح بطاقة ولاء أو عضوية أو تذكرة، ويظهر رمزها هنا تلقائيًا عندما تكون في المكان.')}</small></span>
-      </button>
-    )
-  }
+  const shown = passes.find((p) => p.id === picked) ?? auto
+  if (!shown) return null
+  const isAuto = auto?.id === shown.id && picked === null
   return (
-    <div className="code-panel" style={{ ['--pc' as string]: shown.color }}>
+    <div key={shown.id} className="code-panel rise" style={{ ['--pc' as string]: shown.color }}>
       <div className="code-head">
         <span className="dot" aria-hidden="true" />
         <b>{shown.name}</b>
-        {auto?.id === shown.id && <span className="tag ok">{tr('هنا الآن')}</span>}
+        {isAuto ? <span className="tag ok">{tr('هنا الآن')}</span>
+          : <button className="code-x" onClick={onClear} aria-label={tr('إخفاء الرمز')}>×</button>}
       </div>
-      {/* keyed: switching cards plays the swap */}
-      <div key={shown.id} className="swapin"><CodeImage pass={shown} /></div>
+      <div className="swapin"><CodeImage pass={shown} /></div>
       {shown.shownNumber && <div className="code-num">{shown.shownNumber}</div>}
-      <div className="code-pick" role="tablist" aria-label={tr('بطاقاتك المضافة')}>
-        {passes.map((p) => (
-          <button key={p.id} role="tab" aria-selected={p.id === shown.id} className={p.id === shown.id ? 'on' : ''}
-                  style={{ ['--pc' as string]: p.color }} onClick={() => setPicked(p.id)}>
-            <i aria-hidden="true" />{p.name}
-          </button>
-        ))}
-        <button className="add" onClick={onAdd} aria-label={tr('إضافة بطاقة')}>+</button>
-      </div>
     </div>
   )
 }
