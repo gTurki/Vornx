@@ -6,9 +6,12 @@ const V={"club": {"n": ["Club Access", "وصول النادي"], "m": ["GPS geof
 const IMG={"club": "/img/card-club-31e630c2.webp", "hotel": "/img/card-hotel-bffe9eac.webp", "parking": "/img/card-parking-1a403624.webp", "metro": "/img/card-metro-de16ece2.webp", "company": "/img/card-company-35e2d29a.webp", "event": "/img/card-event-778684e4.webp"};
 const keys=Object.keys(V);let cur='club',open=false,auto=true,vis=false,tm=null,last=0;
 keys.forEach(k=>{const im=new Image();im.src=IMG[k];im.decoding='async';im.hidden=k!==cur;im.dataset.k=k;V[k].el=im;card.appendChild(im)});
+// a barcode panel over the card's chip: access cards, not bank cards (one real Code 128 sample per venue)
+const bar=document.createElement('span');bar.className='vxa-bar';bar.setAttribute('aria-hidden','true');const barImg=new Image();barImg.alt='';barImg.decoding='async';bar.appendChild(barImg);card.appendChild(bar);
+keys.forEach(k=>{const p=new Image();p.src='/img/barcode-'+k+'.svg'});
 const g=a=>a[isAr()?1:0];
 const T={det:['Location detected','تم تحديد الموقع'],via:['via','عبر'],dbl:['double-click to open the card','اضغط ضغطتين لفتح البطاقة']};
-function paint(){keys.forEach(k=>{const v=V[k];v.el.hidden=k!==cur;v.el.alt=g(v.n)});}
+function paint(){keys.forEach(k=>{const v=V[k];v.el.hidden=k!==cur;v.el.alt=g(v.n)});barImg.src='/img/barcode-'+cur+'.svg'}
 function status(){const v=V[cur];st.textContent=g(T.det)+': '+g(v.n)+' · '+g(T.via)+' '+g(v.m)+(open?'':' — '+g(T.dbl))}
 function pressed(){list.querySelectorAll('.vn').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.k===cur)))}
 function render(){paint();status();pressed()}
