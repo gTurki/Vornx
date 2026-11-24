@@ -1,6 +1,6 @@
 (()=>{
-const dev=document.getElementById('adDev');if(!dev)return;
-const $=id=>document.getElementById(id),phone=$('adPhone'),card=$('adCard'),st=$('adSt'),openB=$('adOpen'),list=$('adList');
+const dev=document.getElementById('vxaDev');if(!dev)return;
+const $=id=>document.getElementById(id),phone=$('vxaPhone'),card=$('vxaCard'),st=$('vxaSt'),openB=$('vxaOpen'),list=$('vxaList');
 const isAr=()=>document.documentElement.lang==='ar',reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
 const V={"club": {"n": ["Club Access", "وصول النادي"], "m": ["GPS geofence at the club", "نطاق GPS حول النادي"], "w": 232}, "hotel": {"n": ["Hotel Access", "وصول الفندق"], "m": ["Bluetooth beacon at the lobby", "إشارة Bluetooth عند الاستقبال"], "w": 232}, "parking": {"n": ["Parking Access", "وصول المواقف"], "m": ["Gate reader at the parking entrance", "قارئ عند مدخل المواقف"], "w": 232}, "metro": {"n": ["Metro Access", "وصول المترو"], "m": ["Station gate reader", "قارئ بوابة المحطة"], "w": 268}, "company": {"n": ["Workplace Access", "وصول مكان العمل"], "m": ["Building reader and Wi‑Fi", "قارئ المبنى وشبكة Wi‑Fi"], "w": 268}, "event": {"n": ["Events Access", "وصول الفعاليات"], "m": ["Venue reader at the entrance", "قارئ المكان عند المدخل"], "w": 232}};
 const IMG={"club": "/img/card-club-31e630c2.webp", "hotel": "/img/card-hotel-bffe9eac.webp", "parking": "/img/card-parking-1a403624.webp", "metro": "/img/card-metro-de16ece2.webp", "company": "/img/card-company-35e2d29a.webp", "event": "/img/card-event-778684e4.webp"};
@@ -18,7 +18,7 @@ function select(k,manual){if(manual){auto=false;clearInterval(tm)}if(k===cur&&!m
 function setOpen(o){open=o;dev.classList.toggle('on',o);card.setAttribute('aria-hidden',String(!o));openB.hidden=o;status();if(o)startAuto()}
 function startAuto(){clearInterval(tm);if(!auto||reduce)return;tm=setInterval(()=>{if(!open||!vis||!auto)return;select(keys[(keys.indexOf(cur)+1)%keys.length],false)},4200)}
 phone.addEventListener('click',()=>{const n=Date.now();if(n-last<420){last=0;setOpen(!open)}else last=n});
-$('adSb').addEventListener('click',e=>{e.stopPropagation();const n=Date.now();if(n-last<420){last=0;setOpen(!open)}else last=n});
+$('vxaSb').addEventListener('click',e=>{e.stopPropagation();const n=Date.now();if(n-last<420){last=0;setOpen(!open)}else last=n});
 openB.addEventListener('click',()=>setOpen(true));
 list.addEventListener('click',e=>{const b=e.target.closest('.vn');if(b)select(b.dataset.k,true)});
 function ping(){if(reduce)return;dev.classList.remove('ping');void dev.offsetWidth;dev.classList.add('ping')}
