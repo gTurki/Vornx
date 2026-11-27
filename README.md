@@ -56,8 +56,36 @@
 >
 > Hold the card and a **code wheel** opens, to choose any card you added yourself.
 
+## 📸 Screenshots
+
+<table>
+  <tr>
+    <td align="center" width="33%"><img src="docs/screenshots/app-home.webp" width="240" alt="Home: the VORNX card"><br><sub><b>One card</b><br>the VORNX card on the home screen</sub></td>
+    <td align="center" width="33%"><img src="docs/screenshots/app-adaptive.webp" width="240" alt="The adaptive card at the gym"><br><sub><b>It adapts</b><br>at the gym it becomes the gym card, with its code</sub></td>
+    <td align="center" width="33%"><img src="docs/screenshots/app-wheel.webp" width="240" alt="The code wheel"><br><sub><b>The code wheel</b><br>hold the card, slide to a card, lift</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/screenshots/app-card.webp" width="240" alt="Card skins"><br><sub><b>Card skins</b><br>choose the look of your card</sub></td>
+    <td align="center"><img src="docs/screenshots/app-permits.webp" width="240" alt="Permits"><br><sub><b>Permits</b><br>every door your card opens</sub></td>
+    <td align="center"><img src="docs/screenshots/app-dark.webp" width="240" alt="Dark mode"><br><sub><b>Dark mode</b><br>light and dark, Arabic and English</sub></td>
+  </tr>
+</table>
+
+<p align="center">
+  <img src="docs/screenshots/partner-live.webp" width="820" alt="Partner portal: live door activity"><br>
+  <sub><b>Partner portal</b> · live door activity, updated the moment someone taps a reader</sub>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/admin-home.webp" width="820" alt="Admin dashboard overview"><br>
+  <sub><b>Admin dashboard</b> · partners, revenue and what needs attention</sub>
+</p>
+
+<sub>Screenshots use demo data only.</sub>
+
 ## 📑 Table of Contents
 
+- [Screenshots](#-screenshots)
 - [How It Works](#-how-it-works)
 - [Features](#-features)
 - [The Adaptive Card](#-the-adaptive-card)
