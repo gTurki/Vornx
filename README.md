@@ -1,266 +1,413 @@
-# VORNX — One Card, Connected Access
+<div align="center">
 
-Backend API for VORNX: one card (and phone) that holds many permits — hotel keys, workplace access,
-club memberships, parking, transit, events — plus the wallet, subscriptions and the portals around them.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/brand/logo-light.png">
+  <img src="docs/brand/logo-dark.png" width="300" alt="VORNX logo">
+</picture>
 
-**Stack:** Java 21 · Spring Boot 4 · Spring Security (JWT + refresh tokens, API keys for readers) ·
-Spring Data JPA / Hibernate · Flyway · MySQL 8 / MariaDB · Thymeleaf (emails) · springdoc (Swagger)
+# VORNX · فورنكس
 
-## Portals served by this API
+**One card, connected access.**
+
+### بطاقة واحدة.. لكل مكان
+
+بطاقة واحدة تتحوّل إلى بطاقة المكان الأقرب لك: النادي، الفندق، العمل، الموقف، المترو، والفعاليات
+
+<br>
+
+<a href="https://website-service.up.railway.app"><img src="https://img.shields.io/badge/🌐_Website-Live-2250F5?style=for-the-badge" alt="Website"></a>
+<a href="https://vornx-customer.up.railway.app"><img src="https://img.shields.io/badge/📱_Customer_App-PWA-0B1640?style=for-the-badge" alt="Customer app"></a>
+<a href="https://vornx-partner.up.railway.app"><img src="https://img.shields.io/badge/🏨_Partner_Portal-Live-5B83FF?style=for-the-badge" alt="Partner portal"></a>
+
+<br><br>
+
+![Java](https://img.shields.io/badge/Java-21-ED8B00?logo=openjdk&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.1-6DB33F?logo=springboot&logoColor=white)
+![Spring Security](https://img.shields.io/badge/Spring_Security-JWT-6DB33F?logo=springsecurity&logoColor=white)
+![Hibernate](https://img.shields.io/badge/Hibernate-JPA-59666C?logo=hibernate&logoColor=white)
+![Flyway](https://img.shields.io/badge/Flyway-17_migrations-CC0200?logo=flyway&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-8-4479A1?logo=mysql&logoColor=white)
+<br>
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)
+![PWA](https://img.shields.io/badge/PWA-5A0FC8?logo=pwa&logoColor=white)
+![WebAuthn](https://img.shields.io/badge/Passkeys-Face_ID-000000?logo=apple&logoColor=white)
+![WebSocket](https://img.shields.io/badge/WebSocket-Realtime-010101?logo=socketdotio&logoColor=white)
+<br>
+![Railway](https://img.shields.io/badge/Railway-Deployed-0B0D0E?logo=railway&logoColor=white)
+![Moyasar](https://img.shields.io/badge/Moyasar-Payments-1E5EFF)
+![Brevo](https://img.shields.io/badge/Brevo-Email-0B996E?logo=brevo&logoColor=white)
+![WhatsApp](https://img.shields.io/badge/WhatsApp-UltraMsg-25D366?logo=whatsapp&logoColor=white)
+![Firebase](https://img.shields.io/badge/Firebase-Phone_Auth-FFCA28?logo=firebase&logoColor=black)
+
+<br>
+
+**159 endpoints · 39 controllers · 36 entities · 4 apps + a website · 117 tests**
+
+</div>
+
+---
+
+> Your gym membership, your hotel room key, your office badge, your parking pass, your metro card and your event ticket
+> usually live in six different cards and apps.
+> **VORNX** puts them in **one card**. It isn't a wallet full of cards: you see **one card**, and it **adapts to where you are**.
+> Walk into the gym and it becomes your gym card. Reach the hotel and it is your room key. The code under it changes with you.
+>
+> Hold the card and a **code wheel** opens, to choose any card you added yourself.
+
+## 📑 Table of Contents
+
+- [How It Works](#-how-it-works)
+- [Features](#-features)
+- [The Adaptive Card](#-the-adaptive-card)
+- [Security](#-security)
+- [Integrations](#-integrations)
+- [Architecture](#%EF%B8%8F-architecture)
+- [The Access Decision](#-the-access-decision)
+- [Data Model](#%EF%B8%8F-data-model)
+- [Project Structure](#-project-structure)
+- [Getting Started](#-getting-started)
+- [API Overview](#-api-overview)
+- [Team](#-team)
+
+## 🔁 How It Works
+
+```mermaid
+flowchart LR
+    P[🏢 Partner<br/>hotel · club · company · venue] -- issues a permit --> C[💳 One VORNX card]
+    S[🛒 Customer subscribes<br/>or buys a ticket] --> C
+    C --> L{📍 Where am I?}
+    L -- near the gym --> G[Gym card + its code]
+    L -- near the hotel --> H[Room key + its code]
+    L -- nowhere near --> V[The VORNX card]
+    G --> D[🚪 Reader / lock]
+    H --> D
+    D -- X-API-Key --> API[VORNX API]
+    API -- allow / deny --> D
+    API -. live .-> PP[Partner portal<br/>door activity]
+```
+
+## ✨ Features
+
+### 💳 Customer app (PWA)
+- **One adaptive card**: it becomes the card of the nearest place (500 m), with that place's art and code.
+- **Code wheel**: press and hold the card, slide to a card, lift to show its code. Smooth, with haptics.
+- **Scan to add cards**: add your own loyalty and membership cards with the camera, a screenshot or by typing.
+  Barcodes and QR codes are read **on the phone** (zxing-wasm).
+- **Card skins**: choose the look of your VORNX card.
+- **Permits**: hotel keys, workplace access, club memberships, parking, transit. Open the door from your phone.
+- **Subscriptions and events**: browse plans, subscribe, buy tickets.
+- **Wallet**: top up by card (mada, Visa, Mastercard, Apple Pay through Moyasar), transfer, pay from the balance.
+- **Access log**, devices, lost-card report, **Arabic / English** with full RTL ↔ LTR.
+
+### 🏨 Partner portal
+- **Live door activity**: every tap on every reader, in real time.
+- **Permits and digital keys**, subscription requests, sites and access points, plans, events and tickets.
+- **Team roles**: `PARTNER_ADMIN`, `MANAGER`, `FRONT_DESK`, `VIEWER`. The UI and the API apply the same rules.
+- Contract and invoices, device API keys, support, activity log.
+
+### 🛡️ Admin dashboard
+- **Partners**: applications from the website, approve or reject, contracts, invoices, account managers.
+- **Customers**: search and view every customer, their cards and permits.
+- **VORNX team**: invite colleagues by email, change roles, suspend. The last super admin is protected.
+- Website messages, support, notifications, audit log.
+
+### 🌐 Public website
+- The landing page with a live **adaptive card demo**, the partner application form and the contact form.
+
+## 📍 The Adaptive Card
+
+```mermaid
+flowchart TD
+    A[📱 Phone location<br/>watchPosition] --> B[Distance to each permit's site<br/>haversine]
+    B --> C{Within 500 m?}
+    C -- Yes --> D[Card turns into that place<br/>art · name · code]
+    C -- No --> E[The VORNX card<br/>no code shown]
+    E --> F[👆 Hold the card]
+    D --> F
+    F --> G[🎡 Code wheel<br/>your added cards + add new]
+    G --> H[Code under the card]
+```
+
+- The location **never leaves the phone**. Distances are computed on the device.
+- The code shows **only when it is needed**: near a place, or when you pick one from the wheel.
+- Linear barcodes (Code 128, EAN...) and 2-D codes (QR, Aztec, PDF417) are drawn as sharp SVG.
+
+## 🔐 Security
+
+| Area | How |
+|---|---|
+| 🔑 **Sessions** | Short JWT access tokens + rotating refresh tokens; all tabs share one session through a Web Lock |
+| 👤 **Face ID / fingerprint** | Passkeys (WebAuthn, Yubico): only the public key is stored, and it can't be phished |
+| 📧 **Two-step login** | A 6-digit code by email or SMS (Firebase), or an authenticator app (TOTP, encrypted with AES-GCM) |
+| 📲 **Phone verification** | A WhatsApp code at sign-up (UltraMsg) |
+| 💰 **Payments** | The wallet is credited only after the server fetches the invoice from Moyasar with the secret key; a row lock credits once |
+| 🚪 **Devices** | Readers and locks use their own `X-API-Key`, never a user token |
+| 🧾 **Audit** | Every admin and partner action is logged |
+| 🌐 **Frontends** | Strict Content-Security-Policy, Permissions-Policy, nginx security headers |
+| 🧂 **Secrets** | One-time tokens and codes are stored as hashes only |
+
+## 🔌 Integrations
+
+| Service | Used for | How |
+|---|---|---|
+| <img src="https://cdn.simpleicons.org/railway" width="18"> **Railway** | Hosting | The API, MySQL, three apps and the website, each a service from this repo |
+| 💳 **Moyasar** | Wallet top-up by card | Hosted invoice page; card details never touch VORNX |
+| <img src="https://cdn.simpleicons.org/brevo" width="18"> **Brevo** | Email | Transactional email through an outbox (verification, invites, receipts, security alerts) |
+| <img src="https://cdn.simpleicons.org/whatsapp" width="18"> **UltraMsg (WhatsApp)** | Phone verification | A code sent by WhatsApp at sign-up |
+| <img src="https://cdn.simpleicons.org/firebase" width="18"> **Firebase Phone Auth** | SMS login codes | The API checks the Firebase ID token's signature, project, age and phone |
+| 🔐 **WebAuthn (Yubico)** | Face ID / Touch ID / Windows Hello | `webauthn-server-core` checks every registration and sign-in |
+| 📷 **zxing-wasm** | Scanning and drawing barcodes | Runs on the phone, self-hosted, no data sent anywhere |
+
+## 🏗️ Architecture
+
+```mermaid
+flowchart LR
+    CU[📱 Customer app<br/>React PWA] --> API
+    PA[🏨 Partner portal<br/>React] --> API
+    AD[🛡️ Admin dashboard<br/>React] --> API
+    WS[🌐 Website<br/>HTML · CSS · JS] --> API
+    RD[🚪 Readers & locks] -- X-API-Key --> API
+    API[Spring Boot API<br/>JWT · roles · audit] --> DB[(MySQL<br/>Flyway)]
+    API --> MY[Moyasar]
+    API --> BR[Brevo email]
+    API --> UM[WhatsApp UltraMsg]
+    API --> FB[Firebase]
+    API -. WebSocket .-> CU
+    API -. WebSocket .-> PA
+    API -. WebSocket .-> AD
+```
 
 | Path | Who | Auth |
 |---|---|---|
-| `/api/public/**` | anyone (login, sign-up, password reset) | none |
-| `/api/admin/**` | VORNX team (admin dashboard) | JWT, `TYPE_ADMIN` |
-| `/api/partner/**` | partner staff (hotels, clubs, venues...) | JWT, `TYPE_PARTNER_USER` |
-| `/api/customer/**` | card holders (customer app) | JWT, `TYPE_CUSTOMER` |
-| `/api/devices/**` | readers and locks | `X-API-Key` header |
+| `/api/public/**` | anyone (login, sign-up, password reset, website forms) | none |
+| `/api/admin/**` | VORNX team | JWT, `TYPE_ADMIN` |
+| `/api/partner/**` | partner staff | JWT, `TYPE_PARTNER_USER` |
+| `/api/customer/**` | card holders | JWT, `TYPE_CUSTOMER` |
+| `/api/devices/**` | readers and locks | `X-API-Key` |
+| `/ws` | the three apps | access token in the first message |
 
-## Modules (`src/main/java/com/example/vornx`)
+## 🚪 The Access Decision
 
-`security` (login, sessions, refresh tokens, passwords) · `platform` (admins) · `partner` · `access`
-(sites, access points, permits, **the access decision engine**) · `customer` (customers, cards) · `wallet` ·
-`subscription` · `events` · `billing` · `support` · `notification` · `audit` (activity log) · `email` (outbox)
-
-## Run locally
-
-1. Start MySQL/MariaDB (e.g. XAMPP) and create the database `vornx_db`.
-2. Create `src/main/resources/application-local.properties` (it is git-ignored):
-   ```properties
-   spring.datasource.username=root
-   spring.datasource.password=
-   vornx.jwt.secret=<base64, at least 32 bytes>
-   vornx.bootstrap.admin-email=admin@vornx.sa
-   vornx.bootstrap.admin-password=<choose one>
-   vornx.mail.mode=preview
-   vornx.wallet.simulated-top-up-enabled=true
-   springdoc.api-docs.enabled=true
-   springdoc.swagger-ui.enabled=true
-   ```
-3. Run `VornxApplication` (or `./mvnw spring-boot:run`). Flyway creates all tables.
-4. Swagger UI: http://localhost:8080/swagger-ui.html
-
-## Deploy (Railway)
-
-Built from the `Dockerfile`; health check `/actuator/health` (see `railway.json`).
-
-| Variable | Example / note |
-|---|---|
-| `SPRING_PROFILES_ACTIVE` | `prod` |
-| `DB_URL` | `jdbc:mysql://${{MySQL.MYSQLHOST}}:${{MySQL.MYSQLPORT}}/${{MySQL.MYSQLDATABASE}}?allowPublicKeyRetrieval=true&useSSL=false` |
-| `DB_USERNAME` / `DB_PASSWORD` | `${{MySQL.MYSQLUSER}}` / `${{MySQL.MYSQLPASSWORD}}` |
-| `JWT_SECRET` | random, base64, ≥ 32 bytes — **never reuse the local one** |
-| `BOOTSTRAP_ADMIN_EMAIL` / `BOOTSTRAP_ADMIN_PASSWORD` | first SUPER_ADMIN (created only if there is none) |
-| `CORS_ALLOWED_ORIGINS` | the frontends' URLs, comma-separated |
-| `MAIL_MODE` | `brevo` (HTTPS API, recommended on Railway), `smtp`, or `preview` |
-| `BREVO_API_KEY`, `MAIL_FROM` | Brevo API key (`xkeysib-...`) and a sender verified in Brevo, e.g. `VORNX <no-reply@vornx.sa>` |
-| `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD` | only for `MAIL_MODE=smtp` |
-| `ADMIN_URL`, `PARTNER_URL`, `CUSTOMER_URL` | used in email links |
-| `API_DOCS_ENABLED` | `false` in production (default) |
-
-## How partners and admins get accounts
-
-- **Admins:** never public sign-up. The first SUPER_ADMIN comes from `BOOTSTRAP_ADMIN_*`. After that, a SUPER_ADMIN
-  invites colleagues from "فريق VORNX" (`/api/admin/team`):
-  - The invitee gets an email link (3 days, works once) to `/accept-invite` on the admin dashboard, chooses a password and is logged in.
-  - A SUPER_ADMIN can change roles, suspend (ends their sessions and cancels a pending invite) and resend an invite.
-  - Nobody can change themselves, and the last active SUPER_ADMIN can't be demoted or suspended.
-- **Partners apply on the website ("انضم كشريك"):**
-  - The form asks for company, CR number, sector, city and a contact. It posts to `POST /api/public/partner-applications`,
-    protected by a honeypot field, 3 per IP per hour and 3 per email per day, and one open application per CR.
-  - The applicant gets a confirmation email, and admins get a notification. The application waits in the admin
-    dashboard under "طلبات الانضمام", with a badge.
-  - **Approve:** creates the partner (ONBOARDING, with you as account manager) and emails the contact a PARTNER_ADMIN
-    invite to set a password. Then add the contract under "الجهات".
-  - **Reject:** a reason is required and is emailed to the applicant.
-
-## Demo data (to present the user flow)
-
-`DEMO_SEED=true` creates, once, three partners with real-looking data: a hotel group (2 hotels, rooms, guest keys),
-a sports club (plans, an active and a pending membership), a conference center (2 published events). Plus contracts,
-6 months of invoices (one overdue), staff, 3 customers with cards, wallet money, tickets, and 7 days of door activity.
-
-| Variable (API) | Value |
-|---|---|
-| `DEMO_SEED` | `true` for one deploy, then remove it (a second run does nothing anyway) |
-| `DEMO_EMAIL` | **your** inbox. Demo accounts use aliases of it (`you+khalid@gmail.com`), so customer login codes reach you |
-| `DEMO_PASSWORD` | the password of every demo account (10+ characters; a secret, only in Railway) |
-
-Accounts: partners `+hotel` (PARTNER_ADMIN), `+frontdesk` (FRONT_DESK), `+club`, `+events`; customers `+khalid`,
-`+noura`, `+sarah`. Everything runs in one transaction; invoices are created for the demo contracts only.
-
-## Admin dashboard (`frontend/admin`)
-
-React 19 + TypeScript + Vite, TanStack Query, React Router. Arabic (RTL) UI from the `index 55` design, light/dark.
-
-```bash
-cd frontend/admin
-npm install
-npm run dev        # http://localhost:5173 (calls the API on http://localhost:8080)
-npm run build      # type-check + production build into dist/
+```mermaid
+sequenceDiagram
+    participant C as 💳 Card / phone
+    participant R as 🚪 Reader
+    participant A as VORNX API
+    participant P as 🏨 Partner portal
+    C->>R: Tap / show code
+    R->>A: POST /api/devices/access-decisions (X-API-Key)
+    A->>A: Card active? Permit for this access point?
+    A->>A: Valid now? Not suspended?
+    A-->>R: ✅ Allow or ⛔ Deny (with the reason)
+    A->>A: Save the access decision
+    A-)P: WebSocket "access-event"
+    Note over P: Live door activity updates instantly
 ```
 
-Railway: a second service from this repo with **Root Directory** `/frontend/admin` and
-**Config file** `/frontend/admin/railway.json`; variable `VITE_API_URL=https://<api domain>`.
-Served by nginx with a strict Content-Security-Policy. Then set the API's `CORS_ALLOWED_ORIGINS`
-and `ADMIN_URL` to the dashboard's domain.
+## 🗄️ Data Model
 
-## Partner portal (`frontend/partner`)
+The core classes (out of 36 entities):
 
-Same stack and look as the admin dashboard, from the `hotel.html` design. For partner staff: overview,
-live door activity (refreshes every 5 s), permits / digital keys, subscription requests, sites and access
-points, plans, events and tickets, contract and invoices, team and device API keys, support, activity log.
-Buttons are hidden by role (`PARTNER_ADMIN`, `MANAGER`, `FRONT_DESK`, `VIEWER`); the API enforces the same rules.
+```mermaid
+classDiagram
+direction TB
+class Partner {
+  name
+  sector
+  status
+}
+class Site {
+  name
+  latitude
+  longitude
+}
+class AccessPoint {
+  name
+}
+class ApiKey {
+  keyPrefix
+  keyHash
+}
+class Customer {
+  firstName
+  lastName
+}
+class Card {
+  cardNumber
+  status
+}
+class Permit {
+  type
+  validFrom
+  validUntil
+  status
+}
+class AccessDecision {
+  decision
+  denyReason
+  occurredAt
+}
+class SubscriptionPlan {
+  price
+  billingPeriod
+}
+class Subscription {
+  status
+}
+class Event {
+  title
+  startsAt
+}
+class EventTicket {
+  status
+}
+class Wallet {
+  balance
+}
+class CustomerPass {
+  name
+  code
+  format
+}
+class Passkey {
+  credentialId
+  publicKeyCose
+}
 
-```bash
-cd frontend/partner
-npm install
-npm run dev        # http://localhost:5174
+Partner "1" *-- "*" Site
+Site "1" *-- "*" AccessPoint
+Partner "1" -- "*" ApiKey : readers
+Customer "1" -- "*" Card
+Customer "1" -- "1" Wallet
+Customer "1" -- "*" Permit
+Permit "*" -- "1" Site
+Permit "*" -- "*" AccessPoint
+AccessPoint "1" -- "*" AccessDecision
+Card "1" -- "*" AccessDecision
+Permit "1" -- "*" AccessDecision
+Partner "1" -- "*" SubscriptionPlan
+SubscriptionPlan "1" -- "*" Subscription
+Subscription --> Permit : grants
+Partner "1" -- "*" Event
+Event "1" -- "*" EventTicket
+Customer "1" -- "*" EventTicket
+Customer "1" -- "*" CustomerPass
+Customer "1" -- "*" Passkey
 ```
 
-Pages opened from emails: `/accept-invite?token=…` (new staff), `/reset-password?token=…`, `/billing`.
+## 📁 Project Structure
 
-Railway: a third service, **Root Directory** `/frontend/partner`, **Config file** `/frontend/partner/railway.json`,
-variable `VITE_API_URL=https://<api domain>`. Then add its domain to the API's `CORS_ALLOWED_ORIGINS`
-(comma-separated) and set `PARTNER_URL` to it, so invite and reset links point to the portal.
-
-## Customer app (`frontend/customer`)
-
-The card holder's web app, from the `index_76.html` design: light by default, sidebar on desktop, bottom tab bar
-on phones. Sign up / log in, the VORNX card (report lost), permits with "open the door from my phone",
-subscriptions and the plan catalog, events and tickets, wallet (top-up, transfers), access log, account and devices.
-
-```bash
-cd frontend/customer
-npm install
-npm run dev        # http://localhost:5175
+```
+Vornx
+├── src/main/java/com/example/vornx
+│   ├── access         # sites, access points, permits, the access decision engine
+│   ├── security       # JWT, sessions, passwords, OTP, TOTP, passkeys, devices
+│   ├── platform       # admins, team invites, customers view
+│   ├── partner        # partners, applications, staff
+│   ├── customer       # customers and cards
+│   ├── pass           # cards the customer adds (scan to add)
+│   ├── wallet         # balance, top-up, transfers
+│   ├── payment        # Moyasar
+│   ├── subscription   # plans and subscriptions
+│   ├── events         # events and tickets
+│   ├── billing        # contracts and invoices
+│   ├── realtime       # WebSocket hub
+│   ├── notification · audit · email · whatsapp · support · inquiry
+│   └── demo           # demo data seeder
+├── src/main/resources/db/migration   # Flyway V1..V17
+├── frontend
+│   ├── customer       # React PWA: the adaptive card, wheel, scanner, wallet
+│   ├── partner        # React: partner portal
+│   ├── admin          # React: admin dashboard
+│   └── site           # public website (plain HTML/CSS/JS)
+└── docs               # operations guide, brand
 ```
 
-Railway: a fourth service, **Root Directory** `/frontend/customer`, **Config file** `/frontend/customer/railway.json`,
-variable `VITE_API_URL=https://<api domain>`. Add its domain to the API's `CORS_ALLOWED_ORIGINS` and set `CUSTOMER_URL`.
+## 🚀 Getting Started
 
-**Arabic / English (customer app).** Every text goes through `tr()` (`src/i18n`), with the Arabic text as the key:
-`tr('تسجيل الدخول')`, variables as `tr('قبل {0} د', { 0: m })`. The English is in `src/i18n/en.ts`; a missing
-translation shows the Arabic and warns in the dev console. The "English / العربية" button saves the choice on the
-device and reloads; the page flips to left-to-right (the CSS uses logical properties). The terms and privacy pages have
-separate English versions in `LegalPages.tsx`: change both languages together.
+**Requirements:** Java 21, MySQL 8 / MariaDB (e.g. XAMPP), Node 20+.
 
-All three frontends share one refresh token per browser (localStorage) and refresh it under a Web Lock, so several
-open tabs never log each other out.
+### Backend
 
-## Card payments (Moyasar)
+```bash
+git clone https://github.com/gTurki/Vornx.git
+cd Vornx
+./mvnw spring-boot:run
+```
 
-Wallet top-up by card goes through Moyasar's **hosted invoice page**: the backend creates an invoice, the app sends
-the customer to Moyasar (mada, Visa, Mastercard, Apple Pay), and Moyasar sends them back to `/wallet?topup=TU-…`.
-Card details never touch VORNX. Plans and events are then paid from the wallet.
+Create the database `vornx_db` and an `src/main/resources/application-local.properties` (git-ignored):
 
-The wallet is credited only after the backend **fetches the invoice from Moyasar with the secret key** and it is
-`paid` with the exact amount and currency - never from the browser's URL or the callback's body. Three triggers
-(return page, Moyasar's callback, a job every minute) can check at once; a row lock makes it credit once.
+```properties
+spring.datasource.username=root
+spring.datasource.password=
+vornx.jwt.secret=<base64, at least 32 bytes>
+vornx.bootstrap.admin-email=admin@vornx.sa
+vornx.bootstrap.admin-password=<choose one>
+vornx.mail.mode=preview
+vornx.wallet.simulated-top-up-enabled=true
+springdoc.api-docs.enabled=true
+springdoc.swagger-ui.enabled=true
+```
 
-| Variable (API service) | Value |
+Flyway creates every table. Swagger UI: http://localhost:8080/swagger-ui.html
+
+### Frontends
+
+```bash
+cd frontend/admin    && npm install && npm run dev   # http://localhost:5173
+cd frontend/partner  && npm install && npm run dev   # http://localhost:5174
+cd frontend/customer && npm install && npm run dev   # http://localhost:5175
+```
+
+The website (`frontend/site`) is plain HTML: open it with any static server.
+
+### Tests
+
+```bash
+./mvnw test    # 117 tests
+```
+
+📘 **Deployment, environment variables, payments, login codes, passkeys and demo data:
+[docs/OPERATIONS.md](docs/OPERATIONS.md)**
+
+## 📊 API Overview
+
+**159 endpoints across 39 controllers.** Swagger UI lists every one when `springdoc` is on (off in production).
+
+| Portal | Main areas |
 |---|---|
-| `MOYASAR_SECRET_KEY` | `sk_test_…` while testing, `sk_live_…` when going live. Empty = card top-up off |
-| `MOYASAR_CALLBACK_URL` | `https://<api domain>/api/public/payments/moyasar/callback` |
+| 🌐 **Public** | Sign-up, login (password, code, passkey), password reset, partner applications, website inquiries, Moyasar callback |
+| 💳 **Customer** | Card, permits (open the door), added cards, subscriptions, events and tickets, wallet, access log, security (TOTP, passkeys, devices) |
+| 🏨 **Partner** | Overview, live activity, permits and keys, requests, sites and access points, plans, events, billing, team, device keys, support |
+| 🛡️ **Admin** | Partners and applications, contracts and invoices, customers, VORNX team, inquiries, support, notifications, audit |
+| 🚪 **Devices** | The access decision for readers and locks |
 
-Local development without a key keeps the instant simulated top-up (`vornx.wallet.simulated-top-up-enabled=true`).
+## 👥 Team
 
-## Real-time updates (WebSocket)
+<table>
+  <tr>
+    <td align="center" width="50%" valign="top">
+      <a href="https://github.com/gTurki"><img src="https://github.com/gTurki.png" width="110" alt="Turki"><br><b>Turki Alghamdi</b></a><br>
+      <sub>👑 Founder</sub><br><sub>Backend & Frontend</sub><br><br>
+      <sub>The idea, the API, security, payments, the access engine, the four apps and the website</sub>
+    </td>
+    <td align="center" width="50%" valign="top">
+      <a href="https://github.com/raghada30"><img src="https://github.com/raghada30.png" width="110" alt="Raghad"><br><b>Raghad Alaqeel</b></a><br>
+      <sub>🎨 UI / UX Designer</sub><br><sub>Design & Brand</sub><br><br>
+      <sub>The interface and user experience, the visual design, the colors and the look of VORNX</sub>
+    </td>
+  </tr>
+</table>
 
-`wss://<api>/ws`: the three apps keep one WebSocket open while logged in. The first message carries the access
-token (never the URL); the server closes the socket when the token expires (code 4401) and the app refreshes
-and reconnects. Pushes are sent only after the database commit:
+---
 
-| Event | Who gets it | What the app does |
-|---|---|---|
-| `notification` | the recipient (customer / partner team / all admins) | toast + reload what's on screen |
-| `access-event` | the partner's team | "التشغيل المباشر" updates instantly |
+<div align="center">
 
-Handshakes are accepted only from the CORS origins. The hub is in memory: fine for one API instance;
-with several, add Redis pub/sub between `RealtimeRelay` and `RealtimeHub`.
+<img src="docs/brand/icon.png" width="56" alt="VORNX icon">
 
-## Public website (`frontend/site`)
+<sub><b>VORNX</b> · بطاقة واحدة.. لكل مكان</sub><br>
+<sub>Made with ❤️ by Turki and Raghad</sub>
 
-The landing page from `index_77 معدل.html`, as plain HTML/CSS/JS (no build tool), served by nginx with the same
-strict CSP. Its contact form posts to `POST /api/public/inquiries` (honeypot + 5/hour per IP + 3/day per email);
-inquiries appear live in the admin dashboard under "رسائل الموقع".
-
-Railway: a fifth service, **Root Directory** `/frontend/site`, **Config file** `/frontend/site/railway.json`, variables
-`VITE_API_URL` (the API), `VORNX_APP_URL` (customer app) and `VORNX_PARTNER_URL` (partner portal).
-Add the site's domain to the API's `CORS_ALLOWED_ORIGINS`.
-
-## Two-step customer login
-
-After the right password, the customer gets a 6-digit code (by email for now) and types it in the app.
-
-1. `POST /api/public/auth/customer/login`: **202** + `challengeToken` (a code was sent), or 200 + tokens when turned off.
-2. `POST /api/public/auth/customer/login/verify` `{challengeToken, code}` gives the tokens.
-3. `POST /api/public/auth/customer/login/resend` `{challengeToken}` sends a new code (once a minute, 3 sends max).
-
-Rules: a code works for 5 minutes, and only once. After 5 wrong codes the customer must enter the password again. An account can start at most 5 logins per 15 minutes. Only hashes are stored.
-
-Railway variable `CUSTOMER_LOGIN_CODE`: `sms`, `email` (default) or `off`.
-In development (`vornx.dev.expose-tokens=true`) the email code is also returned as `devCode` and prefilled in the app.
-
-### SMS codes (Firebase phone auth)
-
-With `sms`, the challenge has `channel: SMS` and the customer's full `phoneNumber`.
-- The app asks Firebase to text the code; the customer types it.
-- The app sends Firebase's ID token to `POST /api/public/auth/customer/login/verify-phone`.
-- The API checks the token's Google signature, project, freshness (5 min) and that its phone is the account's.
-- `/resend` switches the same login to email: one tap, or automatically when SMS can't be sent.
-
-Variables:
-- API: `CUSTOMER_LOGIN_CODE=sms`, `FIREBASE_PROJECT_ID` (the API refuses to start in sms mode without it).
-- Customer app (build time; without them the app falls back to email):
-  `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_APP_ID`.
-
-Firebase console:
-- Blaze plan.
-- Phone sign-in on.
-- SMS region policy: allow Saudi Arabia only.
-- The customer domain under Authorized domains.
-- A budget alert in Google Cloud Billing.
-
-## Sign-up: terms, email code, WhatsApp code
-
-1. `POST /customer/register` needs `acceptTerms: true` (the version, `customer.Legal.TERMS_VERSION`, and the time
-   are stored). It answers **202** with a `SIGNUP` challenge: the code is emailed; `/customer/login/verify` confirms
-   the email and logs in. Until the email is confirmed, every login asks for an email code (even with
-   `CUSTOMER_LOGIN_CODE=off`); a password reset also confirms it.
-2. With `CUSTOMER_PHONE_VERIFICATION=whatsapp`, the customer then confirms the mobile with a code sent by WhatsApp
-   through [UltraMsg](https://ultramsg.com): `POST /api/customer/phone-verification`, then `/confirm`
-   (`/resend` once a minute). Until then the other `/api/customer/**` endpoints answer **403 PHONE_NOT_VERIFIED**
-   and the app shows only that step. A mobile code can never log in, and a login code can never confirm a mobile.
-
-The terms and privacy policy are pages of the customer app: `/terms` and `/privacy`.
-
-Variables (API):
-- `CUSTOMER_PHONE_VERIFICATION`: `whatsapp` or `off` (default).
-- `ULTRAMSG_INSTANCE_ID`, `ULTRAMSG_TOKEN` (the token is secret). The API refuses to start with `whatsapp` and
-  without them (in development the message is only logged and the code returned as `devCode`).
-
-## Authenticator app (optional, per customer)
-
-In "حسابي" the customer can turn on Google / Microsoft Authenticator (TOTP, RFC 6238). Then the login's second step
-is the app's code instead of the email code, and 10 one-time recovery codes are shown once.
-- `/api/customer/security/totp`: `GET` status, `POST /setup` (secret + `otpauth://` URI, drawn as a QR code in
-  the browser), `POST /enable {code}` (returns the recovery codes), `POST /disable {password}`.
-- A code works once (the last used 30-second step is stored); a recovery code works once.
-- The secret is stored encrypted (AES-GCM). Key: `TOTP_ENCRYPTION_KEY` (base64 of 32 random bytes, e.g.
-  `openssl rand -base64 32`); without it, a key derived from `JWT_SECRET`. **Choose it once**: changing it later
-  (or changing `JWT_SECRET` while it is unset) breaks the apps already set up.
-
-## Face ID / fingerprint sign-in (passkeys, optional, per customer)
-
-In "حسابي" > الأمان the customer adds the device ("إضافة هذا الجهاز"): Face ID / Touch ID / fingerprint / Windows Hello
-creates a key pair on the phone, and only the PUBLIC key is stored (`passkeys`). The login page then shows
-"الدخول بـ Face ID": no email, no password and no email code (the passkey already proves the phone AND the person,
-and can't be phished: the phone only signs for our domain). Yubico's `webauthn-server-core` checks everything.
-- Add: `POST /api/customer/passkeys/options` -> `navigator.credentials.create()` -> `POST /api/customer/passkeys`.
-  `GET` lists the devices, `DELETE /{id}` removes one. Adding or removing sends a security email.
-- Sign in: `POST /api/public/auth/customer/passkey/options` -> `navigator.credentials.get()` ->
-  `POST /api/public/auth/customer/passkey/login` (tokens). A challenge works once, for 5 minutes; 30 per IP / 10 min.
-- **Domain:** a passkey works only on the domain it was made on. By default that's the host of `CUSTOMER_URL`.
-  When the customer app moves to its own domain (e.g. `my.vornx.sa`), set `PASSKEY_RP_ID` / `PASSKEY_ORIGINS`;
-  passkeys made on the old domain stop working, and customers add their device again after a password sign-in.
+</div>
