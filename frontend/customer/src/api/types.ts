@@ -18,7 +18,7 @@ export type LoginChallenge = {
   challengeToken: string
   channel: 'EMAIL' | 'SMS' | 'TOTP' | 'WHATSAPP'
   purpose: 'LOGIN' | 'SIGNUP' | 'PHONE'
-  destination?: string  // masked, e.g. "tr•••7@gmail.com" or "+966 5•••••233" (none for TOTP)
+  destination?: string  // masked, e.g. "tu•••o@example.com" or "+966 5•••••233" (none for TOTP)
   phoneNumber?: string  // SMS only: the full number Firebase texts
   codeExpiresIn: number // seconds
   resendIn: number      // seconds before "send again"

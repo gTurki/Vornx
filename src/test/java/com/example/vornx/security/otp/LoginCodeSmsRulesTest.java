@@ -62,7 +62,7 @@ class LoginCodeSmsRulesTest {
     private LoginCodeService sms(Instant now, String phone) {
         CustomerService customers = mock(CustomerService.class);
         Customer c = mock(Customer.class);
-        when(c.getEmail()).thenReturn("trroky007@gmail.com");
+        when(c.getEmail()).thenReturn("turki.demo@example.com");
         when(c.getFirstName()).thenReturn("Turki");
         when(c.getPhone()).thenReturn(phone);
         when(c.isEmailVerified()).thenReturn(true);
@@ -121,9 +121,9 @@ class LoginCodeSmsRulesTest {
 
         LoginChallengeResponse byEmail = sms(T0.plusSeconds(10), "0551112233").resend(r.challengeToken()); // no 60 s wait
         assertEquals(LoginCodeChannel.EMAIL, byEmail.channel());
-        assertEquals("tr•••7@gmail.com", byEmail.destination());
+        assertEquals("tu•••o@example.com", byEmail.destination());
         assertNull(byEmail.phoneNumber());
-        verify(email).queue(eq("trroky007@gmail.com"), eq(EmailType.LOGIN_CODE), any());
+        verify(email).queue(eq("turki.demo@example.com"), eq(EmailType.LOGIN_CODE), any());
 
         // the Firebase route is closed now
         assertEquals("PHONE_VERIFICATION_FAILED", assertThrows(BusinessException.class,

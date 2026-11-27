@@ -43,6 +43,11 @@
 
 <br>
 
+🥈 **Silver medal at the Saif Hackathon**<br>
+<sub>120,000+ registered · 55+ nationalities · only 1,200 teams reached the finals</sub>
+
+<br>
+
 **159 endpoints · 39 controllers · 36 entities · 4 apps + a website · 117 tests**
 
 </div>
@@ -414,15 +419,23 @@ The website (`frontend/site`) is plain HTML: open it with any static server.
 
 ## 👥 Team
 
+🥈 **Silver medal at the Saif Hackathon**: more than 120,000 people from 55+ nationalities registered, only 1,200 teams
+reached the finals, and VORNX won silver.
+
 <table>
   <tr>
-    <td align="center" width="50%" valign="top">
-      <a href="https://github.com/gTurki"><img src="https://github.com/gTurki.png" width="110" alt="Turki"><br><b>Turki Alghamdi</b></a><br>
-      <sub>👑 Founder</sub><br><sub>Backend & Frontend</sub><br><br>
-      <sub>The idea, the API, security, payments, the access engine, the four apps and the website</sub>
+    <td align="center" width="33%" valign="top">
+      <img src="docs/team/reyof.svg" width="110" alt="Reyof"><br><b>Reyof Mofreh Alajam</b><br>
+      <sub>💡 The Idea</sub><br><sub>&nbsp;</sub><br><br>
+      <sub>Came up with VORNX: one card for every place</sub>
     </td>
-    <td align="center" width="50%" valign="top">
-      <a href="https://github.com/raghada30"><img src="https://github.com/raghada30.png" width="110" alt="Raghad"><br><b>Raghad Alaqeel</b></a><br>
+    <td align="center" width="33%" valign="top">
+      <a href="https://github.com/gTurki"><img src="https://github.com/gTurki.png" width="110" alt="Turki"><br><b>Turki Abdullah Alghamdi</b></a><br>
+      <sub>🛠️ Lead Developer</sub><br><sub>Backend & Frontend</sub><br><br>
+      <sub>Developed the idea and created <b>the adaptive card</b> (البطاقة التكيفية) that changes its code by your location. Built the API, security, payments, the access engine, the four apps and the website</sub>
+    </td>
+    <td align="center" width="33%" valign="top">
+      <a href="https://github.com/raghada30"><img src="https://github.com/raghada30.png" width="110" alt="Raghad"><br><b>Raghad Ali Alaqeel</b></a><br>
       <sub>🎨 UI / UX Designer</sub><br><sub>Design & Brand</sub><br><br>
       <sub>The interface and user experience, the visual design, the colors and the look of VORNX</sub>
     </td>
@@ -436,6 +449,6 @@ The website (`frontend/site`) is plain HTML: open it with any static server.
 <img src="docs/brand/icon.png" width="56" alt="VORNX icon">
 
 <sub><b>VORNX</b> · بطاقة واحدة.. لكل مكان</sub><br>
-<sub>Made with ❤️ by Turki and Raghad</sub>
+<sub>Made with ❤️ by Reyof, Turki and Raghad</sub>
 
 </div>

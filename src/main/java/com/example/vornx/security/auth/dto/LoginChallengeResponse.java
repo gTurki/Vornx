@@ -13,7 +13,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
  *              POST /customer/login/verify-phone. "Send by email instead" = /resend.
  *  - WHATSAPP: (purpose PHONE) POST /api/customer/phone-verification/confirm with the code from WhatsApp.
  *  - purpose:        LOGIN, SIGNUP or PHONE
- *  - destination:    masked, e.g. "tr•••7@gmail.com" or "+966 5•••••233" (absent for TOTP)
+ *  - destination:    masked, e.g. "tu•••o@example.com" or "+966 5•••••233" (absent for TOTP)
  *  - phoneNumber:    SMS only, full E.164 number: Firebase needs it to send the SMS
  *  - codeExpiresIn:  seconds this code works
  *  - resendIn:       seconds before "send again" is allowed

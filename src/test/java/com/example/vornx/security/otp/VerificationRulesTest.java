@@ -63,7 +63,7 @@ class VerificationRulesTest {
         totp = mock(TotpService.class);
         policy = mock(PhoneVerificationPolicy.class);
         when(policy.isEnabled()).thenReturn(true);
-        customer = new Customer("VX1", "Turki", "A", "0551112233", "trroky007@gmail.com", "hash", Language.AR);
+        customer = new Customer("VX1", "Turki", "A", "0551112233", "turki.demo@example.com", "hash", Language.AR);
         when(repository.save(any())).thenAnswer(i -> {
             LoginChallenge c = i.getArgument(0);
             stored.put(c.getTokenHash(), c);
@@ -89,12 +89,12 @@ class VerificationRulesTest {
         LoginChallengeResponse r = at(T0).startSignup(7L, null);
         assertEquals(LoginCodeChannel.EMAIL, r.channel());
         assertEquals(CodePurpose.SIGNUP, r.purpose());
-        verify(email).queue(eq("trroky007@gmail.com"), eq(EmailType.EMAIL_VERIFICATION), any());
+        verify(email).queue(eq("turki.demo@example.com"), eq(EmailType.EMAIL_VERIFICATION), any());
         verify(email, never()).queue(anyString(), eq(EmailType.CUSTOMER_WELCOME), any());
 
         at(T0.plusSeconds(20)).verify(r.challengeToken(), r.devCode());
         assertTrue(customer.isEmailVerified());
-        verify(email).queue(eq("trroky007@gmail.com"), eq(EmailType.CUSTOMER_WELCOME), any());
+        verify(email).queue(eq("turki.demo@example.com"), eq(EmailType.CUSTOMER_WELCOME), any());
     }
 
     @Test

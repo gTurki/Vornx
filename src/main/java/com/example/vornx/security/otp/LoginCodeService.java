@@ -449,7 +449,7 @@ public class LoginCodeService {
         return e164.substring(0, 4) + " " + e164.charAt(4) + "•••••" + e164.substring(e164.length() - 3);
     }
 
-    /** "trroky007@gmail.com" -> "tr•••7@gmail.com": enough to recognize, not enough to harvest. */
+    /** "turki.demo@example.com" -> "tu•••o@example.com": enough to recognize, not enough to harvest. */
     static String maskEmail(String email) {
         int at = email.indexOf('@');
         if (at <= 0) {

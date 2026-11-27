@@ -180,7 +180,7 @@ public class DemoDataSeeder implements ApplicationRunner {
         });
     }
 
-    /** "reyofalajam2@gmail.com" -> "re***@gmail.com": the logs don't need full addresses. */
+    /** "someone@example.com" -> "so***@example.com": the logs don't need full addresses. */
     static String mask(String email) {
         int at = email.indexOf('@');
         return (at <= 2 ? email.substring(0, Math.max(at, 0)) : email.substring(0, 2)) + "***" + email.substring(Math.max(at, 0));

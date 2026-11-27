@@ -65,7 +65,7 @@ class LoginCodeRulesTest {
     private LoginCodeService at(Instant now) {
         CustomerService customers = mock(CustomerService.class);
         Customer c = mock(Customer.class);
-        when(c.getEmail()).thenReturn("trroky007@gmail.com");
+        when(c.getEmail()).thenReturn("turki.demo@example.com");
         when(c.getFirstName()).thenReturn("Turki");
         when(customers.getEntity(anyLong())).thenReturn(c);
         return new LoginCodeService(repository, customers, mock(PartnerUserService.class), mock(AdminUserService.class),
@@ -82,8 +82,8 @@ class LoginCodeRulesTest {
     void rightCodeLogsInOnceOnly() {
         LoginChallengeResponse r = at(T0).start(UserType.CUSTOMER, 7L, "1.2.3.4");
         assertEquals("CODE_REQUIRED", r.status());
-        assertEquals("tr•••7@gmail.com", r.destination());
-        verify(email).queue(eq("trroky007@gmail.com"), eq(EmailType.LOGIN_CODE), any());
+        assertEquals("tu•••o@example.com", r.destination());
+        verify(email).queue(eq("turki.demo@example.com"), eq(EmailType.LOGIN_CODE), any());
         // only hashes are stored, never the token or the code
         assertEquals(SecureTokens.sha256(r.challengeToken()), stored.get().getTokenHash());
         assertTrue(!stored.get().getCodeHash().contains(r.devCode()));
@@ -173,7 +173,7 @@ class LoginCodeRulesTest {
 
     @Test
     void masksEmails() {
-        assertEquals("tr•••7@gmail.com", LoginCodeService.maskEmail("trroky007@gmail.com"));
+        assertEquals("tu•••o@example.com", LoginCodeService.maskEmail("turki.demo@example.com"));
         assertEquals("a•••@b.sa", LoginCodeService.maskEmail("ab@b.sa"));
         assertEquals("•••", LoginCodeService.maskEmail("broken"));
     }
