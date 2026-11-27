@@ -44,7 +44,7 @@
 <br>
 
 🥈 **Silver medal at the Saif Hackathon**<br>
-<sub>120,000+ registered · 55+ nationalities · only 1,200 teams reached the finals</sub>
+<sub>120,000+ registered · 90 nationalities · only 1,200 teams reached the finals</sub>
 
 <br>
 
@@ -419,7 +419,7 @@ The website (`frontend/site`) is plain HTML: open it with any static server.
 
 ## 👥 Team
 
-🥈 **Silver medal at the Saif Hackathon**: more than 120,000 people from 55+ nationalities registered, only 1,200 teams
+🥈 **Silver medal at the Saif Hackathon**: more than 120,000 people from 90 nationalities registered, only 1,200 teams
 reached the finals, and VORNX won silver.
 
 <table>
